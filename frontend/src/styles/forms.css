@@ -71,3 +71,44 @@
 .button--block {
   width: 100%;
 }
+
+.button--danger {
+  color: #fff;
+  background: var(--color-danger);
+}
+
+.button--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 85%, black);
+}
+
+select.field__input {
+  padding-right: var(--space-8);
+  background: var(--color-surface)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a8394' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")
+    no-repeat right var(--space-3) center;
+  appearance: none;
+}
+
+textarea.field__input {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.field__hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.field__required {
+  margin-left: 2px;
+  color: var(--color-danger);
+}
+
+.button--danger-text {
+  color: var(--color-danger);
+}
+
+.button--danger-text:hover {
+  background: var(--color-danger-subtle);
+}

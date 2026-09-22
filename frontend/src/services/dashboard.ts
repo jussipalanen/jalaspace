@@ -6,6 +6,7 @@ import type { Space } from '../types/space'
 import type { Tenant } from '../types/tenant'
 import { toIsoDate } from '../utils/date'
 import { getLeaseStatus } from './leases'
+import { calculateOccupancy, isOpenMaintenance } from './metrics'
 
 export interface DashboardInput {
   properties: Property[]
@@ -89,19 +90,12 @@ export function buildDashboardSummary(
   const spacesById = indexById(input.spaces)
   const tenantsById = indexById(input.tenants)
 
-  const occupiedSpaceCount = input.spaces.filter((s) => s.status === 'occupied').length
-  const unfinishedTasks = input.maintenance.filter((task) => task.status !== 'completed')
+  const unfinishedTasks = input.maintenance.filter(isOpenMaintenance)
 
   const stats: DashboardStats = {
     propertyCount: input.properties.length,
     cityCount: new Set(input.properties.map((p) => p.city.trim().toLowerCase())).size,
-    spaceCount: input.spaces.length,
-    availableSpaceCount: input.spaces.filter((s) => s.status === 'available').length,
-    occupiedSpaceCount,
-    occupancyPercent:
-      input.spaces.length === 0
-        ? null
-        : Math.round((occupiedSpaceCount / input.spaces.length) * 100),
+    ...calculateOccupancy(input.spaces),
     openMaintenanceCount: unfinishedTasks.length,
     highPriorityOpenCount: unfinishedTasks.filter((task) => task.priority === 'high').length,
   }

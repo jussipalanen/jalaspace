@@ -9,6 +9,7 @@ import { MaintenancePage } from './pages/MaintenancePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PropertiesPage } from './pages/PropertiesPage'
 import { PropertyDetailPage } from './pages/PropertyDetailPage'
+import { EditPropertyPage, NewPropertyPage } from './pages/PropertyFormPage'
 import { RouteErrorPage } from './pages/RouteErrorPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { SpacesPage } from './pages/SpacesPage'
@@ -35,6 +36,16 @@ export const routes: RouteObject[] = [
         children: [
           { index: true, element: <DashboardPage />, handle: handle('pages.dashboard.title') },
           { path: 'properties', element: <PropertiesPage />, handle: handle('pages.properties.title') },
+          {
+            path: 'properties/new',
+            element: <NewPropertyPage />,
+            handle: handle('pages.propertyNew.title'),
+          },
+          {
+            path: 'properties/:id/edit',
+            element: <EditPropertyPage />,
+            handle: handle('pages.propertyEdit.title'),
+          },
           {
             path: 'properties/:id',
             element: <PropertyDetailPage />,
