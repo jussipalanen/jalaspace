@@ -8,17 +8,15 @@ describe('validateLoginForm', () => {
 
   it('requires both fields', () => {
     expect(validateLoginForm({ email: '   ', password: '' })).toEqual({
-      email: 'Email is required.',
-      password: 'Password is required.',
+      email: 'required',
+      password: 'required',
     })
   })
 
   it.each(['demo', 'demo@', 'demo@jalaspace', 'de mo@jalaspace.app'])(
     'rejects the malformed email "%s"',
     (email) => {
-      expect(validateLoginForm({ email, password: 'demo' }).email).toBe(
-        'Enter a valid email address.',
-      )
+      expect(validateLoginForm({ email, password: 'demo' }).email).toBe('invalid')
     },
   )
 })

@@ -1,4 +1,6 @@
+import { useTranslation } from '../../i18n/useTranslation'
 import { LogOutIcon, MenuIcon } from '../icons'
+import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher'
 import './Header.css'
 
 interface HeaderProps {
@@ -27,13 +29,15 @@ export function Header({
   onMenuClick,
   onSignOut,
 }: HeaderProps) {
+  const { t } = useTranslation()
+
   return (
     <header className="header">
       <button
         type="button"
         className="icon-button header__menu"
         onClick={onMenuClick}
-        aria-label="Open navigation"
+        aria-label={t('nav.open')}
         aria-controls={sidebarId}
         aria-expanded={isSidebarOpen}
       >
@@ -43,7 +47,8 @@ export function Header({
       <p className="header__title">{title}</p>
 
       <div className="header__end">
-        <span className="badge">Demo</span>
+        <LanguageSwitcher />
+        <span className="badge header__badge">{t('app.demoBadge')}</span>
         <div className="header__user">
           <span className="header__avatar" aria-hidden="true">
             {getInitials(userName)}
@@ -54,8 +59,8 @@ export function Header({
           type="button"
           className="icon-button"
           onClick={onSignOut}
-          aria-label="Sign out"
-          title="Sign out"
+          aria-label={t('header.signOut')}
+          title={t('header.signOut')}
         >
           <LogOutIcon />
         </button>

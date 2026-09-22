@@ -1,10 +1,12 @@
 import { useEffect } from 'react'
 import { useRouteError } from 'react-router'
 import { EmptyState } from '../components/EmptyState/EmptyState'
+import { useTranslation } from '../i18n/useTranslation'
 
 /** Shown when rendering a route throws, so a single page error does not blank the app. */
 export function RouteErrorPage() {
   const error = useRouteError()
+  const { t } = useTranslation()
 
   useEffect(() => {
     if (import.meta.env.DEV) console.error(error)
@@ -13,15 +15,15 @@ export function RouteErrorPage() {
   return (
     <div className="route-error">
       <EmptyState
-        title="Something went wrong"
-        description="This page could not be displayed. Please try again."
+        title={t('pages.error.title')}
+        description={t('pages.error.description')}
       >
         <button
           type="button"
           className="button button--primary"
           onClick={() => window.location.reload()}
         >
-          Reload page
+          {t('pages.error.action')}
         </button>
       </EmptyState>
     </div>

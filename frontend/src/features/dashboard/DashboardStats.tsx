@@ -1,32 +1,40 @@
 import { StatCard } from '../../components/StatCard/StatCard'
+import { formatNumber, formatPercent } from '../../i18n/format'
+import { useTranslation } from '../../i18n/useTranslation'
 import type { DashboardStats as Stats } from '../../services/dashboard'
-import { formatCount } from '../../utils/format'
 
 export function DashboardStats({ stats }: { stats: Stats }) {
+  const { t, locale } = useTranslation()
+
   return (
-    <section aria-label="Key figures" className="dashboard__stats">
+    <section aria-label={t('dashboard.keyFigures')} className="dashboard__stats">
       <StatCard
-        label="Properties"
-        value={String(stats.propertyCount)}
-        detail={`In ${formatCount(stats.cityCount, 'city', 'cities')}`}
+        label={t('dashboard.stats.properties')}
+        value={formatNumber(stats.propertyCount, locale)}
+        detail={t('dashboard.stats.inCities', { count: stats.cityCount })}
         to="/properties"
       />
       <StatCard
-        label="Spaces"
-        value={String(stats.spaceCount)}
-        detail={`${stats.availableSpaceCount} available`}
+        label={t('dashboard.stats.spaces')}
+        value={formatNumber(stats.spaceCount, locale)}
+        detail={t('dashboard.stats.available', { count: stats.availableSpaceCount })}
         to="/units"
       />
       <StatCard
-        label="Occupancy"
-        value={stats.occupancyPercent === null ? '—' : `${stats.occupancyPercent}%`}
-        detail={`${stats.occupiedSpaceCount} of ${formatCount(stats.spaceCount, 'space')} occupied`}
+        label={t('dashboard.stats.occupancy')}
+        value={
+          stats.occupancyPercent === null ? '—' : formatPercent(stats.occupancyPercent, locale)
+        }
+        detail={t('dashboard.stats.spacesOccupied', {
+          occupied: stats.occupiedSpaceCount,
+          count: stats.spaceCount,
+        })}
         to="/units?status=occupied"
       />
       <StatCard
-        label="Open maintenance"
-        value={String(stats.openMaintenanceCount)}
-        detail={`${stats.highPriorityOpenCount} high priority`}
+        label={t('dashboard.stats.openMaintenance')}
+        value={formatNumber(stats.openMaintenanceCount, locale)}
+        detail={t('dashboard.stats.highPriority', { count: stats.highPriorityOpenCount })}
         to="/maintenance"
       />
     </section>

@@ -1,14 +1,13 @@
 import { Link } from 'react-router'
 import { EmptyState } from '../components/EmptyState/EmptyState'
+import { useTranslation } from '../i18n/useTranslation'
 
 export function NotFoundPage() {
+  const { t } = useTranslation()
   return (
-    <EmptyState
-      title="Page not found"
-      description="The page you are looking for does not exist or has been moved."
-    >
+    <EmptyState title={t('pages.notFound.title')} description={t('pages.notFound.description')}>
       <Link to="/" className="button button--primary">
-        Go to dashboard
+        {t('pages.notFound.action')}
       </Link>
     </EmptyState>
   )

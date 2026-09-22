@@ -11,29 +11,29 @@ import type { NavItem, NavSection } from '../types/navigation'
 
 export const mainNavigation: NavSection[] = [
   {
-    title: 'Overview',
-    items: [{ label: 'Dashboard', to: '/', icon: DashboardIcon, end: true }],
+    titleKey: 'nav.sections.overview',
+    items: [{ labelKey: 'nav.items.dashboard', to: '/', icon: DashboardIcon, end: true }],
   },
   {
-    title: 'Portfolio',
+    titleKey: 'nav.sections.portfolio',
     items: [
-      { label: 'Properties', to: '/properties', icon: BuildingIcon },
-      { label: 'Spaces', to: '/units', icon: LayoutGridIcon },
+      { labelKey: 'nav.items.properties', to: '/properties', icon: BuildingIcon },
+      { labelKey: 'nav.items.spaces', to: '/units', icon: LayoutGridIcon },
     ],
   },
   {
-    title: 'Operations',
-    items: [{ label: 'Maintenance', to: '/maintenance', icon: WrenchIcon }],
+    titleKey: 'nav.sections.operations',
+    items: [{ labelKey: 'nav.items.maintenance', to: '/maintenance', icon: WrenchIcon }],
   },
   {
-    title: 'Leasing',
+    titleKey: 'nav.sections.leasing',
     items: [
-      { label: 'Tenants', to: '/tenants', icon: UsersIcon },
-      { label: 'Leases', to: '/leases', icon: FileTextIcon },
+      { labelKey: 'nav.items.tenants', to: '/tenants', icon: UsersIcon },
+      { labelKey: 'nav.items.leases', to: '/leases', icon: FileTextIcon },
     ],
   },
 ]
 
 export const secondaryNavigation: NavItem[] = [
-  { label: 'Settings', to: '/settings', icon: SettingsIcon },
+  { labelKey: 'nav.items.settings', to: '/settings', icon: SettingsIcon },
 ]

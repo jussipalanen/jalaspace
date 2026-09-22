@@ -11,6 +11,12 @@
   max-width: 400px;
 }
 
+.login-page__language {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+
 .login-page__brand {
   display: flex;
   align-items: center;
@@ -77,11 +83,18 @@
   color: var(--color-text-strong);
 }
 
-.login-form__demo-text {
+.login-form__demo-credentials {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px var(--space-3);
   margin: var(--space-1) 0 0;
 }
 
-.login-form__demo-text code {
+.login-form__demo-credentials dd {
+  margin: 0;
+}
+
+.login-form__demo-credentials code {
   font-size: 0.95em;
 }
 

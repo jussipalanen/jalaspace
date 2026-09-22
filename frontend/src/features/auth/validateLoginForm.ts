@@ -1,6 +1,10 @@
 import type { LoginCredentials } from '../../types/auth'
 
-export type LoginFormErrors = Partial<Record<keyof LoginCredentials, string>>
+/** Error codes; the UI translates them (`auth.validation.<field>.<code>`). */
+export interface LoginFormErrors {
+  email?: 'required' | 'invalid'
+  password?: 'required'
+}
 
 // Intentionally simple: a basic shape check, not full RFC 5322 validation.
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -9,10 +13,10 @@ export function validateLoginForm({ email, password }: LoginCredentials): LoginF
   const errors: LoginFormErrors = {}
   const trimmedEmail = email.trim()
 
-  if (!trimmedEmail) errors.email = 'Email is required.'
-  else if (!EMAIL_PATTERN.test(trimmedEmail)) errors.email = 'Enter a valid email address.'
+  if (!trimmedEmail) errors.email = 'required'
+  else if (!EMAIL_PATTERN.test(trimmedEmail)) errors.email = 'invalid'
 
-  if (!password) errors.password = 'Password is required.'
+  if (!password) errors.password = 'required'
 
   return errors
 }

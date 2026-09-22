@@ -1,24 +1,29 @@
 import { Link } from 'react-router'
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge'
+import { formatArea } from '../../i18n/format'
+import { useTranslation } from '../../i18n/useTranslation'
 import { DASHBOARD_LIST_LIMIT, type AvailableSpaceSummary } from '../../services/dashboard'
-import { formatArea, formatDate } from '../../utils/format'
-import { spaceTypeLabels } from '../../utils/labels'
+import { formatDate } from '../../utils/format'
 import { DashboardPanel, MetaLine, PanelEmpty } from './DashboardPanel'
 
 export function AvailableSpaces({ items }: { items: AvailableSpaceSummary[] }) {
+  const { t, locale } = useTranslation()
   const visible = items.slice(0, DASHBOARD_LIST_LIMIT)
 
   return (
     <DashboardPanel
       id="available-spaces-title"
-      title="Available spaces"
+      title={t('dashboard.availableSpaces.title')}
       viewAll={{
         to: '/units?status=available',
-        label: items.length > visible.length ? `View all ${items.length}` : 'View all',
+        label:
+          items.length > visible.length
+            ? t('dashboard.viewAllCount', { count: items.length })
+            : t('dashboard.viewAll'),
       }}
     >
       {items.length === 0 ? (
-        <PanelEmpty>All spaces are occupied or in maintenance.</PanelEmpty>
+        <PanelEmpty>{t('dashboard.availableSpaces.empty')}</PanelEmpty>
       ) : (
         <ul className="dashboard-list">
           {visible.map(({ space, property, reservedFrom }) => (
@@ -35,17 +40,19 @@ export function AvailableSpaces({ items }: { items: AvailableSpaceSummary[] }) {
                 </p>
                 <MetaLine
                   parts={[
-                    spaceTypeLabels[space.type],
-                    `Floor ${space.floor}`,
-                    formatArea(space.areaM2),
+                    t(`space.type.${space.type}`),
+                    t('dashboard.availableSpaces.floor', { floor: space.floor }),
+                    formatArea(space.areaM2, locale),
                   ]}
                 />
               </div>
               <div className="dashboard-list__badges">
                 {reservedFrom ? (
-                  <StatusBadge tone="info">Reserved from {formatDate(reservedFrom)}</StatusBadge>
+                  <StatusBadge tone="info">
+                    {t('dashboard.availableSpaces.reservedFrom', { date: formatDate(reservedFrom) })}
+                  </StatusBadge>
                 ) : (
-                  <StatusBadge tone="success">Available</StatusBadge>
+                  <StatusBadge tone="success">{t('space.status.available')}</StatusBadge>
                 )}
               </div>
             </li>

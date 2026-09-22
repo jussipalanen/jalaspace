@@ -51,8 +51,7 @@ export interface ActivityItem {
   id: string
   type: ActivityType
   date: IsoDate
-  title: string
-  /** Tenant, space and property details, as available. */
+  /** Tenant, space and property details, as available. The UI translates `type`. */
   details: string
   /** In-app link to the related item. */
   href: string
@@ -77,9 +76,15 @@ function indexById<T extends { id: string }>(items: T[]): Map<string, T> {
 
 /**
  * Builds everything the dashboard shows from repository data.
- * Pure function: `today` is passed in so results are deterministic.
+ * Pure function: `today` and the sorting `locale` are passed in so results
+ * are deterministic.
  */
-export function buildDashboardSummary(input: DashboardInput, today: IsoDate): DashboardSummary {
+export function buildDashboardSummary(
+  input: DashboardInput,
+  today: IsoDate,
+  locale = 'en-GB',
+): DashboardSummary {
+  const collator = new Intl.Collator(locale, { numeric: true })
   const propertiesById = indexById(input.properties)
   const spacesById = indexById(input.spaces)
   const tenantsById = indexById(input.tenants)
@@ -126,8 +131,8 @@ export function buildDashboardSummary(input: DashboardInput, today: IsoDate): Da
     }))
     .toSorted(
       (a, b) =>
-        (a.property?.name ?? '').localeCompare(b.property?.name ?? '') ||
-        a.space.name.localeCompare(b.space.name, undefined, { numeric: true }),
+        collator.compare(a.property?.name ?? '', b.property?.name ?? '') ||
+        collator.compare(a.space.name, b.space.name),
     )
 
   const describeSpace = (spaceId: string | null): string => {
@@ -147,7 +152,6 @@ export function buildDashboardSummary(input: DashboardInput, today: IsoDate): Da
         id: `${task.id}-completed`,
         type: 'maintenance_completed',
         date: toIsoDate(new Date(task.completedAt)),
-        title: 'Maintenance task completed',
         details,
         href: `/maintenance/${task.id}`,
       })
@@ -164,7 +168,6 @@ export function buildDashboardSummary(input: DashboardInput, today: IsoDate): Da
         id: `${lease.id}-started`,
         type: 'lease_started',
         date: lease.startDate,
-        title: 'Lease started',
         details,
         href,
       })
@@ -174,7 +177,6 @@ export function buildDashboardSummary(input: DashboardInput, today: IsoDate): Da
         id: `${lease.id}-ended`,
         type: 'lease_ended',
         date: lease.endDate,
-        title: 'Lease ended',
         details,
         href,
       })

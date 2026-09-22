@@ -14,9 +14,10 @@ import { SettingsPage } from './pages/SettingsPage'
 import { SpacesPage } from './pages/SpacesPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
 import { TenantsPage } from './pages/TenantsPage'
+import type { MessageKey } from './i18n/translate'
 import type { RouteHandle } from './types/navigation'
 
-const handle = (title: string): RouteHandle => ({ title })
+const handle = (titleKey: MessageKey): RouteHandle => ({ titleKey })
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
@@ -32,25 +33,25 @@ export const routes: RouteObject[] = [
       {
         errorElement: <RouteErrorPage />,
         children: [
-          { index: true, element: <DashboardPage />, handle: handle('Dashboard') },
-          { path: 'properties', element: <PropertiesPage />, handle: handle('Properties') },
+          { index: true, element: <DashboardPage />, handle: handle('pages.dashboard.title') },
+          { path: 'properties', element: <PropertiesPage />, handle: handle('pages.properties.title') },
           {
             path: 'properties/:id',
             element: <PropertyDetailPage />,
-            handle: handle('Property details'),
+            handle: handle('pages.propertyDetails.title'),
           },
-          { path: 'units', element: <SpacesPage />, handle: handle('Spaces') },
-          { path: 'maintenance', element: <MaintenancePage />, handle: handle('Maintenance') },
+          { path: 'units', element: <SpacesPage />, handle: handle('pages.spaces.title') },
+          { path: 'maintenance', element: <MaintenancePage />, handle: handle('pages.maintenance.title') },
           {
             path: 'maintenance/:id',
             element: <MaintenanceDetailPage />,
-            handle: handle('Maintenance task'),
+            handle: handle('pages.maintenanceDetails.title'),
           },
-          { path: 'tenants', element: <TenantsPage />, handle: handle('Tenants') },
-          { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('Tenant details') },
-          { path: 'leases', element: <LeasesPage />, handle: handle('Leases') },
-          { path: 'settings', element: <SettingsPage />, handle: handle('Settings') },
-          { path: '*', element: <NotFoundPage />, handle: handle('Page not found') },
+          { path: 'tenants', element: <TenantsPage />, handle: handle('pages.tenants.title') },
+          { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('pages.tenantDetails.title') },
+          { path: 'leases', element: <LeasesPage />, handle: handle('pages.leases.title') },
+          { path: 'settings', element: <SettingsPage />, handle: handle('pages.settings.title') },
+          { path: '*', element: <NotFoundPage />, handle: handle('pages.notFound.title') },
         ],
       },
     ],

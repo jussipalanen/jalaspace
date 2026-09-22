@@ -100,11 +100,29 @@ describe('buildDashboardSummary', () => {
 
     expect(activity[0]).toMatchObject({
       type: 'maintenance_completed',
-      title: 'Maintenance task completed',
       details: 'Roof snow removal, Tampere Hervanta Logistics',
     })
     expect(activity.some((item) => item.type === 'lease_ended')).toBe(true)
     expect(activity.every((item) => item.href.startsWith('/'))).toBe(true)
+  })
+
+  it('sorts property names with the given locale', () => {
+    const names = ['Östra Park', 'Zeta Tower', 'Aalto House']
+    const properties = names.map((name, index) => ({ ...seed.properties[0]!, id: `p${index}`, name }))
+    const spaces = properties.map((property) => ({
+      ...seed.spaces[0]!,
+      id: `s-${property.id}`,
+      propertyId: property.id,
+      status: 'available' as const,
+    }))
+    const order = (locale: string) =>
+      buildDashboardSummary({ ...empty, properties, spaces }, today, locale).availableSpaces.map(
+        (item) => item.property?.name,
+      )
+
+    // In Finnish, Ö sorts after Z; in English it sorts with O.
+    expect(order('fi-FI')).toEqual(['Aalto House', 'Zeta Tower', 'Östra Park'])
+    expect(order('en-GB')).toEqual(['Aalto House', 'Östra Park', 'Zeta Tower'])
   })
 
   it('reports a lease start on its start date', () => {
