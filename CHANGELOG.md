@@ -5,6 +5,14 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.3.0](https://github.com/jussipalanen/jalaspace/compare/v0.2.0...v0.3.0) (2026-09-22)
+
+
+### Added
+
+* **profile:** edit your name and birthdate from the header ([#33](https://github.com/jussipalanen/jalaspace/issues/33)) ([b7659c3](https://github.com/jussipalanen/jalaspace/commit/b7659c3adb063b8a6946bc3be0d0d536b2241ddd))
+* **spaces:** manage spaces with filters, create, edit and delete ([#38](https://github.com/jussipalanen/jalaspace/issues/38)) ([6bf4750](https://github.com/jussipalanen/jalaspace/commit/6bf47501e7c4eaa92b51ea55499705fa64f07360))
+
 ## [0.2.0](https://github.com/jussipalanen/jalaspace/compare/v0.1.0...v0.2.0) (2026-09-22)
 
 
