@@ -309,7 +309,31 @@ export const fi: Messages = {
     },
   },
   settings: {
-    otherSections: 'Salasanan ja demotietojen asetukset ovat tulossa pian.',
+    otherSections: 'Salasanan asetukset ovat tulossa pian.',
+    language: {
+      title: 'Kieli',
+      description: 'JalaSpacen käyttöliittymän kieli.',
+      label: 'Kieli',
+      hint: 'Vaihtuu heti. Kielen voi vaihtaa myös yläpalkista.',
+    },
+    demoData: {
+      title: 'Demotiedot',
+      description: 'JalaSpace tallentaa demotiedot vain tähän selaimeen.',
+      resets:
+        'Palautus palauttaa alkuperäiset kiinteistöt, tilat, vuokralaiset, vuokrasopimukset, huoltotehtävät ja profiilin.',
+      keeps: 'Pysyt kirjautuneena, ja kieli säilyy.',
+      reset: 'Palauta demotiedot',
+      unavailable: 'Demotietoja ei voi palauttaa nykyisellä tietolähteellä.',
+      error: 'Demotietojen palauttaminen epäonnistui. Yritä uudelleen.',
+      done: 'Demotiedot palautettiin.',
+      confirm: {
+        title: 'Palautetaanko demotiedot?',
+        description: 'Kaikki demotietoihin tekemäsi muutokset menetetään. Toimintoa ei voi perua.',
+        cancel: 'Peruuta',
+        confirm: 'Palauta demotiedot',
+        busy: 'Palautetaan…',
+      },
+    },
     profile: {
       title: 'Profiili',
       description: 'Nimesi ja tietosi JalaSpacessa.',

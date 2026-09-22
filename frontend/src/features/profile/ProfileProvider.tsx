@@ -31,6 +31,12 @@ export function ProfileProvider({ children, repository = profileRepository }: Pr
     }
   }, [repository, user])
 
+  const reloadProfile = useCallback(async () => {
+    if (!user) return
+    const profile = await repository.get().catch(() => null)
+    setSaved({ userId: user.id, profile })
+  }, [repository, user])
+
   const saveProfile = useCallback(
     async (values: ProfileFormValues) => {
       if (!user) throw new Error('Cannot save a profile while signed out')
@@ -43,7 +49,9 @@ export function ProfileProvider({ children, repository = profileRepository }: Pr
   )
 
   const value = useMemo<ProfileContextValue>(() => {
-    if (!user) return { profile: null, loaded: false, email: '', displayName: '', saveProfile }
+    if (!user) {
+      return { profile: null, loaded: false, email: '', displayName: '', saveProfile, reloadProfile }
+    }
     const loaded = saved?.userId === user.id
     const profile = (loaded ? saved.profile : null) ?? defaultProfile(user)
     return {
@@ -52,8 +60,9 @@ export function ProfileProvider({ children, repository = profileRepository }: Pr
       email: user.email,
       displayName: fullName(profile) || user.name,
       saveProfile,
+      reloadProfile,
     }
-  }, [user, saved, saveProfile])
+  }, [user, saved, saveProfile, reloadProfile])
 
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>
 }

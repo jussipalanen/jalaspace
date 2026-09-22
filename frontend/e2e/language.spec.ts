@@ -27,6 +27,21 @@ test.describe('language', () => {
       await expect(page.locator('html')).toHaveAttribute('lang', 'en')
     })
 
+    test('can be chosen in Settings', async ({ page }) => {
+      await page.goto('/settings')
+      await page
+        .getByRole('region', { name: 'Language' })
+        .getByRole('combobox', { name: 'Language' })
+        .selectOption('Suomi')
+
+      await expectPageHeading(page, 'Asetukset')
+      await expect(page.locator('html')).toHaveAttribute('lang', 'fi')
+      await expect(page.getByRole('banner').getByRole('combobox', { name: 'Kieli' })).toHaveValue('fi')
+
+      await page.reload()
+      await expectPageHeading(page, 'Asetukset')
+    })
+
     test('translates the dashboard figures', async ({ page }) => {
       await page.goto('/')
       await page.getByRole('combobox', { name: 'Language' }).selectOption('fi')

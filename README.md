@@ -73,14 +73,14 @@ Sign in with the demo account:
 | -------------------- | -------- |
 | `demo@jalaspace.app` | `demo`   |
 
-Click your name in the header to edit your profile (first name, last name and birthdate) under **Settings**.
+Click your name in the header to edit your profile (first name, last name and birthdate) under **Settings**. Settings also has the language choice and **Reset demo data**.
 
 > **This sign-in is simulated and not secure.** Credentials are checked in the browser and are
 > public. The session is kept in `localStorage` (`jalaspace_session`) and exists only in your browser.
 
 ## Languages
 
-JalaSpace is available in **English** and **Finnish**. Switch the language from the selector in the header or on the sign-in page. The page updates immediately.
+JalaSpace is available in **English** and **Finnish**. Switch the language from the selector in the header, on the sign-in page or in **Settings**. The page updates immediately.
 
 - On the first visit, the language follows the browser: Finnish for `fi*`, otherwise English.
 - The choice is saved in `localStorage` (`jalaspace_language`) and kept when the demo data is reset.
@@ -226,7 +226,7 @@ React UI → custom hook → Repository interface → LocalStorageRepository (to
 - **Data provider:** `VITE_DATA_PROVIDER` selects the implementation. `localStorage` is the default; `api` is reserved for the planned backend. See [`frontend/.env.example`](frontend/.env.example); copy it to `.env.local` to override locally.
 - **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_session` and `jalaspace_seed_version`.
 - **Seed data:** on the first visit the app seeds a demo portfolio: 4 properties, 68 spaces, 31 tenants, 62 leases and 14 maintenance tasks. Dates are relative to today, so the demo always has current, upcoming and past activity. Later visits keep your changes.
-- **Reset:** resetting the demo data clears all JalaSpace data except the signed-in session and restores the seed. The Settings page will expose this.
+- **Reset:** **Settings → Demo data → Reset demo data** (after confirmation) clears all JalaSpace data except the signed-in session and the language, restores the seed and restores the default demo profile.
 - **Data conventions:**
   - Timestamps are ISO strings (`2026-09-22T10:30:00.000Z`), and calendar dates are date-only strings (`2026-09-22`).
   - Rent is stored in euro cents.

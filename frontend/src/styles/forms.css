@@ -57,6 +57,12 @@
   border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
+.alert--success {
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+  border-color: color-mix(in srgb, var(--color-success) 25%, transparent);
+}
+
 .alert--info {
   color: var(--color-text);
   background: var(--color-primary-subtle);
