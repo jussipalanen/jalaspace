@@ -10,6 +10,9 @@ export type ErrorCode =
   | 'payload_too_large'
   | 'validation_failed'
   | 'property_in_use'
+  | 'rate_limited'
+  | 'ai_unavailable'
+  | 'invalid_suggestion'
   | 'internal_error'
 
 /** Extra machine-readable facts about an error, e.g. the invalid fields. Never English text. */

@@ -1,3 +1,4 @@
+import { GeminiSuggester } from './ai/gemini.ts'
 import { createApp } from './app.ts'
 import { ConfigError, loadConfig } from './config.ts'
 import { resetDemoData } from './domain/demoData.ts'
@@ -18,11 +19,22 @@ try {
 const store = createMemoryStore()
 if (config.seedDemoData) await resetDemoData(store)
 
-const app = createApp({ store, demoData: config.seedDemoData })
+const suggester = config.geminiApiKey
+  ? new GeminiSuggester({ apiKey: config.geminiApiKey, model: config.geminiModel })
+  : null
+
+const app = createApp({
+  store,
+  demoData: config.seedDemoData,
+  suggester,
+  corsOrigins: config.corsOrigins,
+  trustProxy: config.trustProxy,
+})
 
 const server = app.listen(config.port, config.host, () => {
   const demo = config.seedDemoData ? ' with demo data' : ''
   console.log(`JalaSpace API ${VERSION} listening on http://${config.host}:${config.port}${demo}`)
+  console.log(suggester ? `AI suggestions: Gemini (${config.geminiModel})` : 'AI suggestions: off')
 })
 
 // Stop accepting connections and let open requests finish, e.g. when Docker stops the container.
