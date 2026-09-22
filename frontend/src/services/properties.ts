@@ -71,10 +71,6 @@ export function validatePropertyForm(values: PropertyFormValues): PropertyFormEr
   return errors
 }
 
-export function hasErrors(errors: object): boolean {
-  return Object.values(errors).some(Boolean)
-}
-
 function normalize(values: PropertyFormValues): PropertyFormValues {
   return {
     name: values.name.trim(),

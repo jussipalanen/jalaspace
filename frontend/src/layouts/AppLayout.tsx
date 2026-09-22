@@ -4,6 +4,7 @@ import { FlashMessage } from '../components/FlashMessage/FlashMessage'
 import { Header } from '../components/Header/Header'
 import { Sidebar } from '../components/Sidebar/Sidebar'
 import { useAuth } from '../features/auth/useAuth'
+import { useProfile } from '../features/profile/useProfile'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import { useRouteTitleKey } from '../hooks/useRouteTitle'
 import { useTranslation } from '../i18n/useTranslation'
@@ -13,7 +14,8 @@ const SIDEBAR_ID = 'app-sidebar'
 
 export function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const { session, logout } = useAuth()
+  const { logout } = useAuth()
+  const { displayName } = useProfile()
   const { t } = useTranslation()
   const titleKey = useRouteTitleKey()
   const title = titleKey ? t(titleKey) : t('app.name')
@@ -47,7 +49,7 @@ export function AppLayout() {
       <div className="app-layout__main">
         <Header
           title={title}
-          userName={session?.user.name ?? ''}
+          userName={displayName}
           sidebarId={SIDEBAR_ID}
           isSidebarOpen={isSidebarOpen}
           onMenuClick={() => setIsSidebarOpen(true)}

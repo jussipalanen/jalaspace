@@ -1,0 +1,83 @@
+.settings-section {
+  max-width: 720px;
+  padding: var(--space-6);
+}
+
+.settings-section__header {
+  margin-bottom: var(--space-5);
+}
+
+.settings-section__description {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+}
+
+.settings-note {
+  max-width: 720px;
+  margin: var(--space-5) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.profile-form .field + .field {
+  margin-top: 0;
+}
+
+.profile-form input[readonly] {
+  color: var(--color-text-muted);
+  background: var(--color-bg);
+}
+
+.profile-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.profile-form__birthdate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.profile-form__birthdate legend {
+  padding: 0;
+}
+
+.profile-form__date {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: var(--space-3);
+  max-width: 420px;
+  margin-top: var(--space-2);
+}
+
+.profile-form__part {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.profile-form__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 559.98px) {
+  .settings-section {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .profile-form__row {
+    grid-template-columns: 1fr;
+  }
+}

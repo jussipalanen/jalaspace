@@ -36,6 +36,7 @@ export const en = {
   },
   header: {
     signOut: 'Sign out',
+    editProfile: 'Edit profile',
   },
   pages: {
     dashboard: {
@@ -76,8 +77,6 @@ export const en = {
     settings: {
       title: 'Settings',
       description: 'Application and demo environment settings.',
-      comingSoonTitle: 'Settings are coming soon',
-      comingSoonDescription: 'Demo data reset and other preferences will be available here.',
     },
     propertyDetails: {
       title: 'Property details',
@@ -292,6 +291,43 @@ export const en = {
       created: 'Property {name} was added.',
       updated: 'Changes to {name} were saved.',
       deleted: 'Property {name} was deleted.',
+    },
+  },
+  settings: {
+    otherSections: 'Password and demo data settings are coming soon.',
+    profile: {
+      title: 'Profile',
+      description: 'Your name and details shown in JalaSpace.',
+      email: 'Email',
+      emailHint: 'Used for signing in and cannot be changed.',
+      firstName: 'First name',
+      lastName: 'Last name',
+      birthDate: 'Birthdate',
+      birthDateHint: 'Optional. Choose the day, month and year.',
+      day: 'Day',
+      month: 'Month',
+      year: 'Year',
+      notSelected: '–',
+      save: 'Save profile',
+      saving: 'Saving…',
+      saveError: 'Unable to save the profile. Please try again.',
+      errorSummary: 'Please correct the highlighted fields.',
+      saved: 'Your profile was saved.',
+      validation: {
+        firstName: {
+          required: 'First name is required.',
+          tooLong: 'First name can be at most {max} characters.',
+        },
+        lastName: {
+          required: 'Last name is required.',
+          tooLong: 'Last name can be at most {max} characters.',
+        },
+        birthDate: {
+          incomplete: 'Choose the day, month and year, or leave all three empty.',
+          invalid: 'This date does not exist.',
+          future: 'The birthdate cannot be in the future.',
+        },
+      },
     },
   },
   maintenance: {

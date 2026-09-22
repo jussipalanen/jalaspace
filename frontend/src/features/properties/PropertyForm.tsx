@@ -3,7 +3,6 @@ import { Link } from 'react-router'
 import { FormField } from '../../components/FormField/FormField'
 import { useTranslation } from '../../i18n/useTranslation'
 import {
-  hasErrors,
   isPropertyType,
   PROPERTY_DESCRIPTION_MAX_LENGTH,
   PROPERTY_NAME_MAX_LENGTH,
@@ -12,6 +11,7 @@ import {
   type PropertyFormErrors,
   type PropertyFormValues,
 } from '../../services/properties'
+import { hasErrors } from '../../utils/validation'
 
 type Field = keyof PropertyFormValues
 

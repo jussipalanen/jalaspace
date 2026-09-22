@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { AuthProvider } from '../features/auth/AuthProvider'
+import { ProfileProvider } from '../features/profile/ProfileProvider'
 import { I18nProvider } from '../i18n/I18nProvider'
 import type { Language } from '../i18n/languages'
 import type { DataLayer } from '../repositories'
@@ -38,7 +39,9 @@ export function renderRoute(
   const app = (
     <I18nProvider>
       <AuthProvider>
-        <RouterProvider router={router} />
+        <ProfileProvider>
+          <RouterProvider router={router} />
+        </ProfileProvider>
       </AuthProvider>
     </I18nProvider>
   )

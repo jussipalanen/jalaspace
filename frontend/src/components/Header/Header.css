@@ -37,6 +37,18 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) var(--space-1);
+  color: inherit;
+  text-decoration: none;
+  border-radius: var(--radius-full);
+}
+
+.header__user:hover {
+  background: var(--color-surface-hover);
+}
+
+.header__user:hover .header__user-name {
+  color: var(--color-text-strong);
 }
 
 .header__avatar {

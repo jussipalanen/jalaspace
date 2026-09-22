@@ -10,4 +10,5 @@ export const STORAGE_KEYS = {
   maintenance: 'jalaspace_maintenance',
   seedVersion: 'jalaspace_seed_version',
   language: 'jalaspace_language',
+  profile: 'jalaspace_profile',
 } as const
