@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+# Shortcuts for the Docker Compose development setup, e.g. `./dev up`.
+# Run `./dev help` for the commands.
+set -euo pipefail
+
+cd "$(dirname "$0")"
+
+SERVICES=(frontend backend)
+
+usage() {
+  cat <<'EOF'
+Usage: ./dev <command> [service] [args]
+
+Without a service, commands act on both frontend and backend (shell defaults to frontend).
+
+  up [service]         Start in the background and print the URLs
+  down [service]       Stop and remove the containers
+  restart [service]    Recreate the containers, so docker-compose.yml and env changes apply
+  rebuild [service]    Rebuild the images and node_modules, e.g. after package-lock.json changes
+  logs [service]       Follow the logs
+  ps                   Show the containers and their state
+  shell [service]      Open a shell in a container (default: frontend)
+  exec <service> <cmd> Run a command in a container, e.g. ./dev exec backend npm outdated
+  lint [service]       Run lint
+  typecheck [service]  Run the TypeScript check
+  test [service]       Run the unit tests
+  check [service]      Run lint, typecheck and tests
+  clean                Stop and remove the containers and their node_modules volumes
+  help                 Show this help
+
+Commands that run npm scripts use the running container, or a temporary one when it is stopped.
+End-to-end tests run on the host: cd frontend && npm run test:e2e
+EOF
+}
+
+die() {
+  echo "dev: $*" >&2
+  exit 1
+}
+
+compose() {
+  docker compose "$@"
+}
+
+is_service() {
+  local name
+  for name in "${SERVICES[@]}"; do
+    [[ $name == "$1" ]] && return 0
+  done
+  return 1
+}
+
+# Sets TARGETS to the services to act on: the one given, or all of them.
+TARGETS=()
+set_targets() {
+  if [[ -z ${1:-} ]]; then
+    TARGETS=("${SERVICES[@]}")
+  elif is_service "$1"; then
+    TARGETS=("$1")
+  else
+    die "unknown service '$1' (expected: ${SERVICES[*]})"
+  fi
+}
+
+# Runs a command in the service's container, or in a temporary one when it isn't running.
+in_service() {
+  local service=$1
+  shift
+  local tty=()
+  [[ -t 0 && -t 1 ]] || tty=(-T)
+  if [[ -n $(compose ps --status running --quiet "$service") ]]; then
+    compose exec "${tty[@]}" "$service" "$@"
+  else
+    compose run --rm --no-deps "${tty[@]}" "$service" "$@"
+  fi
+}
+
+# Runs npm scripts in each target service, e.g. run_scripts lint typecheck.
+run_scripts() {
+  local service script
+  for service in "${TARGETS[@]}"; do
+    for script in "$@"; do
+      echo "▶ $service: npm run $script"
+      in_service "$service" npm run "$script"
+    done
+  done
+}
+
+print_urls() {
+  echo
+  echo "App:  http://localhost:5173"
+  echo "API:  http://localhost:3000/api/health"
+  echo "Logs: ./dev logs"
+}
+
+command -v docker >/dev/null || die "docker is not installed"
+
+cmd=${1:-help}
+shift || true
+
+case $cmd in
+  up)
+    set_targets "${1:-}"
+    compose up -d "${TARGETS[@]}"
+    print_urls
+    ;;
+  down)
+    if [[ -n ${1:-} ]]; then
+      set_targets "$1"
+      compose down "${TARGETS[@]}"
+    else
+      compose down
+    fi
+    ;;
+  restart)
+    set_targets "${1:-}"
+    # New containers, like down + up, but the node_modules volumes and the network are kept.
+    compose up -d --force-recreate "${TARGETS[@]}"
+    print_urls
+    ;;
+  rebuild)
+    set_targets "${1:-}"
+    # -V recreates the node_modules volumes, so new dependencies are picked up.
+    compose up -d --build -V "${TARGETS[@]}"
+    print_urls
+    ;;
+  logs)
+    set_targets "${1:-}"
+    compose logs -f "${TARGETS[@]}"
+    ;;
+  ps | status)
+    compose ps
+    ;;
+  shell | sh)
+    set_targets "${1:-frontend}"
+    in_service "${TARGETS[0]}" sh
+    ;;
+  exec)
+    [[ $# -ge 2 ]] || die "usage: ./dev exec <service> <command>"
+    set_targets "$1"
+    shift
+    in_service "${TARGETS[0]}" "$@"
+    ;;
+  lint | typecheck | test)
+    set_targets "${1:-}"
+    run_scripts "$cmd"
+    ;;
+  check)
+    set_targets "${1:-}"
+    run_scripts lint typecheck test
+    ;;
+  clean)
+    # Removes the containers and their anonymous node_modules volumes; source files are untouched.
+    compose down --volumes --remove-orphans
+    ;;
+  help | -h | --help)
+    usage
+    ;;
+  *)
+    usage >&2
+    die "unknown command '$cmd'"
+    ;;
+esac
