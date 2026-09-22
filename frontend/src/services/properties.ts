@@ -1,4 +1,5 @@
 import type { IsoDateTime } from '../types/common'
+import { generateId } from '../utils/id'
 import type { MaintenanceTask } from '../types/maintenance'
 import type { Property, PropertyType } from '../types/property'
 import type { Space } from '../types/space'
@@ -89,7 +90,7 @@ function normalize(values: PropertyFormValues): PropertyFormValues {
 export function buildNewProperty(
   values: PropertyFormValues,
   now: IsoDateTime,
-  id: string = crypto.randomUUID(),
+  id: string = generateId(),
 ): Property {
   return { id, ...normalize(values), createdAt: now, updatedAt: now }
 }
