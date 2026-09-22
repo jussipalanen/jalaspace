@@ -13,6 +13,8 @@ export interface Collection<T extends Entity> {
   update(entity: T): Promise<T | null>
   /** `false` if the entity did not exist. */
   delete(id: string): Promise<boolean>
+  /** Removes every entity, e.g. before restoring the demo data. */
+  clear(): Promise<void>
 }
 
 /**

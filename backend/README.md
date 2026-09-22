@@ -50,6 +50,7 @@ Environment variables (see [`.env.example`](.env.example)):
 | -------- | --------- | ----------------------------------- |
 | `PORT`   | `3000`    | Port to listen on (1–65535)         |
 | `HOST`   | `0.0.0.0` | Network interface to listen on      |
+| `SEED_DEMO_DATA` | `false` | `true` starts the API with the demo data and enables `POST /api/demo/reset` |
 
 An invalid value stops the server at start with a clear message. Never commit real secrets; production values belong in the hosting platform.
 
@@ -91,6 +92,7 @@ An invalid value stops the server at start with a clear message. Never commit re
 | POST   | `/api/properties`     | `201` with the created property and a `Location` header        |
 | PUT    | `/api/properties/:id` | The updated property, or `404 not_found`                       |
 | DELETE | `/api/properties/:id` | `204`, `404 not_found`, or `409 property_in_use` with counts   |
+| POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 
 The health version comes from `package.json`, which release-please keeps in step with the app version.
 
@@ -121,7 +123,19 @@ A property that still has spaces or maintenance tasks cannot be deleted, so no d
 
 ## Storage
 
-Data is kept **in memory** and starts empty; it is lost when the server restarts. Routes use the async `Store` interface (`src/store/store.ts`), so a database can replace the in-memory store later without changing them. The API has no seed data yet.
+Data is kept **in memory** and is lost when the server restarts. Routes use the async `Store` interface (`src/store/store.ts`), so a database can replace the in-memory store later without changing them.
+
+### Demo data
+
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, …) and dates relative to today; for now it has the four demo properties, and it grows as the other endpoints are added.
+
+Restore it at any time, undoing all changes:
+
+```bash
+curl -X POST http://localhost:3000/api/demo/reset
+```
+
+The reset endpoint exists only when `SEED_DEMO_DATA=true`, so it can never wipe non-demo data. Without the variable (as in the tests), the API starts empty.
 
 ## Structure
 

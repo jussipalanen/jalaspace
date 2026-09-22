@@ -23,6 +23,14 @@ describe('in-memory collection', () => {
     expect(await collection.get('a')).toBeNull()
   })
 
+  it('removes every entity on clear', async () => {
+    const collection = new MemoryCollection<Item>()
+    await collection.insert(item('a'))
+    await collection.insert(item('b'))
+    await collection.clear()
+    expect(await collection.list()).toEqual([])
+  })
+
   it('reports missing entities instead of creating them', async () => {
     const collection = new MemoryCollection<Item>()
     expect(await collection.update(item('missing'))).toBeNull()
