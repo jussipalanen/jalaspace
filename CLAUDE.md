@@ -662,6 +662,7 @@ jalaspace_profile
 jalaspace_profile_image
 jalaspace_credentials
 jalaspace_seed_version
+jalaspace_language
 ```
 
 `jalaspace_seed_version` records which version of the seed data is stored.
@@ -689,6 +690,8 @@ Resetting demo data should:
 Require confirmation before resetting.
 
 The Reset demo data action lives on the Settings page.
+
+Resetting keeps the signed-in session and the language preference (`jalaspace_language`).
 
 ---
 
@@ -787,15 +790,18 @@ Implement JalaSpace incrementally:
 8. localStorage persistence
 9. Seed data
 10. Dashboard
-11. Properties
-12. Spaces
-13. Maintenance
-14. Tenants
-15. Leases
-16. Settings (profile, profile image, password change, demo reset)
-17. UI polish
-18. Tests
+11. Internationalization (English and Finnish) and language switcher
+12. Properties
+13. Spaces
+14. Maintenance
+15. Tenants
+16. Leases
+17. Settings (profile, profile image, password change, demo reset, language)
+18. UI polish
+19. Tests
 ```
+
+Internationalization comes before the remaining pages so that every new page is translatable from the start.
 
 Each larger item should normally have its own GitHub Issue and Pull Request.
 
@@ -967,8 +973,11 @@ The Settings page (`/settings`) contains:
 ```text
 Profile
 Change password
+Language
 Demo data
 ```
+
+The Language section offers the same choice as the language switcher (see Internationalization).
 
 Each section is saved independently and shows its own success or error feedback.
 
@@ -1088,6 +1097,135 @@ Use `type="password"` inputs with suitable `autocomplete` values (`current-passw
 ## Demo data
 
 Contains the Reset demo data action described in Demo Reset.
+
+---
+
+# Internationalization (i18n)
+
+JalaSpace supports two languages:
+
+```text
+en   English   (default and fallback)
+fi   Suomi     (Finnish)
+```
+
+Users can switch the language at any time. The whole UI must work in both languages.
+
+## Translation module
+
+Use a small, fully typed translation module in `src/i18n/` instead of an external library.
+Two languages do not justify a new dependency, and TypeScript can verify that every key is translated.
+
+```text
+src/i18n/
+├── locales/en.ts      English dictionary: the source of truth for keys
+├── locales/fi.ts      Finnish dictionary, typed against the English one
+├── I18nProvider.tsx   Active language, persistence, <html lang>
+├── useTranslation.ts  Returns { t, language, setLanguage, locale }
+└── format.ts          Locale-aware number, currency and area formatting
+```
+
+Rules:
+
+* the Finnish dictionary must have the same keys as the English one; a missing key is a TypeScript error
+* keys are nested by feature, e.g. `nav.dashboard`, `dashboard.stats.occupancy`, `maintenance.status.in_progress`
+* interpolation uses named placeholders: `t('dashboard.stats.spacesOccupied', { occupied: 58, total: 68 })`
+* plurals use `Intl.PluralRules` (`one` / `other`), never `count === 1 ? … : …` with English words
+* a missing translation falls back to English, and in development logs a warning
+* keep the module's API close to i18next (`t(key, values)`) so it could be replaced by a library later if needed
+
+Adding a language means adding one locale file and registering it; no component changes.
+
+## What must be translated
+
+All UI text, including:
+
+* visible text, headings, buttons and links
+* page titles and document titles
+* `aria-label`, `title` and alt text
+* form labels, hints and validation messages
+* success, empty-state and error messages
+* labels for statuses, priorities, categories and types
+
+Do not hard-code UI text in components.
+
+Services, validation and other logic must return **codes, not display text**, and the UI translates them. For example:
+
+```ts
+validateLoginForm(values)   // → { email: 'required' }, not { email: 'Email is required.' }
+activity.type               // → 'lease_ended', translated in the component
+```
+
+## What is not translated
+
+User content is stored and shown exactly as entered:
+
+```text
+property names, addresses, descriptions
+space names
+tenant names and notes
+maintenance titles and descriptions
+```
+
+Seed data stays in English.
+
+## Formatting
+
+Format values with the active language's locale:
+
+```text
+Language   Locale   Number      Currency     Area
+en         en-GB    1,234.5     €1,234.50    62 m²
+fi         fi-FI    1 234,5     1 234,50 €   62 m²
+```
+
+* dates use `d.m.yyyy` in both languages (see Date Handling)
+* use `Intl.NumberFormat` for numbers and currency; money is stored in cents (see Business Rules)
+* sort user-visible text with `localeCompare` and the active locale, so Finnish å, ä and ö sort correctly
+
+## Language switcher
+
+* shown in the header on every app page and on the login page
+* lists languages by their own names: `English`, `Suomi`
+* is a labelled, keyboard-accessible control (for example a native `<select>`)
+* switches immediately, without a page reload
+* Settings will also offer the language choice (see Settings)
+
+## Persistence and detection
+
+Store the chosen language in:
+
+```text
+jalaspace_language
+```
+
+Initial language on the first visit:
+
+1. the stored choice, if any
+2. otherwise the browser language: `fi*` → Finnish
+3. otherwise English
+
+The language is a user preference, not demo data: **Reset demo data keeps it**.
+
+When the language changes:
+
+* update `<html lang>`
+* update the document title
+* keep the user on the same page
+
+## Testing
+
+* unit and component tests render in English by default; tests may choose a language explicitly
+* test the translation function: interpolation, plurals in both languages, fallback
+* test language detection and persistence
+* a test verifies that no Finnish translation is empty
+* E2E: switch the language, verify the UI changes and `<html lang>` updates, reload and verify the choice persists
+* when a feature adds UI text, add both translations in the same Pull Request
+
+## Future backend
+
+The API returns error codes, not English messages; the frontend translates them.
+The frontend may send the active language in the `Accept-Language` header.
 
 ---
 
@@ -1882,6 +2020,7 @@ Before creating a PR verify:
 [ ] No secrets are committed
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
+[ ] New UI text is translated in all supported languages
 [ ] UI changes have been manually sanity checked
 ```
 
@@ -1947,6 +2086,7 @@ A feature is complete when:
 * production build succeeds
 * security checks have passed or been reviewed
 * UI is usable
+* UI text is available in all supported languages
 * architecture follows project conventions
 * persistence goes through repositories
 * no unnecessary dependencies were added
