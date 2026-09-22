@@ -9,7 +9,7 @@ A Node.js backend is planned for a later milestone.
 
 ```text
 frontend/            React + TypeScript + Vite single-page application
-.github/             CI, release workflows and Dependabot configuration
+.github/             CI, release workflows, Dependabot and Copilot agent profiles
 CHANGELOG.md         Release notes for every version
 docker-compose.yml   Local development with Docker
 AGENTS.md            Development workflow and conventions for humans and AI agents
@@ -218,3 +218,23 @@ After each merge to `main`, release-please keeps a **release PR** up to date wit
 
 All changes go through a feature branch and a pull request that a human reviews and approves.
 See [AGENTS.md](AGENTS.md) for details.
+
+### GitHub Copilot agents
+
+Two project-specific profiles live in [`.github/agents/`](.github/agents/):
+
+| Agent | Use it for |
+| ----- | ---------- |
+| [JalaSpace Frontend Engineer](.github/agents/frontend-engineer.agent.md) | Implementing frontend issues using existing services, repositories, accessible English/Finnish UI, and behavior tests. |
+| [JalaSpace Quality Reviewer](.github/agents/quality-reviewer.agent.md) | Reviewing a PR or branch for reproducible defects, domain consistency, accessibility, and missing tests. Returns findings without editing source. |
+
+Both profiles explicitly read [AGENTS.md](AGENTS.md), which remains the source of shared project rules. They are selected manually, inherit the selected/default model, and do not configure additional MCP servers or secrets. The reviewer has shell access to run checks; its instruction to avoid source edits is a behavioral boundary, not a read-only sandbox.
+
+After these files are merged into the default branch, open [Copilot agents](https://github.com/copilot/agents), select this repository, and choose a profile in the agent dropdown. Copilot cloud agent requires a paid Copilot plan and must be enabled for the repository. See GitHub's [custom agent setup](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/create-custom-agents) and [configuration reference](https://docs.github.com/en/copilot/reference/custom-agents-configuration).
+
+Example tasks:
+
+- **Frontend Engineer:** “Implement the Maintenance issue using the existing Spaces patterns. Include English/Finnish text, persistence, and tests; prepare a PR.”
+- **Quality Reviewer:** “Review PR #<number> against its linked issue and main. Check domain relationships, validation, accessibility, and regression coverage. Report findings with file/line references; do not edit source.”
+
+Use the engineer for implementation, then start a reviewer session on the resulting changes. These profiles do not automatically run on every PR or replace human approval. A human still reviews and merges changes; releases use the existing release workflow.
