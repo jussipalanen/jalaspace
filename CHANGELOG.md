@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.4.0](https://github.com/jussipalanen/jalaspace/compare/v0.3.0...v0.4.0) (2026-09-22)
+
+
+### Added
+
+* **maintenance:** manage maintenance tasks with filters, status changes, create, edit and delete ([#41](https://github.com/jussipalanen/jalaspace/issues/41)) ([f0c4508](https://github.com/jussipalanen/jalaspace/commit/f0c4508f6135b0bf091c79fe28adb6e0b01b620d))
+
 ## [0.3.0](https://github.com/jussipalanen/jalaspace/compare/v0.2.0...v0.3.0) (2026-09-22)
 
 
