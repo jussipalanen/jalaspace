@@ -57,15 +57,21 @@ The app runs at http://localhost:5173, and the API at http://localhost:3000.
 - `node_modules` stays inside the container and isn't written to your machine.
 - The containers run as the unprivileged `node` user.
 
-| Task                                       | Command                         |
-| ------------------------------------------ | ------------------------------- |
-| Start in the background                    | `docker compose up -d`          |
-| Follow logs                                | `docker compose logs -f`        |
-| Stop                                       | `docker compose down`           |
-| Rebuild after `package-lock.json` changes  | `docker compose up --build -V`  |
-| Run a command in the container, e.g. tests | `docker compose exec frontend npm run test` |
+The `./dev` script in the repository root shortens the common commands. Without a service name, a command acts on both `frontend` and `backend`; add one to limit it, e.g. `./dev logs backend`.
+
+| Task                                       | `./dev`                     | Docker Compose                  |
+| ------------------------------------------ | --------------------------- | ------------------------------- |
+| Start in the background                    | `./dev up`                  | `docker compose up -d`          |
+| Follow logs                                | `./dev logs`                | `docker compose logs -f`        |
+| Show the containers                        | `./dev ps`                  | `docker compose ps`             |
+| Stop                                       | `./dev down`                | `docker compose down`           |
+| Restart with new containers                | `./dev restart`             | `docker compose up -d --force-recreate` |
+| Rebuild after `package-lock.json` changes  | `./dev rebuild`             | `docker compose up -d --build -V` |
+| Open a shell in a container                | `./dev shell backend`       | `docker compose exec backend sh` |
+| Run lint, typecheck and tests              | `./dev check`               | `docker compose exec frontend npm run test`, … |
 
 `-V` recreates the container's `node_modules` volume, so newly installed dependencies are picked up.
+`./dev lint`, `typecheck`, `test` and `check` use the running container, or a temporary one when the containers are stopped. `./dev help` lists all commands. End-to-end tests run on the host (`cd frontend && npm run test:e2e`).
 
 ## Demo sign-in
 
