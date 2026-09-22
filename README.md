@@ -77,6 +77,23 @@ Dependencies are also monitored between pull requests:
 - [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly and writes an `npm outdated` report to the job summary. It can also be started manually.
 - [Dependabot](.github/dependabot.yml) opens weekly update PRs for npm packages and GitHub Actions. Minor and patch updates are grouped; major updates arrive as separate PRs. These PRs go through the same CI and human review as any other change.
 
+## Deployment
+
+The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.vercel.app.
+
+| Setting           | Value           |
+| ----------------- | --------------- |
+| Root Directory    | `frontend`      |
+| Framework Preset  | Vite            |
+| Build Command     | `npm run build` |
+| Output Directory  | `dist`          |
+| Node.js Version   | 24.x            |
+| Production Branch | `main`          |
+
+- Every pull request gets a preview deployment for review.
+- Merging to `main` deploys to production, so only reviewed code reaches production.
+- [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
+
 ## Development workflow
 
 All changes go through a feature branch and a pull request that a human reviews and approves.
