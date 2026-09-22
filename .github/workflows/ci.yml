@@ -84,3 +84,12 @@ jobs:
           node-version-file: frontend/.nvmrc
       # Audits the lock file directly; fails on high or critical vulnerabilities.
       - run: npm audit --audit-level=high
+
+  docker-build:
+    name: docker-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Build development image
+        run: docker build --tag jalaspace-frontend:ci .
