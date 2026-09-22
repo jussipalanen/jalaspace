@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 
-const APP_NAME = 'AlaSpace'
+const APP_NAME = 'JalaSpace'
 
 export function useDocumentTitle(title: string): void {
   useEffect(() => {

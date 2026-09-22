@@ -10,7 +10,7 @@ function isRouteHandle(handle: unknown): handle is RouteHandle {
 }
 
 /** Returns the title of the deepest matched route that defines one. */
-export function useRouteTitle(fallback = 'AlaSpace'): string {
+export function useRouteTitle(fallback = 'JalaSpace'): string {
   const matches = useMatches()
   const titled = matches.map((match) => match.handle).filter(isRouteHandle)
   return titled.at(-1)?.title ?? fallback

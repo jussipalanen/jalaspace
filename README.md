@@ -1,4 +1,4 @@
-# AlaSpace
+# JalaSpace
 
 A property and space management demo application built with React and TypeScript.
 A Node.js backend is planned for a later milestone.

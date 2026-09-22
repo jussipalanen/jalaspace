@@ -42,7 +42,7 @@ describe('application routes', () => {
     renderRoute('/leases')
 
     await screen.findByRole('heading', { level: 1, name: 'Leases' })
-    expect(document.title).toBe('Leases · AlaSpace')
+    expect(document.title).toBe('Leases · JalaSpace')
   })
 })
 

@@ -1,8 +1,8 @@
-# AlaSpace – AI Development Instructions
+# JalaSpace – AI Development Instructions
 
 ## Project Overview
 
-AlaSpace is a portfolio/demo SaaS application for property and space management.
+JalaSpace is a portfolio/demo SaaS application for property and space management.
 
 The application should demonstrate:
 
@@ -29,7 +29,7 @@ Do not implement the backend during the initial frontend phase unless explicitly
 
 # Main Goal
 
-Build AlaSpace as a polished property management demo application.
+Build JalaSpace as a polished property management demo application.
 
 The application should allow users to manage:
 
@@ -50,7 +50,7 @@ Prioritize quality over feature quantity.
 
 # Development Philosophy
 
-AlaSpace uses an AI-assisted development workflow.
+JalaSpace uses an AI-assisted development workflow.
 
 AI agents may:
 
@@ -245,7 +245,7 @@ Do not combine unrelated changes into the same Pull Request.
 
 # Human-in-the-Loop Requirement
 
-Human review is a mandatory part of the AlaSpace development process.
+Human review is a mandatory part of the JalaSpace development process.
 
 The human reviewer must verify:
 
@@ -375,7 +375,7 @@ However, frontend architecture must make it possible to replace localStorage per
 Use a structure similar to:
 
 ```text
-alaspace/
+jalaspace/
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
@@ -420,7 +420,7 @@ Do not implement backend functionality until requested.
 
 # Docker Setup
 
-AlaSpace should support Docker-based local development.
+JalaSpace should support Docker-based local development.
 
 Create:
 
@@ -524,7 +524,7 @@ docker compose
 
 # Product Concept
 
-AlaSpace is a lightweight property and space management SaaS application.
+JalaSpace is a lightweight property and space management SaaS application.
 
 Primary domain areas:
 
@@ -651,12 +651,12 @@ Use namespaced localStorage keys.
 Example:
 
 ```text
-alaspace_properties
-alaspace_units
-alaspace_tenants
-alaspace_leases
-alaspace_maintenance
-alaspace_session
+jalaspace_properties
+jalaspace_units
+jalaspace_tenants
+jalaspace_leases
+jalaspace_maintenance
+jalaspace_session
 ```
 
 ---
@@ -671,7 +671,7 @@ Reset demo data
 
 Resetting demo data should:
 
-1. clear AlaSpace localStorage data
+1. clear JalaSpace localStorage data
 2. recreate seed data
 3. update the UI
 4. show success feedback
@@ -687,14 +687,14 @@ During the frontend phase authentication may be simulated.
 Example:
 
 ```text
-demo@alaspace.app
+demo@jalaspace.app
 demo
 ```
 
 Store demo authentication state using:
 
 ```text
-alaspace_session
+jalaspace_session
 ```
 
 This is demo authentication only.
@@ -738,7 +738,7 @@ Unauthenticated users should be redirected to:
 
 # Frontend Development Order
 
-Implement AlaSpace incrementally:
+Implement JalaSpace incrementally:
 
 ```text
 1. Project foundation
@@ -835,7 +835,7 @@ Maintenance
 
 # Maintenance
 
-Maintenance is a key AlaSpace feature.
+Maintenance is a key JalaSpace feature.
 
 Implement:
 
@@ -912,7 +912,7 @@ Ended
 
 # UI / UX Requirements
 
-AlaSpace should look like a modern B2B SaaS application.
+JalaSpace should look like a modern B2B SaaS application.
 
 Prioritize:
 
@@ -1468,7 +1468,7 @@ Do not implement backend routes during the frontend phase unless explicitly requ
 
 # Future AI Feature
 
-A future AlaSpace version may include AI-assisted maintenance.
+A future JalaSpace version may include AI-assisted maintenance.
 
 Example input:
 
@@ -1670,7 +1670,7 @@ A feature is complete when:
 
 # Final Product Direction
 
-AlaSpace should ultimately demonstrate:
+JalaSpace should ultimately demonstrate:
 
 ```text
 React
@@ -1719,4 +1719,4 @@ AI features
 Additional integrations
 ```
 
-Keep AlaSpace small enough to understand quickly but polished enough to demonstrate professional software development practices.
+Keep JalaSpace small enough to understand quickly but polished enough to demonstrate professional software development practices.

@@ -32,7 +32,7 @@ export function Sidebar({ id, isOpen, onClose }: SidebarProps) {
     <aside id={id} className={isOpen ? 'sidebar is-open' : 'sidebar'} aria-label="Sidebar">
       <div className="sidebar__brand">
         <LogoMark className="sidebar__logo" />
-        <span className="sidebar__brand-name">AlaSpace</span>
+        <span className="sidebar__brand-name">JalaSpace</span>
         <button
           type="button"
           className="icon-button sidebar__close"
