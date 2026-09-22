@@ -63,6 +63,17 @@ Sign in with the demo account:
 > **This sign-in is simulated and not secure.** Credentials are checked in the browser and are
 > public. The session is kept in `localStorage` (`jalaspace_session`) and exists only in your browser.
 
+## Languages
+
+JalaSpace is available in **English** and **Finnish**. Switch the language from the selector in the header or on the sign-in page. The page updates immediately.
+
+- On the first visit, the language follows the browser: Finnish for `fi*`, otherwise English.
+- The choice is saved in `localStorage` (`jalaspace_language`) and kept when the demo data is reset.
+- Numbers, percentages and currency follow the language (`85%` / `85 %`); dates are `d.m.yyyy` in both.
+- User content, such as property names and maintenance titles, isn't translated. The demo data is in English.
+
+Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). English (`en.ts`) defines the keys; the Finnish dictionary is type-checked against it, so a missing translation fails the build. See the Internationalization section in [CLAUDE.md](CLAUDE.md).
+
 ## Frontend scripts
 
 Run these inside `frontend/`:
@@ -101,6 +112,7 @@ frontend/src/
 ├── layouts/       Application shell layouts
 ├── pages/         Route-level page components
 ├── hooks/         Custom React hooks
+├── i18n/          Translations (English, Finnish), language switching and locale formatting
 ├── features/      Feature modules (auth, ...)
 ├── repositories/  Repository interfaces and their localStorage implementations
 ├── services/      Business logic (auth, lease status, dashboard statistics, demo data)
