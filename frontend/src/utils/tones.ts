@@ -1,3 +1,4 @@
+import type { LeaseStatus } from '../types/lease'
 import type { MaintenancePriority, MaintenanceStatus } from '../types/maintenance'
 import type { SpaceStatus } from '../types/space'
 
@@ -20,4 +21,10 @@ export const spaceStatusTones: Record<SpaceStatus, Tone> = {
   available: 'success',
   occupied: 'info',
   maintenance: 'warning',
+}
+
+export const leaseStatusTones: Record<LeaseStatus, Tone> = {
+  upcoming: 'info',
+  active: 'success',
+  ended: 'neutral',
 }

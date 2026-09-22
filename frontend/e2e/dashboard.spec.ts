@@ -3,6 +3,7 @@ import { expectPageHeading, signedInState } from './fixtures'
 
 test.use({ storageState: async ({ baseURL }, use) => use(signedInState(baseURL!)) })
 
+const occupancy = (page: Page) => figure(page, 'Occupancy')
 const figure = (page: Page, label: string) =>
   page.getByRole('region', { name: 'Key figures' }).getByRole('link', { name: new RegExp(`^${label}`) })
 
@@ -39,20 +40,26 @@ test.describe('dashboard', () => {
 
   test('recalculates the figures when the data changes', async ({ page }) => {
     await page.goto('/')
-    await expect(figure(page, 'Occupancy')).toContainText('85%')
+    await expect(occupancy(page)).toContainText('85%')
+    await expect(figure(page, 'Spaces')).toContainText('7 available')
 
-    // Mark every available space as occupied, as a future lease workflow would.
+    // A 1's lease ends yesterday. On the next start the app frees the space,
+    // and the figures follow.
     await page.evaluate(() => {
-      const spaces = JSON.parse(localStorage.getItem('jalaspace_units') ?? '[]') as {
-        status: string
+      const leases = JSON.parse(localStorage.getItem('jalaspace_leases') ?? '[]') as {
+        id: string
+        endDate: string | null
       }[]
-      for (const space of spaces) if (space.status === 'available') space.status = 'occupied'
-      localStorage.setItem('jalaspace_units', JSON.stringify(spaces))
+      const date = new Date()
+      date.setDate(date.getDate() - 1)
+      const yesterday = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+      for (const lease of leases) if (lease.id === 'lease-45') lease.endDate = yesterday
+      localStorage.setItem('jalaspace_leases', JSON.stringify(leases))
     })
     await page.reload()
 
-    await expect(figure(page, 'Occupancy')).toContainText('96%')
-    await expect(figure(page, 'Spaces')).toContainText('0 available')
-    await expect(page.getByText('All spaces are occupied or in maintenance.')).toBeVisible()
+    await expect(occupancy(page)).toContainText('84%')
+    await expect(figure(page, 'Spaces')).toContainText('8 available')
+    await expect(page.getByRole('link', { name: 'View all 8' })).toBeVisible()
   })
 })

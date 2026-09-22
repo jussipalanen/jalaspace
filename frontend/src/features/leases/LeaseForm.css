@@ -1,0 +1,15 @@
+.lease-form__fixed {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.lease-form__preview {
+  margin: 0;
+}
+
+.lease-form__rent {
+  max-width: 16rem;
+}

@@ -7,19 +7,14 @@ import type { Space } from '../types/space'
 import type { Tenant } from '../types/tenant'
 import { toIsoDate } from '../utils/date'
 import { hasErrors } from '../utils/validation'
-import { getLeaseStatus } from './leases'
-import { findActiveLease } from './spaces'
+import { syncSpaceStatus } from './leaseService'
 import {
   applyTenantChanges,
-  buildAssignmentLease,
   buildNewTenant,
   checkTenantDeletion,
   groupTenantLeases,
   planRemoval,
-  validateAssignmentForm,
   validateTenantForm,
-  type AssignmentFormErrors,
-  type AssignmentFormValues,
   type TenantDeletionCheck,
   type TenantFormErrors,
   type TenantFormValues,
@@ -34,16 +29,6 @@ export class TenantValidationError extends Error {
   constructor(errors: TenantFormErrors) {
     super('Invalid tenant')
     this.name = 'TenantValidationError'
-    this.errors = errors
-  }
-}
-
-export class AssignmentValidationError extends Error {
-  readonly errors: AssignmentFormErrors
-
-  constructor(errors: AssignmentFormErrors) {
-    super('Invalid space assignment')
-    this.name = 'AssignmentValidationError'
     this.errors = errors
   }
 }
@@ -131,37 +116,8 @@ export async function deleteTenant(data: Repositories, id: string): Promise<void
 }
 
 /**
- * Assigns a tenant to a space with a new open-ended lease. When the lease is
- * active today, the space becomes occupied; an upcoming lease leaves it available.
- */
-export async function assignTenantToSpace(
-  data: Repositories,
-  tenantId: string,
-  values: AssignmentFormValues,
-  now: Date = new Date(),
-): Promise<{ lease: Lease; space: Space }> {
-  const [tenant, properties, spaces, leases] = await Promise.all([
-    data.tenants.getById(tenantId),
-    data.properties.getAll(),
-    data.spaces.getAll(),
-    data.leases.getAll(),
-  ])
-  if (!tenant) throw new EntityNotFoundError(tenantId)
-  const errors = validateAssignmentForm(values, properties, spaces, leases)
-  if (hasErrors(errors)) throw new AssignmentValidationError(errors)
-
-  const timestamp = now.toISOString()
-  const lease = await data.leases.create(buildAssignmentLease(tenantId, values, timestamp))
-  let space = spaces.find((item) => item.id === lease.spaceId)!
-  if (getLeaseStatus(lease, toIsoDate(now)) === 'active') {
-    space = await data.spaces.update({ ...space, status: 'occupied', updatedAt: timestamp })
-  }
-  return { lease, space }
-}
-
-/**
  * Removes a tenant from a space: ends a running lease yesterday or cancels one
- * that has not started, then frees the space if no other lease keeps it occupied.
+ * that has not started, then updates the space status (freed unless another lease is active).
  */
 export async function removeTenantFromSpace(
   data: Repositories,
@@ -181,9 +137,6 @@ export async function removeTenantFromSpace(
     await data.leases.delete(lease.id)
   }
 
-  const [space, leases] = await Promise.all([data.spaces.getById(lease.spaceId), data.leases.getAll()])
-  if (space?.status === 'occupied' && !findActiveLease(space.id, leases, today)) {
-    await data.spaces.update({ ...space, status: 'available', updatedAt: timestamp })
-  }
+  await syncSpaceStatus(data, lease.spaceId, now)
   return { action: plan.action }
 }

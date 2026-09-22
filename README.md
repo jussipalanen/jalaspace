@@ -125,16 +125,34 @@ Search by name, contact person or email, and filter by type. Filters stay in the
 - **Add tenant** asks for the type (company or person), name, email and optional phone and notes;
   companies can also have a contact person. Emails must be unique, ignoring case.
 - A tenant's page shows their current and upcoming spaces, details and past leases.
-- **Assign to space** creates an open-ended lease for an available space, with a start date
-  (type `d.m.yyyy` or use the calendar) and an optional monthly rent. A start date today or earlier
-  makes the space Occupied; a later date reserves it, and the dashboard shows it as reserved.
+- **Assign to space** opens a new lease with the tenant already selected (see Leases).
 - **Remove from space** moves the tenant out: a running lease ends yesterday and the space becomes
-  Available, and a lease that has not started yet is cancelled. Scheduling a later move-out date is
-  part of Leases.
+  Available, and a lease that has not started yet is cancelled. To schedule a later move-out,
+  use **Edit lease** and set an end date.
 - A tenant with leases, including past ones, cannot be deleted, so the lease history is kept.
 - An occupied space's page links to its tenant (view and edit), and a property's spaces table shows each space's current tenant.
 
 Screenshots: [desktop list](docs/screenshots/tenants-desktop.png) · [mobile tenant details](docs/screenshots/tenants-mobile.png).
+
+## Leases
+
+Open **Leases** (`/leases`) to see every lease with its tenant, space, period, monthly rent and status.
+The status follows the dates: Upcoming, Active or Ended, counting both the start and the end day.
+Filter by status and property, or search by tenant or space name. Filters stay in the URL.
+
+- **New lease** connects a tenant to a space: choose the tenant, property and space, a start date,
+  an optional end date (empty means open-ended) and an optional monthly rent. The form shows whether
+  the lease will be upcoming or active today.
+- **Edit lease** changes the period and rent. A future end date schedules the move-out; the tenant
+  and space of a lease stay fixed, so moving a tenant means ending one lease and creating another.
+- Leases of the same space cannot overlap, the end date cannot be before the start date, and a lease
+  that is active today cannot start on a space in maintenance.
+- A space is Occupied while it has an active lease and Available otherwise. The app updates space
+  statuses when a lease is saved and every time it starts, so leases that start or end over time are
+  reflected in the spaces list, occupancy and dashboard.
+- Tenant pages and occupied spaces link to their leases.
+
+Screenshots: [desktop list](docs/screenshots/leases-desktop.png) · [mobile lease form](docs/screenshots/leases-mobile.png).
 
 ## Frontend scripts
 

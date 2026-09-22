@@ -35,11 +35,16 @@ test.describe('tenants', () => {
     await expectPageHeading(page, 'Pohjola Bakery Oy')
 
     await page.getByRole('link', { name: 'Assign to space' }).click()
-    await page.getByLabel('Property').selectOption({ label: 'Kuopio Harbour Business Park' })
-    await page.getByRole('combobox', { name: 'Space' }).selectOption({ label: 'B 204' })
+    await expectPageHeading(page, 'New lease')
+    await expect(page.getByRole('combobox', { name: 'Tenant' }).locator('option:checked')).toHaveText(
+      'Pohjola Bakery Oy',
+    )
+    await page.getByRole('combobox', { name: 'Property' }).selectOption({ label: 'Kuopio Harbour Business Park' })
+    await page.getByRole('combobox', { name: 'Space' }).selectOption({ label: 'B 204 (Available)' })
     await page.getByLabel('Monthly rent (€)').fill('1 250,50')
-    await page.getByRole('button', { name: 'Assign to space' }).click()
-    await expect(page.getByText('Pohjola Bakery Oy was assigned to B 204.')).toBeVisible()
+    await page.getByRole('button', { name: 'Save lease' }).click()
+    await expect(page.getByText('The lease of B 204 for Pohjola Bakery Oy was created.')).toBeVisible()
+    await expectPageHeading(page, 'Pohjola Bakery Oy')
     await expect(page.getByRole('region', { name: 'Spaces' })).toContainText('€1,250.50 / month')
 
     await page.reload()

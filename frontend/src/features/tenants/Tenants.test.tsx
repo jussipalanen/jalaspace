@@ -139,20 +139,20 @@ describe('tenants', () => {
     expect(screen.getByRole('textbox', { name: /^Company name/ })).toHaveValue('Pohjola Bakery Oy')
   })
 
-  it('assigns a tenant to an available space, which becomes occupied', async () => {
+  it('assigns a tenant to a space with a new lease and returns to the tenant', async () => {
     const user = userEvent.setup()
-    renderRoute('/tenants/tenant-aino-virtanen')
+    const { router } = renderRoute('/tenants/tenant-aino-virtanen')
 
     await user.click(await screen.findByRole('link', { name: 'Assign to space' }))
-    await user.selectOptions(await screen.findByLabelText(/^Property/), 'Kuopio Harbour Business Park')
-    const space = screen.getByLabelText(/^Space/)
-    // Occupied spaces and the reserved A 302 are not offered.
-    expect(within(space).queryByRole('option', { name: 'B 101' })).not.toBeInTheDocument()
-    await user.selectOptions(space, 'B 204')
+    expect(await screen.findByLabelText(/^Tenant/)).toHaveValue('tenant-aino-virtanen')
+    await user.selectOptions(screen.getByLabelText(/^Property/), 'Kuopio Harbour Business Park')
+    await user.selectOptions(screen.getByLabelText(/^Space/), 'B 204 (Available)')
     await user.type(screen.getByLabelText(/^Monthly rent/), '980')
-    await user.click(screen.getByRole('button', { name: 'Assign to space' }))
+    expect(screen.getByText('The lease is active today, so the space will be occupied.')).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
-    expect(await screen.findByText('Aino Virtanen was assigned to B 204.')).toBeInTheDocument()
+    expect(await screen.findByText('The lease of B 204 for Aino Virtanen was created.')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/tenants/tenant-aino-virtanen')
     const spaces = await screen.findByRole('region', { name: 'Spaces' })
     expect(within(spaces).getByRole('link', { name: 'B 204' })).toBeInTheDocument()
     expect(spaces).toHaveTextContent('€980.00 / month')
@@ -163,18 +163,19 @@ describe('tenants', () => {
 
   it('reserves a space for a future start date', async () => {
     const user = userEvent.setup()
-    renderRoute('/tenants/tenant-aino-virtanen/assign')
+    renderRoute('/leases/new?tenant=tenant-aino-virtanen')
     const start = formatDate(toIsoDate(addDays(new Date(), 14)))
 
     await user.selectOptions(await screen.findByLabelText(/^Property/), 'Kuopio Harbour Business Park')
-    await user.selectOptions(screen.getByLabelText(/^Space/), 'B 204')
+    await user.selectOptions(screen.getByLabelText(/^Space/), 'B 204 (Available)')
     const date = screen.getByRole('textbox', { name: /^Start date/ })
     await user.clear(date)
     await user.type(date, start)
     await user.keyboard('{Escape}')
-    await user.click(screen.getByRole('button', { name: 'Assign to space' }))
+    expect(screen.getByText(`The lease starts on ${start}. Until then the space keeps its current status.`)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
-    expect(await screen.findByText(`B 204 was reserved for Aino Virtanen from ${start}.`)).toBeInTheDocument()
+    expect(await screen.findByText('The lease of B 204 for Aino Virtanen was created.')).toBeInTheDocument()
     expect(await createDataLayer('localStorage').spaces.getById('space-kuopio-harbour-10')).toMatchObject({
       status: 'available',
     })

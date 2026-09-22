@@ -11,6 +11,7 @@ import {
   findActiveLease,
   parseArea,
   parseFloor,
+  reconcileSpaceStatuses,
   resolveSpaceStatus,
   toSpaceForm,
   validateSpaceForm,
@@ -192,5 +193,30 @@ describe('checkSpaceDeletion', () => {
       leaseCount: 0,
       maintenanceCount: 0,
     })
+  })
+})
+
+describe('reconciling space statuses with leases', () => {
+  it('changes nothing when the statuses match the leases', () => {
+    expect(reconcileSpaceStatuses(seed.spaces, seed.leases, today)).toEqual([])
+  })
+
+  it('frees a space whose lease has ended and occupies one whose lease has started', () => {
+    // Later, A 202's lease has ended and Aurora Yoga's lease of A 302 has started.
+    const leases = seed.leases.map((lease) =>
+      lease.spaceId === 'space-joensuu-center-6' ? { ...lease, endDate: '2026-09-21' } : lease,
+    )
+    const changed = reconcileSpaceStatuses(seed.spaces, leases, '2026-11-06')
+    expect(changed.map((space) => [space.name, space.status])).toEqual(
+      expect.arrayContaining([
+        ['A 202', 'available'],
+        ['A 302', 'occupied'],
+      ]),
+    )
+  })
+
+  it('keeps a space in maintenance when no lease is active', () => {
+    const inMaintenance = seed.spaces.filter((space) => space.status === 'maintenance')
+    expect(reconcileSpaceStatuses(inMaintenance, [], today)).toEqual([])
   })
 })
