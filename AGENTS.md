@@ -70,7 +70,7 @@ AI agents may:
 
 AI agents must not autonomously:
 
-* merge pull requests into `master`
+* merge pull requests into `main`
 * bypass branch protection
 * disable security checks
 * approve their own pull requests
@@ -100,7 +100,7 @@ Human Review
         ↓
 Human Approval
         ↓
-Merge to master
+Merge to main
         ↓
 Production deployment
 ```
@@ -109,7 +109,7 @@ No implementation should move directly from AI-generated code to production.
 
 Human review is mandatory before:
 
-1. merging into `master`
+1. merging into `main`
 2. deploying to production
 
 ---
@@ -167,7 +167,7 @@ The agent should use the issue as the source of truth for the implementation.
 
 # Feature Branch Workflow
 
-Never develop features directly on `master`.
+Never develop features directly on `main`.
 
 Create a dedicated branch for each issue or feature.
 
@@ -266,24 +266,24 @@ The human reviewer must verify:
 * no secrets are committed
 * no unexpected files were modified
 
-Only a human may approve merging to `master`.
+Only a human may approve merging to `main`.
 
 ---
 
-# Protected Master Branch
+# Protected Main Branch
 
-Treat `master` as a protected branch.
+Treat `main` as a protected branch.
 
 Agents must never:
 
 ```text
-git push origin master
+git push origin main
 ```
 
 or force push:
 
 ```text
-git push --force origin master
+git push --force origin main
 ```
 
 All changes must arrive through Pull Requests.
@@ -300,6 +300,9 @@ Recommended GitHub branch protection rules:
 * prevent direct pushes
 
 If repository permissions allow it, configure these protections in GitHub.
+
+GitHub offers branch protection and rulesets for private repositories only on paid plans.
+Until they are enabled, GitHub does not enforce these rules, so every agent and contributor must follow them by process.
 
 ---
 
@@ -318,7 +321,7 @@ CI
       ↓
 Human Review
       ↓
-Merge to master
+Merge to main
       ↓
 Production Build
       ↓
@@ -1525,7 +1528,7 @@ The CI workflow should run on:
 
 ```text
 pull_request
-push to master
+push to main
 ```
 
 The workflow should verify:
@@ -1757,7 +1760,7 @@ Pull Requests may create preview deployments.
 
 Preview deployments are useful for human review.
 
-Production deployment must happen only from reviewed code merged to `master`.
+Production deployment must happen only from reviewed code merged to `main`.
 
 ---
 
@@ -1778,7 +1781,7 @@ Human tests preview
       ↓
 Human approves PR
       ↓
-Merge to master
+Merge to main
       ↓
 Production deploy
 ```
@@ -2112,7 +2115,7 @@ Example:
 feature/12-property-management
 ```
 
-Never work directly on `master`.
+Never work directly on `main`.
 
 ## 4. Implement the Smallest Complete Solution
 
@@ -2239,7 +2242,7 @@ Human code review completed
 
 Human approval received
 
-Pull Request merged to master
+Pull Request merged to main
 
 Production build succeeds
 ```
