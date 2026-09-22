@@ -97,19 +97,37 @@ The tests build the app and serve it with `vite preview` on port 4173. After a r
 ```text
 frontend/src/
 ├── components/    Reusable presentation components (Sidebar, Header, PageHeader, ...)
-├── config/        Static configuration such as navigation
+├── config/        Static configuration: navigation, data provider selection
 ├── layouts/       Application shell layouts
 ├── pages/         Route-level page components
 ├── hooks/         Custom React hooks
-├── features/      Feature modules (planned)
-├── repositories/  Data access abstractions (planned)
-├── services/      Business logic (planned)
-├── types/         Shared TypeScript types
-├── utils/         Helpers (planned)
-├── data/          Seed data (planned)
+├── features/      Feature modules (auth, ...)
+├── repositories/  Repository interfaces and their localStorage implementations
+├── services/      Business logic (auth, lease status, demo data seeding and reset)
+├── types/         Domain types (Property, Space, Tenant, Lease, MaintenanceTask, ...)
+├── utils/         Helpers such as date handling
+├── data/seed/     Demo seed data
 ├── styles/        Design tokens and global styles
 └── router.tsx     Route definitions (React Router)
 ```
+
+### Data layer
+
+Pages never touch `localStorage` directly. They go through repository interfaces, so the storage can later be swapped for a REST API without changing the UI:
+
+```text
+React UI → custom hook → Repository interface → LocalStorageRepository (today)
+                                              → ApiRepository (planned)
+```
+
+- **Data provider:** `VITE_DATA_PROVIDER` selects the implementation. `localStorage` is the default; `api` is reserved for the planned backend. See [`frontend/.env.example`](frontend/.env.example); copy it to `.env.local` to override locally.
+- **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_session` and `jalaspace_seed_version`.
+- **Seed data:** on the first visit the app seeds a demo portfolio: 4 properties, 68 spaces, 31 tenants, 62 leases and 14 maintenance tasks. Dates are relative to today, so the demo always has current, upcoming and past activity. Later visits keep your changes.
+- **Reset:** resetting the demo data clears all JalaSpace data except the signed-in session and restores the seed. The Settings page will expose this.
+- **Data conventions:**
+  - Timestamps are ISO strings (`2026-09-22T10:30:00.000Z`), and calendar dates are date-only strings (`2026-09-22`).
+  - Rent is stored in euro cents.
+  - A lease's status (upcoming, active or ended) is derived from its dates, not stored.
 
 ## Continuous integration
 
