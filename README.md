@@ -103,7 +103,7 @@ frontend/src/
 ├── hooks/         Custom React hooks
 ├── features/      Feature modules (auth, ...)
 ├── repositories/  Repository interfaces and their localStorage implementations
-├── services/      Business logic (auth, lease status, demo data seeding and reset)
+├── services/      Business logic (auth, lease status, dashboard statistics, demo data)
 ├── types/         Domain types (Property, Space, Tenant, Lease, MaintenanceTask, ...)
 ├── utils/         Helpers such as date handling
 ├── data/seed/     Demo seed data
