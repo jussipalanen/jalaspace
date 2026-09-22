@@ -1,4 +1,5 @@
 import { Link } from 'react-router'
+import { useTranslation } from '../../i18n/useTranslation'
 import type { ActivityItem, ActivityType } from '../../services/dashboard'
 import { formatDate } from '../../utils/format'
 import { DashboardPanel, PanelEmpty } from './DashboardPanel'
@@ -10,10 +11,16 @@ const markerClass: Record<ActivityType, string> = {
 }
 
 export function RecentActivity({ items }: { items: ActivityItem[] }) {
+  const { t } = useTranslation()
+
   return (
-    <DashboardPanel id="recent-activity-title" title="Recent activity" className="dashboard-panel--wide">
+    <DashboardPanel
+      id="recent-activity-title"
+      title={t('dashboard.activity.title')}
+      className="dashboard-panel--wide"
+    >
       {items.length === 0 ? (
-        <PanelEmpty>No activity yet.</PanelEmpty>
+        <PanelEmpty>{t('dashboard.activity.empty')}</PanelEmpty>
       ) : (
         <ol className="activity">
           {items.map((item) => (
@@ -21,7 +28,7 @@ export function RecentActivity({ items }: { items: ActivityItem[] }) {
               <span className={`activity__marker ${markerClass[item.type]}`} aria-hidden="true" />
               <div className="activity__body">
                 <p className="activity__title">
-                  {item.title}
+                  {t(`dashboard.activity.types.${item.type}`)}
                   {item.details && (
                     <>
                       {': '}

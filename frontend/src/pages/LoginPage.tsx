@@ -1,9 +1,11 @@
 import { Navigate, useLocation } from 'react-router'
 import { LogoMark } from '../components/icons'
+import { LanguageSwitcher } from '../components/LanguageSwitcher/LanguageSwitcher'
 import { LoginForm } from '../features/auth/LoginForm'
 import type { LoginLocationState } from '../features/auth/RequireAuth'
 import { useAuth } from '../features/auth/useAuth'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
+import { useTranslation } from '../i18n/useTranslation'
 import './LoginPage.css'
 
 /** Only allow returning to in-app paths. */
@@ -18,7 +20,8 @@ function getRedirectTarget(state: unknown): string {
 export function LoginPage() {
   const { status } = useAuth()
   const location = useLocation()
-  useDocumentTitle('Sign in')
+  const { t } = useTranslation()
+  useDocumentTitle(t('auth.signIn'))
 
   if (status === 'loading') return null
   if (status === 'authenticated') {
@@ -28,21 +31,21 @@ export function LoginPage() {
   return (
     <main className="login-page">
       <div className="login-page__panel">
+        <div className="login-page__language">
+          <LanguageSwitcher />
+        </div>
         <div className="login-page__brand">
           <LogoMark className="login-page__logo" />
-          <span className="login-page__brand-name">JalaSpace</span>
+          <span className="login-page__brand-name">{t('app.name')}</span>
         </div>
 
         <div className="card login-page__card">
-          <h1 className="login-page__title">Sign in</h1>
-          <p className="login-page__subtitle">Property and space management demo</p>
+          <h1 className="login-page__title">{t('auth.signIn')}</h1>
+          <p className="login-page__subtitle">{t('auth.subtitle')}</p>
           <LoginForm />
         </div>
 
-        <p className="login-page__notice">
-          This is a demo. Sign-in is simulated in your browser and is not secure. Data is
-          stored only in this browser.
-        </p>
+        <p className="login-page__notice">{t('auth.notice')}</p>
       </div>
     </main>
   )

@@ -2,14 +2,16 @@ import { useState, type FormEvent } from 'react'
 import { DEMO_CREDENTIALS, InvalidCredentialsError } from '../../services/authService'
 import type { LoginCredentials } from '../../types/auth'
 import { InfoIcon } from '../../components/icons'
+import { useTranslation } from '../../i18n/useTranslation'
 import { useAuth } from './useAuth'
 import { validateLoginForm, type LoginFormErrors } from './validateLoginForm'
 
 export function LoginForm() {
   const { login } = useAuth()
+  const { t } = useTranslation()
   const [values, setValues] = useState<LoginCredentials>({ email: '', password: '' })
   const [errors, setErrors] = useState<LoginFormErrors>({})
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<'invalidCredentials' | 'unavailable' | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   function updateField(field: keyof LoginCredentials, value: string) {
@@ -31,11 +33,7 @@ export function LoginForm() {
       // On success the login page redirects; this component then unmounts.
       await login(values)
     } catch (error) {
-      setFormError(
-        error instanceof InvalidCredentialsError
-          ? 'Invalid email or password.'
-          : 'Unable to sign in. Please try again.',
-      )
+      setFormError(error instanceof InvalidCredentialsError ? 'invalidCredentials' : 'unavailable')
       setIsSubmitting(false)
     }
   }
@@ -51,26 +49,32 @@ export function LoginForm() {
       <div className="alert alert--info login-form__demo">
         <InfoIcon className="login-form__demo-icon" />
         <div>
-          <p className="login-form__demo-title">Demo account</p>
-          <p className="login-form__demo-text">
-            Email <code>{DEMO_CREDENTIALS.email}</code>, password{' '}
-            <code>{DEMO_CREDENTIALS.password}</code>
-          </p>
+          <p className="login-form__demo-title">{t('auth.demoAccount')}</p>
+          <dl className="login-form__demo-credentials">
+            <dt>{t('auth.email')}</dt>
+            <dd>
+              <code>{DEMO_CREDENTIALS.email}</code>
+            </dd>
+            <dt>{t('auth.password')}</dt>
+            <dd>
+              <code>{DEMO_CREDENTIALS.password}</code>
+            </dd>
+          </dl>
           <button type="button" className="login-form__demo-fill" onClick={fillDemoCredentials}>
-            Fill in demo credentials
+            {t('auth.fillDemo')}
           </button>
         </div>
       </div>
 
       {formError && (
         <div className="alert alert--error" role="alert">
-          {formError}
+          {t(`auth.${formError}`)}
         </div>
       )}
 
       <div className="field">
         <label className="field__label" htmlFor="login-email">
-          Email
+          {t('auth.email')}
         </label>
         <input
           id="login-email"
@@ -85,14 +89,14 @@ export function LoginForm() {
         />
         {errors.email && (
           <p id="login-email-error" className="field__error">
-            {errors.email}
+            {t(`auth.validation.email.${errors.email}`)}
           </p>
         )}
       </div>
 
       <div className="field">
         <label className="field__label" htmlFor="login-password">
-          Password
+          {t('auth.password')}
         </label>
         <input
           id="login-password"
@@ -107,7 +111,7 @@ export function LoginForm() {
         />
         {errors.password && (
           <p id="login-password-error" className="field__error">
-            {errors.password}
+            {t(`auth.validation.password.${errors.password}`)}
           </p>
         )}
       </div>
@@ -117,7 +121,7 @@ export function LoginForm() {
         className="button button--primary button--block login-form__submit"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Signing in…' : 'Sign in'}
+        {isSubmitting ? t('auth.submitting') : t('auth.signIn')}
       </button>
     </form>
   )

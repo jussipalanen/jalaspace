@@ -4,7 +4,8 @@ import { Header } from '../components/Header/Header'
 import { Sidebar } from '../components/Sidebar/Sidebar'
 import { useAuth } from '../features/auth/useAuth'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { useRouteTitle } from '../hooks/useRouteTitle'
+import { useRouteTitleKey } from '../hooks/useRouteTitle'
+import { useTranslation } from '../i18n/useTranslation'
 import './AppLayout.css'
 
 const SIDEBAR_ID = 'app-sidebar'
@@ -12,8 +13,10 @@ const SIDEBAR_ID = 'app-sidebar'
 export function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { session, logout } = useAuth()
-  const title = useRouteTitle()
-  useDocumentTitle(title)
+  const { t } = useTranslation()
+  const titleKey = useRouteTitleKey()
+  const title = titleKey ? t(titleKey) : t('app.name')
+  useDocumentTitle(titleKey ? title : null)
 
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), [])
 
@@ -31,7 +34,7 @@ export function AppLayout() {
   return (
     <div className="app-layout">
       <a className="skip-link" href="#main-content">
-        Skip to content
+        {t('app.skipToContent')}
       </a>
 
       <Sidebar id={SIDEBAR_ID} isOpen={isSidebarOpen} onClose={closeSidebar} />

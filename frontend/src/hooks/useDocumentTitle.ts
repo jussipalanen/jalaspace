@@ -1,9 +1,11 @@
 import { useEffect } from 'react'
+import { useTranslation } from '../i18n/useTranslation'
 
-const APP_NAME = 'JalaSpace'
+/** Sets the browser tab title; `pageTitle` is already translated. `null` shows only the app name. */
+export function useDocumentTitle(pageTitle: string | null): void {
+  const { t } = useTranslation()
 
-export function useDocumentTitle(title: string): void {
   useEffect(() => {
-    document.title = title === APP_NAME ? APP_NAME : `${title} · ${APP_NAME}`
-  }, [title])
+    document.title = pageTitle ? t('app.documentTitle', { page: pageTitle }) : t('app.name')
+  }, [pageTitle, t])
 }

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 import { Link } from 'react-router'
 
 interface DashboardPanelProps {
@@ -40,10 +40,11 @@ export function MetaLine({ parts }: { parts: (string | null | undefined | false)
   return (
     <p className="dashboard-list__meta">
       {visible.map((part, index) => (
-        <span key={index} className="dashboard-list__meta-part">
+        // The separator stays outside the no-wrap span so lines can break between parts.
+        <Fragment key={index}>
           {index > 0 && ' · '}
-          {part}
-        </span>
+          <span className="dashboard-list__meta-part">{part}</span>
+        </Fragment>
       ))}
     </p>
   )

@@ -5,28 +5,28 @@ import { DashboardStats } from '../features/dashboard/DashboardStats'
 import { RecentActivity } from '../features/dashboard/RecentActivity'
 import { RecentMaintenance } from '../features/dashboard/RecentMaintenance'
 import { useDashboard } from '../features/dashboard/useDashboard'
+import { useTranslation } from '../i18n/useTranslation'
 import './DashboardPage.css'
 
 export function DashboardPage() {
-  const dashboard = useDashboard()
+  const { t } = useTranslation()
+  const { status, summary, reload } = useDashboard()
 
   return (
     <>
-      <PageHeader title="Dashboard" description="Overview of your property portfolio." />
+      <PageHeader title={t('pages.dashboard.title')} description={t('pages.dashboard.description')} />
 
-      {dashboard.status === 'loading' && <LoadingState label="Loading dashboard…" />}
+      {status === 'loading' && <LoadingState label={t('dashboard.loading')} />}
 
-      {dashboard.status === 'error' && (
-        <ErrorState message="Unable to load the dashboard." onRetry={dashboard.reload} />
-      )}
+      {status === 'error' && <ErrorState message={t('dashboard.loadError')} onRetry={reload} />}
 
-      {dashboard.status === 'success' && (
+      {summary && (
         <>
-          <DashboardStats stats={dashboard.data.stats} />
+          <DashboardStats stats={summary.stats} />
           <div className="dashboard__panels">
-            <RecentMaintenance items={dashboard.data.recentMaintenance} />
-            <AvailableSpaces items={dashboard.data.availableSpaces} />
-            <RecentActivity items={dashboard.data.recentActivity} />
+            <RecentMaintenance items={summary.recentMaintenance} />
+            <AvailableSpaces items={summary.availableSpaces} />
+            <RecentActivity items={summary.recentActivity} />
           </div>
         </>
       )}

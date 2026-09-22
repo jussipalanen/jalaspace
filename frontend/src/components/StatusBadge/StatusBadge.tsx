@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { Tone } from '../../utils/labels'
+import type { Tone } from '../../utils/tones'
 import './StatusBadge.css'
 
 export function StatusBadge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
