@@ -1,7 +1,7 @@
 import type { MaintenanceTask } from '../types/maintenance'
 import type { Space } from '../types/space'
 
-/** Shared metric definitions (see "Dashboard" in CLAUDE.md), used by every view. */
+/** Shared metric definitions (see "Dashboard" in AGENTS.md), used by every view. */
 
 export interface OccupancyMetrics {
   spaceCount: number
