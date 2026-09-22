@@ -11,7 +11,6 @@ import { useDataLayer } from '../hooks/useDataLayer'
 import { useTranslation } from '../i18n/useTranslation'
 import { createProperty, updateProperty } from '../services/propertyService'
 import { emptyPropertyForm, toPropertyForm, type PropertyFormValues } from '../services/properties'
-import './PropertyFormPage.css'
 
 export function NewPropertyPage() {
   const { t } = useTranslation()

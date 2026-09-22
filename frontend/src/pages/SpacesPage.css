@@ -1,0 +1,30 @@
+.space-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1.5fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.space-filters .field + .field {
+  margin-top: 0;
+}
+
+.space-filters__search .search-field {
+  max-width: none;
+}
+
+@media (max-width: 719.98px) {
+  .space-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .space-filters__search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 419.98px) {
+  .space-filters {
+    grid-template-columns: 1fr;
+  }
+}

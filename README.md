@@ -78,6 +78,22 @@ JalaSpace is available in **English** and **Finnish**. Switch the language from 
 
 Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). English (`en.ts`) defines the keys; the Finnish dictionary is type-checked against it, so a missing translation fails the build. See the Internationalization section in [AGENTS.md](AGENTS.md).
 
+## Spaces
+
+Open **Spaces** (`/units`) to search by space or current tenant and filter by property or status.
+Filters stay in the URL and survive a reload. Use **Add space** on a property's details page
+to create a space with that property already selected, or select a space to edit it.
+
+- Names must be unique within a property (ignoring case), with at most 50 characters.
+- Floors are whole numbers from −10 to 200; areas are positive, at most 100 000 m²,
+  with up to two decimals. A decimal comma is accepted.
+- An active lease locks the status to Occupied; otherwise choose Available or Maintenance.
+- Deleting requires confirmation and is blocked while any lease or maintenance task refers to the space.
+- A space with maintenance tasks cannot move to another property until those tasks are removed or reassigned.
+- Saves recheck validation against current repository data. Changes persist in this browser.
+
+Screenshots: [desktop list](docs/screenshots/spaces-desktop.png) · [mobile form](docs/screenshots/spaces-mobile.png).
+
 ## Frontend scripts
 
 Run these inside `frontend/`:

@@ -83,7 +83,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
   }
 
   return (
-    <form className="card property-form" onSubmit={handleSubmit} noValidate>
+    <form className="card entity-form" onSubmit={handleSubmit} noValidate>
       <p className="field__hint">{t('properties.form.requiredHint')}</p>
 
       {showSummary && hasErrors(errors) && (
@@ -149,7 +149,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
         )}
       </FormField>
 
-      <div className="property-form__row">
+      <div className="entity-form__row entity-form__row--narrow-first">
         <FormField
           id={fieldId('postalCode')}
           label={t('properties.form.fields.postalCode')}
@@ -204,7 +204,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
         )}
       </FormField>
 
-      <div className="property-form__actions">
+      <div className="entity-form__actions">
         <Link to={cancelTo} className="button button--secondary">
           {t('properties.form.cancel')}
         </Link>
