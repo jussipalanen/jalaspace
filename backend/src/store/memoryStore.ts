@@ -33,6 +33,10 @@ export class MemoryCollection<T extends Entity> implements Collection<T> {
   async delete(id: string): Promise<boolean> {
     return this.#items.delete(id)
   }
+
+  async clear(): Promise<void> {
+    this.#items.clear()
+  }
 }
 
 export function createMemoryStore(): Store {

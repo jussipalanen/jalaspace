@@ -24,3 +24,5 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3000
+      # Start with the demo data, so it is back after every restart.
+      SEED_DEMO_DATA: 'true'

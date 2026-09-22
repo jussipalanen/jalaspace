@@ -285,7 +285,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 | Root Directory    | `backend/`                                 |
 | Build Command     | `npm ci`                                   |
 | Start Command     | `npm start` (runs the TypeScript sources directly, no build step) |
-| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`; Render sets `PORT` |
+| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`; Render sets `PORT` |
 | Health Check Path | `/api/health`                              |
 | Region            | Frankfurt (EU Central)                     |
 | Branch            | `main`, auto-deploy on commit              |
@@ -294,7 +294,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - Only changes in `backend/` trigger a deploy, and only after they are merged to `main`.
 - `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
-- The API keeps its data in memory, so the data is cleared whenever the service sleeps, restarts or is redeployed. A database comes later.
+- The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). A database comes later.
 - The frontend does not call the API yet; it still stores its data in the browser.
 
 ## Versions and releases
