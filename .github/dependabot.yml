@@ -7,7 +7,9 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      prefix: chore
+      # Runtime dependency updates are releasable fixes; dev-tool updates are chores.
+      prefix: fix
+      prefix-development: chore
       include: scope
     groups:
       # Minor and patch updates are grouped to reduce PR noise.

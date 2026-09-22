@@ -9,7 +9,8 @@ A Node.js backend is planned for a later milestone.
 
 ```text
 frontend/            React + TypeScript + Vite single-page application
-.github/             CI workflows and Dependabot configuration
+.github/             CI, release workflows and Dependabot configuration
+CHANGELOG.md         Release notes for every version
 docker-compose.yml   Local development with Docker
 CLAUDE.md            Development workflow and conventions (humans and AI agents)
 ```
@@ -179,6 +180,18 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 - Every pull request gets a preview deployment for review.
 - Merging to `main` deploys to production, so only reviewed code reaches production.
 - [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
+
+## Versions and releases
+
+JalaSpace follows [Semantic Versioning](https://semver.org/). Every version is tagged (`v0.1.0`, `v0.1.1`, `v0.2.0` …), published as a [GitHub Release](https://github.com/jussipalanen/jalaspace/releases), and listed in [CHANGELOG.md](CHANGELOG.md).
+
+Releases are prepared automatically by [release-please](https://github.com/googleapis/release-please) from [Conventional Commit](https://www.conventionalcommits.org/) messages:
+
+- `feat:` → new minor version (0.1.0 → 0.2.0)
+- `fix:` → patch version (0.1.0 → 0.1.1)
+- `docs:`, `test:`, `ci:`, `chore:` → no release
+
+After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [CLAUDE.md](CLAUDE.md).
 
 ## Development workflow
 
