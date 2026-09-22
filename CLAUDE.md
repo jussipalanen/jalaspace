@@ -341,6 +341,7 @@ Use:
 * localStorage for demo persistence
 * Vitest for unit tests where useful
 * React Testing Library for component tests where useful
+* Playwright for end-to-end tests of critical user flows
 
 Avoid unnecessary dependencies.
 
@@ -1044,6 +1045,67 @@ Invalid property cannot be saved
 
 ---
 
+# End-to-End Testing
+
+Use Playwright for end-to-end (E2E) tests that run the real application in a real browser.
+
+Vitest and React Testing Library remain the main tools for unit and component tests.
+E2E tests cover what they cannot:
+
+* complete user flows across several pages
+* the production build
+* real browser behavior such as reloads, direct links, focus and responsive layout
+* persistence across page reloads
+
+Location and naming:
+
+```text
+frontend/e2e/*.spec.ts          desktop Chromium
+frontend/e2e/*.mobile.spec.ts   mobile Chromium viewport
+frontend/e2e/fixtures.ts        shared helpers
+frontend/playwright.config.ts
+```
+
+Tests run against the production build served by `vite preview`, the closest local match to the Vercel deployment.
+
+Commands (inside `frontend/`):
+
+```bash
+npm run test:e2e        # run all E2E tests
+npm run test:e2e:ui     # interactive UI mode
+npx playwright install chromium   # one-time browser install
+```
+
+Write E2E tests for critical workflows, for example:
+
+```text
+Signed-out user is redirected to sign-in and returns to the requested page
+
+Created property appears in the list and survives a reload
+
+Maintenance task can be completed
+
+Reset demo data restores seed data
+
+Mobile navigation drawer opens and closes
+```
+
+Do not duplicate every validation rule or edge case in E2E tests.
+Cover those with faster unit and component tests.
+
+Conventions:
+
+* use accessible locators: `getByRole`, `getByLabel`, `getByText`
+* avoid CSS selectors and test IDs unless no accessible locator exists
+* never use fixed waits such as `waitForTimeout`; rely on Playwright's auto-waiting assertions
+* keep tests independent; each test starts with fresh browser storage
+* set up state (for example a signed-in session) through browser storage state, not by depending on another test
+* use the demo credentials only; never real accounts or secrets
+
+When a feature adds or changes a critical user flow, add or update its E2E test in the same Pull Request.
+
+---
+
 # Code Quality Checks
 
 Every Pull Request must pass automated code quality checks.
@@ -1056,6 +1118,7 @@ npm run lint
 npm run typecheck
 npm run test
 npm run build
+npm run test:e2e
 ```
 
 If scripts use different names, adapt the workflow accordingly.
@@ -1087,6 +1150,8 @@ Linting
 TypeScript
 Tests
 Production build
+End-to-end tests
+Docker image build
 ```
 
 Typical pipeline:
@@ -1105,7 +1170,11 @@ TypeScript check
 Tests
    ↓
 Build
+   ↓
+End-to-end tests (Playwright)
 ```
+
+Checks run as separate parallel jobs where practical, so each can be a required status check.
 
 Prefer the current supported Node.js LTS version.
 
@@ -1548,6 +1617,7 @@ npm run lint
 npm run typecheck
 npm run test
 npm run build
+npm run test:e2e
 ```
 
 Also run appropriate security/dependency checks.
@@ -1592,6 +1662,7 @@ Before creating a PR verify:
 [ ] TypeScript passes
 [ ] Lint passes
 [ ] Tests pass
+[ ] End-to-end tests pass
 [ ] Production build succeeds
 [ ] Dependency audit has been checked
 [ ] No secrets are committed
@@ -1611,7 +1682,9 @@ lint
 typecheck
 test
 build
+e2e
 security-audit
+docker-build
 ```
 
 All required checks should pass before merge.
