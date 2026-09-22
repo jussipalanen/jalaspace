@@ -661,7 +661,12 @@ jalaspace_session
 jalaspace_profile
 jalaspace_profile_image
 jalaspace_credentials
+jalaspace_seed_version
 ```
+
+`jalaspace_seed_version` records which version of the seed data is stored.
+Seed data is written on the first visit and never overwrites existing data of the same version.
+Bump the seed version when the seed data or entity shapes change incompatibly.
 
 ---
 
@@ -1669,6 +1674,22 @@ Completing maintenance means:
 status = completed
 completedAt = current date
 ```
+
+A lease's status is derived from its dates, not stored:
+
+```text
+startDate > today                  → upcoming
+endDate < today                    → ended
+otherwise (end date may be null)   → active
+```
+
+Both the start date and the end date count as days of the lease.
+
+Store money as integer euro cents (for example `monthlyRentCents`) to avoid floating-point rounding.
+Format it as euros only in the presentation layer.
+
+Seed data must follow the same business rules as data entered in the app.
+Tests verify, for example, that a space is occupied exactly when it has an active lease.
 
 Business logic should not be buried inside presentation components.
 
