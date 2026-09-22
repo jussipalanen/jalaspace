@@ -97,8 +97,10 @@ Screenshots: [desktop list](docs/screenshots/spaces-desktop.png) · [mobile form
 ## Maintenance
 
 Open **Maintenance** (`/maintenance`) to see every task, newest first. Search titles and descriptions,
-and filter by property, space, priority or status. Filters stay in the URL, so they survive a reload
-and can be shared as links. Changing the property clears the space filter.
+and filter by property, space, priority or status. **Due by** shows tasks due on or before a date
+(type it or choose it from the calendar), and **Overdue only** shows open and in-progress tasks past
+their due date. Filters stay in the URL, so they survive a reload and can be shared as links.
+Changing the property clears the space filter.
 
 - Select a task to see its details and to **Start work**, **Mark as completed** or **Reopen task**.
 - Use **Add task** on the list or on a property's details page, where the property is already selected.

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addDays, addMonths, calendarWeeks, isoWeekday, shiftIsoDate, toIsoDate } from './date'
+import { addDays, addMonths, calendarWeeks, isIsoDate, isoWeekday, shiftIsoDate, toIsoDate } from './date'
 
 describe('date utilities', () => {
   it('formats the local calendar date as a date-only ISO string', () => {
@@ -33,6 +33,14 @@ describe('calendar helpers', () => {
     expect(shiftIsoDate('2026-01-31', { months: 1 })).toBe('2026-02-28')
     expect(shiftIsoDate('2028-03-31', { months: -1 })).toBe('2028-02-29')
     expect(shiftIsoDate('2026-12-15', { months: 1 })).toBe('2027-01-15')
+  })
+
+  it('recognises real date-only ISO strings', () => {
+    expect(isIsoDate('2026-09-30')).toBe(true)
+    expect(isIsoDate('2028-02-29')).toBe(true)
+    expect(isIsoDate('2026-02-31')).toBe(false)
+    expect(isIsoDate('2026-9-30')).toBe(false)
+    expect(isIsoDate('30.9.2026')).toBe(false)
   })
 
   it('numbers weekdays from Monday', () => {

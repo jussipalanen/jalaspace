@@ -1,6 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { ErrorState, LoadingState } from '../components/DataState/DataState'
+import { DateInput } from '../components/DateInput/DateInput'
 import { EmptyState } from '../components/EmptyState/EmptyState'
 import { BuildingIcon, PlusIcon, SearchIcon, WrenchIcon } from '../components/icons'
 import { PageHeader } from '../components/PageHeader/PageHeader'
@@ -15,14 +16,17 @@ import {
   isMaintenanceStatus,
   MAINTENANCE_PRIORITIES,
   MAINTENANCE_STATUSES,
+  parseDueDate,
   type MaintenanceFilters,
 } from '../services/maintenance'
 import type { MaintenanceData } from '../services/maintenanceService'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
+import { isIsoDate, toIsoDate } from '../utils/date'
+import { formatDate } from '../utils/format'
 import './MaintenancePage.css'
 
-type FilterKey = 'property' | 'space' | 'priority' | 'status' | 'q'
+type FilterKey = 'property' | 'space' | 'priority' | 'status' | 'due' | 'overdue' | 'q'
 
 export function MaintenancePage() {
   const { t, locale } = useTranslation()
@@ -32,22 +36,31 @@ export function MaintenancePage() {
 
   const priorityParam = searchParams.get('priority') ?? ''
   const statusParam = searchParams.get('status') ?? ''
+  const dueParam = searchParams.get('due') ?? ''
   const filters: MaintenanceFilters = {
     propertyId: searchParams.get('property') ?? '',
     spaceId: searchParams.get('space') ?? '',
     priority: isMaintenancePriority(priorityParam) ? priorityParam : '',
     status: isMaintenanceStatus(statusParam) ? statusParam : '',
+    dueBy: isIsoDate(dueParam) ? dueParam : '',
+    overdueOnly: searchParams.get('overdue') === '1',
     query: searchParams.get('q') ?? '',
   }
   const hasFilters = Boolean(
-    filters.propertyId || filters.spaceId || filters.priority || filters.status || filters.query,
+    filters.propertyId ||
+      filters.spaceId ||
+      filters.priority ||
+      filters.status ||
+      filters.dueBy ||
+      filters.overdueOnly ||
+      filters.query,
   )
 
   const rows = useMemo(
     () => (data ? buildMaintenanceRows(data.maintenance, data.properties, data.spaces, locale) : []),
     [data, locale],
   )
-  const visible = filterMaintenanceRows(rows, filters, locale)
+  const visible = filterMaintenanceRows(rows, filters, locale, toIsoDate(new Date()))
 
   const collator = useMemo(() => new Intl.Collator(locale, { numeric: true }), [locale])
   const properties = useMemo(
@@ -67,7 +80,27 @@ export function MaintenancePage() {
     if (key === 'property') next.delete('space')
     setSearchParams(next, { replace: true })
   }
-  const clearFilters = () => setSearchParams({}, { replace: true })
+  const clearFilters = () => {
+    setDueText('')
+    setSearchParams({}, { replace: true })
+  }
+
+  // The due-by field shows d.m.yyyy text; the URL keeps an ISO date. A partly
+  // typed date is kept in the field but not applied until it is complete.
+  const [dueText, setDueText] = useState(filters.dueBy ? formatDate(filters.dueBy) : '')
+  const [shownDueBy, setShownDueBy] = useState(filters.dueBy)
+  if (filters.dueBy !== shownDueBy) {
+    // The URL changed (e.g. back button or a chosen date): show the new date.
+    setShownDueBy(filters.dueBy)
+    if (filters.dueBy) setDueText(formatDate(filters.dueBy))
+  }
+  const changeDueText = (text: string) => {
+    setDueText(text)
+    const date = parseDueDate(text)
+    if (date) setFilter('due', date)
+    else if (!text.trim()) setFilter('due', '')
+  }
+  const dueTextInvalid = dueText.trim() !== '' && !parseDueDate(dueText)
 
   const addLink = (
     <Link
@@ -212,6 +245,28 @@ export function MaintenancePage() {
                 onChange={(value) => setFilter('q', value)}
               />
             </div>
+            <div className="field">
+              <label className="field__label" htmlFor="maintenance-filter-due">
+                {t('maintenance.filters.dueBy')}
+              </label>
+              <DateInput
+                control={{ id: 'maintenance-filter-due', 'aria-invalid': dueTextInvalid || undefined }}
+                text={dueText}
+                onTextChange={changeDueText}
+                value={parseDueDate(dueText)}
+                onSelect={(date) => changeDueText(formatDate(date))}
+                field={t('maintenance.filters.dueByField')}
+                placeholder={t('maintenance.form.dueDatePlaceholder')}
+              />
+            </div>
+            <label className="maintenance-filters__check">
+              <input
+                type="checkbox"
+                checked={filters.overdueOnly}
+                onChange={(event) => setFilter('overdue', event.target.checked ? '1' : '')}
+              />
+              {t('maintenance.filters.overdueOnly')}
+            </label>
           </div>
 
           <div className="list-toolbar">

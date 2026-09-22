@@ -23,6 +23,19 @@ test.describe('maintenance', () => {
     await expect(count(page)).toHaveText('1 task')
     await expect(page.getByRole('link', { name: 'Grease trap service' })).toBeVisible()
 
+    // Choose a due-by date in the calendar: tasks due on or before the next 3 days.
+    await page.goto('/maintenance')
+    const dueBy = page.getByRole('textbox', { name: 'Due by' })
+    await dueBy.click()
+    await page.keyboard.press('ArrowDown')
+    for (let i = 0; i < 3; i++) await page.keyboard.press('ArrowRight')
+    await page.keyboard.press('Enter')
+    await expect(page).toHaveURL(/\/maintenance\?due=\d{4}-\d{2}-\d{2}$/)
+    await expect(count(page)).toHaveText('7 tasks')
+    await page.reload()
+    await expect(count(page)).toHaveText('7 tasks')
+    await expect(dueBy).not.toHaveValue('')
+
     await page.goto('/maintenance?priority=high&status=open')
     await expect(count(page)).toHaveText('1 task')
     await expect(page.getByLabel('Priority')).toHaveValue('high')
@@ -97,6 +110,22 @@ test.describe('maintenance', () => {
     await expect(page.getByText('Main entrance door closer broken was reopened.')).toBeVisible()
     await page.goto('/')
     await expect(openMaintenanceFigure(page)).toContainText('10')
+  })
+
+  test('shows only overdue tasks, also after a reload', async ({ page }) => {
+    // Reopen a completed task whose due date has passed, so it becomes overdue.
+    await page.goto('/maintenance/maintenance-4')
+    await page.getByRole('button', { name: 'Reopen task' }).click()
+    await expect(page.getByRole('region', { name: 'Details' })).toContainText('Overdue')
+
+    await page.goto('/maintenance')
+    await page.getByRole('checkbox', { name: 'Overdue only' }).check()
+    await expect(page).toHaveURL('/maintenance?overdue=1')
+    await expect(count(page)).toHaveText('1 task')
+
+    await page.reload()
+    await expect(page.getByRole('checkbox', { name: 'Overdue only' })).toBeChecked()
+    await expect(page.getByRole('link', { name: 'Replace stairwell lighting with LEDs' })).toBeVisible()
   })
 
   test('deletes a task after confirmation', async ({ page }) => {

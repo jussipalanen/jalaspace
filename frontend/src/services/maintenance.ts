@@ -205,6 +205,10 @@ export interface MaintenanceFilters {
   spaceId: string
   priority: MaintenancePriority | ''
   status: MaintenanceStatus | ''
+  /** Only tasks due on or before this date; tasks without a due date are left out. */
+  dueBy: IsoDate | ''
+  /** Only tasks that are past their due date and not completed. */
+  overdueOnly: boolean
   query: string
 }
 
@@ -237,6 +241,7 @@ export function filterMaintenanceRows(
   rows: MaintenanceRow[],
   filters: MaintenanceFilters,
   locale: string,
+  today: IsoDate,
 ): MaintenanceRow[] {
   const query = filters.query.trim().toLocaleLowerCase(locale)
   return rows.filter(
@@ -245,6 +250,8 @@ export function filterMaintenanceRows(
       (!filters.spaceId || task.spaceId === filters.spaceId) &&
       (!filters.priority || task.priority === filters.priority) &&
       (!filters.status || task.status === filters.status) &&
+      (!filters.dueBy || (task.dueDate !== null && task.dueDate <= filters.dueBy)) &&
+      (!filters.overdueOnly || isMaintenanceOverdue(task, today)) &&
       (!query ||
         task.title.toLocaleLowerCase(locale).includes(query) ||
         task.description.toLocaleLowerCase(locale).includes(query)),

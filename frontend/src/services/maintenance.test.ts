@@ -177,9 +177,17 @@ describe('overdue tasks', () => {
 
 describe('listing tasks', () => {
   const rows = buildMaintenanceRows(seed.maintenance, seed.properties, seed.spaces, 'en-GB')
-  const none: MaintenanceFilters = { propertyId: '', spaceId: '', priority: '', status: '', query: '' }
-  const filter = (filters: Partial<MaintenanceFilters>) =>
-    filterMaintenanceRows(rows, { ...none, ...filters }, 'en-GB').map((row) => row.task.id)
+  const none: MaintenanceFilters = {
+    propertyId: '',
+    spaceId: '',
+    priority: '',
+    status: '',
+    dueBy: '',
+    overdueOnly: false,
+    query: '',
+  }
+  const filter = (filters: Partial<MaintenanceFilters>, today = '2026-09-22') =>
+    filterMaintenanceRows(rows, { ...none, ...filters }, 'en-GB', today).map((row) => row.task.id)
 
   it('joins the property and space, newest first', () => {
     expect(rows).toHaveLength(seed.maintenance.length)
@@ -197,6 +205,32 @@ describe('listing tasks', () => {
     expect(filter({ spaceId: 'space-joensuu-center-1' })).toEqual(['maintenance-2'])
     expect(filter({ propertyId: 'property-joensuu-center', priority: 'high', status: 'open' })).toEqual([
       'maintenance-3',
+    ])
+  })
+
+  it('shows tasks due on or before a date, leaving out tasks without a due date', () => {
+    // Seed due dates are relative to 22.9.2026; 25.9. includes tasks due in up to 3 days.
+    expect(filter({ dueBy: '2026-09-25' }).toSorted()).toEqual([
+      'maintenance-14',
+      'maintenance-3',
+      'maintenance-4',
+      'maintenance-6',
+      'maintenance-7',
+      'maintenance-8',
+      'maintenance-9',
+    ])
+    expect(filter({ dueBy: '2026-09-25', status: 'open' })).toEqual(['maintenance-3'])
+    expect(filter({ dueBy: '2000-01-01' })).toEqual([])
+  })
+
+  it('shows only overdue tasks when asked', () => {
+    // In the seed data every task with a past due date is completed.
+    expect(filter({ overdueOnly: true })).toEqual([])
+    // Three days later, the door closer (due in 2 days) is overdue; the
+    // in-progress loading dock task (due in 1 day) is too.
+    expect(filter({ overdueOnly: true }, '2026-09-25').toSorted()).toEqual([
+      'maintenance-3',
+      'maintenance-8',
     ])
   })
 

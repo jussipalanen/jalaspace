@@ -10,7 +10,27 @@
 }
 
 .maintenance-filters__search {
-  grid-column: 1 / -1;
+  grid-column: span 2;
+}
+
+.maintenance-filters__check {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: end;
+  min-height: 40px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-strong);
+  cursor: pointer;
+}
+
+.maintenance-filters__check input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
 }
 
 .maintenance-filters__search .search-field {
@@ -20,6 +40,10 @@
 @media (max-width: 719.98px) {
   .maintenance-filters {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .maintenance-filters__search {
+    grid-column: 1 / -1;
   }
 }
 

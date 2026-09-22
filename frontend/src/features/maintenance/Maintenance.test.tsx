@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createDataLayer, type DataLayer } from '../../repositories'
 import { LocalStorageDemoDataStore } from '../../repositories/localStorage/LocalStorageDemoDataStore'
 import { initializeDemoData } from '../../services/demoDataService'
+import { changeMaintenanceStatus } from '../../services/maintenanceService'
 import { renderRoute } from '../../test/renderRoute'
+import { toIsoDate } from '../../utils/date'
+import { formatDate } from '../../utils/format'
 
 const rows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
 
@@ -64,6 +67,62 @@ describe('maintenance', () => {
     const noResults = screen.getByRole('heading', { name: 'No tasks match the filters' }).parentElement!
     await user.click(within(noResults).getByRole('button', { name: 'Clear filters' }))
     expect(rows()).toHaveLength(14)
+  })
+
+  it('filters overdue tasks and keeps the filter in the URL', async () => {
+    const user = userEvent.setup()
+    // Reopening a completed task that was due 25 days ago makes it overdue.
+    await changeMaintenanceStatus(createDataLayer('localStorage'), 'maintenance-4', 'open')
+    const { router } = renderRoute('/maintenance')
+
+    await user.click(await screen.findByRole('checkbox', { name: 'Overdue only' }))
+
+    expect(router.state.location.search).toBe('?overdue=1')
+    expect(rows()).toHaveLength(1)
+    expect(rows()[0]).toHaveTextContent('Replace stairwell lighting with LEDs')
+    expect(rows()[0]).toHaveTextContent('Overdue')
+
+    await user.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(screen.getByRole('checkbox', { name: 'Overdue only' })).not.toBeChecked()
+    expect(rows()).toHaveLength(14)
+  })
+
+  it('filters by a due-by date typed or chosen from the calendar', async () => {
+    const user = userEvent.setup()
+    const { router } = renderRoute('/maintenance')
+
+    const dueBy = await screen.findByRole('textbox', { name: 'Due by' })
+    await user.type(dueBy, '1.1.2000')
+    expect(router.state.location.search).toBe('?due=2000-01-01')
+    expect(screen.getByText('No tasks match the filters')).toBeInTheDocument()
+
+    // A partly typed date is not applied yet.
+    await user.clear(dueBy)
+    await user.type(dueBy, '31.12.20')
+    expect(dueBy).toHaveAttribute('aria-invalid', 'true')
+    expect(router.state.location.search).toBe('')
+
+    await user.clear(dueBy)
+    await user.keyboard('{Escape}')
+    await user.click(screen.getByRole('button', { name: 'Choose latest due date from a calendar' }))
+    const today = within(screen.getByRole('dialog', { name: 'Choose latest due date' })).getByRole(
+      'button',
+      { name: /Today/ },
+    )
+    await user.click(today)
+    expect(router.state.location.search).toMatch(/^\?due=\d{4}-\d{2}-\d{2}$/)
+    expect(dueBy).toHaveValue(formatDate(toIsoDate(new Date())))
+
+    await user.click(screen.getAllByRole('button', { name: 'Clear filters' })[0]!)
+    expect(dueBy).toHaveValue('')
+    expect(rows()).toHaveLength(14)
+  })
+
+  it('opens the due-by filter from the URL', async () => {
+    renderRoute('/maintenance?due=2000-01-01&status=completed')
+
+    expect(await screen.findByRole('textbox', { name: 'Due by' })).toHaveValue('1.1.2000')
+    expect(screen.getByText('No tasks match the filters')).toBeInTheDocument()
   })
 
   it('shows task details with the property, space and dates', async () => {

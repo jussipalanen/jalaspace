@@ -75,3 +75,8 @@ export function calendarWeeks(value: IsoDate): IsoDate[][] {
   } while (day.slice(0, 7) === value.slice(0, 7))
   return weeks
 }
+
+/** True for a real calendar date written as a date-only ISO string (`2026-09-30`). */
+export function isIsoDate(value: string): value is IsoDate {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && shiftIsoDate(value, {}) === value
+}
