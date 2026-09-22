@@ -186,6 +186,14 @@ export const en = {
   common: {
     dismiss: 'Dismiss',
     required: 'required',
+    datePicker: {
+      open: 'Choose {field} from a calendar',
+      dialog: 'Choose {field}',
+      previousMonth: 'Previous month',
+      nextMonth: 'Next month',
+      today: 'Today',
+      selected: 'Selected',
+    },
   },
   properties: {
     add: 'Add property',
@@ -558,9 +566,10 @@ export const en = {
         title: 'At most {max} characters',
         description: 'Optional, at most {max} characters',
         status: 'Completing a task records the completion time.',
-        dueDate: 'Optional, as d.m.yyyy, e.g. 30.9.2026',
+        dueDate: 'Optional. Type as d.m.yyyy, e.g. 30.9.2026, or choose from the calendar.',
       },
       selectProperty: 'Choose a property',
+      dueDatePlaceholder: 'd.m.yyyy',
       wholeProperty: 'Whole property or common area',
       save: 'Save task',
       saving: 'Saving…',

@@ -184,6 +184,14 @@ export const fi: Messages = {
   common: {
     dismiss: 'Sulje ilmoitus',
     required: 'pakollinen',
+    datePicker: {
+      open: 'Valitse {field} kalenterista',
+      dialog: 'Valitse {field}',
+      previousMonth: 'Edellinen kuukausi',
+      nextMonth: 'Seuraava kuukausi',
+      today: 'Tänään',
+      selected: 'Valittu',
+    },
   },
   properties: {
     add: 'Lisää kiinteistö',
@@ -555,9 +563,10 @@ export const fi: Messages = {
         title: 'Enintään {max} merkkiä',
         description: 'Valinnainen, enintään {max} merkkiä',
         status: 'Valmiiksi merkitsemisen ajankohta tallennetaan.',
-        dueDate: 'Valinnainen, muodossa p.k.vvvv, esim. 30.9.2026',
+        dueDate: 'Valinnainen. Kirjoita muodossa p.k.vvvv, esim. 30.9.2026, tai valitse kalenterista.',
       },
       selectProperty: 'Valitse kiinteistö',
+      dueDatePlaceholder: 'p.k.vvvv',
       wholeProperty: 'Koko kiinteistö tai yhteiset tilat',
       save: 'Tallenna tehtävä',
       saving: 'Tallennetaan…',

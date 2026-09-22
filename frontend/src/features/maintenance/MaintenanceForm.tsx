@@ -1,5 +1,6 @@
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
+import { DatePicker } from '../../components/DatePicker/DatePicker'
 import { FormField } from '../../components/FormField/FormField'
 import { useTranslation } from '../../i18n/useTranslation'
 import { EntityNotFoundError } from '../../repositories/Repository'
@@ -12,6 +13,7 @@ import {
   MAINTENANCE_PRIORITIES,
   MAINTENANCE_STATUSES,
   MAINTENANCE_TITLE_MAX_LENGTH,
+  parseDueDate,
   validateMaintenanceForm,
   type MaintenanceFormErrors,
   type MaintenanceFormValues,
@@ -19,6 +21,7 @@ import {
 import { MaintenanceValidationError } from '../../services/maintenanceService'
 import type { Property } from '../../types/property'
 import type { Space } from '../../types/space'
+import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
 
 type Field = keyof MaintenanceFormValues
@@ -320,14 +323,21 @@ export function MaintenanceForm({
           error={messages.dueDate}
         >
           {(control) => (
-            <input
-              {...control}
-              className="field__input"
-              inputMode="decimal"
-              autoComplete="off"
-              value={values.dueDate}
-              onChange={(event) => update('dueDate', event.target.value)}
-            />
+            <div className="date-field">
+              <input
+                {...control}
+                className="field__input"
+                autoComplete="off"
+                placeholder={t('maintenance.form.dueDatePlaceholder')}
+                value={values.dueDate}
+                onChange={(event) => update('dueDate', event.target.value)}
+              />
+              <DatePicker
+                value={parseDueDate(values.dueDate)}
+                field={t('maintenance.form.fields.dueDate').toLocaleLowerCase(locale)}
+                onSelect={(date) => update('dueDate', formatDate(date))}
+              />
+            </div>
           )}
         </FormField>
       </div>

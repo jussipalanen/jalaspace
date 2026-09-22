@@ -139,6 +139,35 @@ describe('maintenance', () => {
     expect(within(space).queryByRole('option', { name: 'Retail 1' })).not.toBeInTheDocument()
   })
 
+  it('chooses a due date from the calendar with the keyboard', async () => {
+    const user = userEvent.setup()
+    renderRoute('/maintenance/new?property=property-joensuu-center')
+
+    const input = await screen.findByLabelText(/^Due date/)
+    await user.type(input, '30.9.2026')
+    const toggle = screen.getByRole('button', { name: 'Choose due date from a calendar' })
+    await user.click(toggle)
+
+    const dialog = screen.getByRole('dialog', { name: 'Choose due date' })
+    expect(within(dialog).getByRole('heading', { name: 'September 2026' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: /30 September 2026, Selected/ })).toHaveFocus()
+
+    await user.keyboard('{ArrowRight}')
+    expect(within(dialog).getByRole('heading', { name: 'October 2026' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: /, 1 October 2026/ })).toHaveFocus()
+    await user.keyboard('{Enter}')
+
+    expect(input).toHaveValue('1.10.2026')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(toggle).toHaveFocus()
+
+    await user.click(toggle)
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(toggle).toHaveFocus()
+    expect(input).toHaveValue('1.10.2026')
+  })
+
   it('creates a task from the property page and shows it after saving', async () => {
     const user = userEvent.setup()
     const { router } = renderRoute('/properties/property-joensuu-center')
