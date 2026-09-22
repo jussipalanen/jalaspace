@@ -1,7 +1,9 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
+import { RequireAuth } from './features/auth/RequireAuth'
 import { AppLayout } from './layouts/AppLayout'
 import { DashboardPage } from './pages/DashboardPage'
 import { LeasesPage } from './pages/LeasesPage'
+import { LoginPage } from './pages/LoginPage'
 import { MaintenanceDetailPage } from './pages/MaintenanceDetailPage'
 import { MaintenancePage } from './pages/MaintenancePage'
 import { NotFoundPage } from './pages/NotFoundPage'
@@ -17,9 +19,14 @@ import type { RouteHandle } from './types/navigation'
 const handle = (title: string): RouteHandle => ({ title })
 
 export const routes: RouteObject[] = [
+  { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
   {
     path: '/',
-    element: <AppLayout />,
+    element: (
+      <RequireAuth>
+        <AppLayout />
+      </RequireAuth>
+    ),
     errorElement: <RouteErrorPage />,
     children: [
       {
