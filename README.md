@@ -25,6 +25,17 @@ npm run dev
 
 The development server runs at http://localhost:5173.
 
+## Demo sign-in
+
+Sign in with the demo account:
+
+| Email                | Password |
+| -------------------- | -------- |
+| `demo@jalaspace.app` | `demo`   |
+
+> **This sign-in is simulated and not secure.** Credentials are checked in the browser and are
+> public. The session is kept in `localStorage` (`jalaspace_session`) and exists only in your browser.
+
 ## Frontend scripts
 
 Run these inside `frontend/`:
