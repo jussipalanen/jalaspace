@@ -5,6 +5,18 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.5.0](https://github.com/jussipalanen/jalaspace/compare/v0.4.0...v0.5.0) (2026-09-22)
+
+
+### Added
+
+* **tenants:** manage tenants and assign them to spaces ([#46](https://github.com/jussipalanen/jalaspace/issues/46)) ([ea52e20](https://github.com/jussipalanen/jalaspace/commit/ea52e2059564214b82d6a6c33e48c728680d59fb))
+
+
+### Fixed
+
+* **forms:** show hints below inputs so fields in a row line up ([#45](https://github.com/jussipalanen/jalaspace/issues/45)) ([54e04bd](https://github.com/jussipalanen/jalaspace/commit/54e04bdce04daf91a11c92b619f0c821e29c7c4d))
+
 ## [0.4.0](https://github.com/jussipalanen/jalaspace/compare/v0.3.0...v0.4.0) (2026-09-22)
 
 
