@@ -23,6 +23,8 @@ curl http://localhost:3000/api/health
 
 With Docker, `docker compose up` in the repository root starts the API next to the frontend.
 
+The deployed API runs on Render: https://jalaspace.onrender.com/api/health. See Deployment in the [root README](../README.md#backend-api).
+
 | Script              | What it does                                   |
 | ------------------- | ---------------------------------------------- |
 | `npm run dev`       | Starts the API and restarts it when files change |

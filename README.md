@@ -274,6 +274,28 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 - [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
 - The demo is kept out of search engines: every page has `<meta name="robots" content="noindex, nofollow">`, and `vercel.json` sends an `X-Robots-Tag: noindex, nofollow` header with every response. [`robots.txt`](frontend/public/robots.txt) deliberately allows crawling, because crawlers must fetch a page to see its noindex.
 
+### Backend (API)
+
+The API is deployed to [Render](https://render.com) as a web service at https://jalaspace.onrender.com
+(health check: https://jalaspace.onrender.com/api/health).
+
+| Setting           | Value                                      |
+| ----------------- | ------------------------------------------ |
+| Language          | Node                                       |
+| Root Directory    | `backend/`                                 |
+| Build Command     | `npm ci`                                   |
+| Start Command     | `npm start` (runs the TypeScript sources directly, no build step) |
+| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`; Render sets `PORT` |
+| Health Check Path | `/api/health`                              |
+| Region            | Frankfurt (EU Central)                     |
+| Branch            | `main`, auto-deploy on commit              |
+| Plan              | Free                                       |
+
+- Only changes in `backend/` trigger a deploy, and only after they are merged to `main`.
+- `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
+- The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
+- The frontend does not call the API yet; it still stores its data in the browser.
+
 ## Versions and releases
 
 JalaSpace follows [Semantic Versioning](https://semver.org/). Every version is tagged (`v0.1.0`, `v0.1.1`, `v0.2.0` …), published as a [GitHub Release](https://github.com/jussipalanen/jalaspace/releases), and listed in [CHANGELOG.md](CHANGELOG.md).
