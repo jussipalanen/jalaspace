@@ -4,7 +4,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { useTranslation } from '../i18n/useTranslation'
 import type { IconComponent } from '../types/navigation'
 
-type Section = 'maintenance' | 'tenants' | 'leases'
+type Section = 'tenants' | 'leases'
 
 /** Temporary page for sections whose features are not built yet. */
 export function SectionPlaceholder({ section, icon }: { section: Section; icon: IconComponent }) {
@@ -24,7 +24,7 @@ export function SectionPlaceholder({ section, icon }: { section: Section; icon: 
   )
 }
 
-type DetailSection = 'maintenanceDetails' | 'tenantDetails'
+type DetailSection = 'tenantDetails'
 
 /** Temporary detail page that shows the requested id. */
 export function DetailPlaceholder({

@@ -1,0 +1,30 @@
+.maintenance-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.maintenance-filters .field + .field {
+  margin-top: 0;
+}
+
+.maintenance-filters__search {
+  grid-column: 1 / -1;
+}
+
+.maintenance-filters__search .search-field {
+  max-width: none;
+}
+
+@media (max-width: 719.98px) {
+  .maintenance-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 419.98px) {
+  .maintenance-filters {
+    grid-template-columns: 1fr;
+  }
+}
