@@ -191,7 +191,8 @@ describe('tenants', () => {
     await user.click(within(dialog).getByRole('button', { name: 'Remove from space' }))
 
     expect(await screen.findByText('Aino Virtanen was removed from A 1.')).toBeInTheDocument()
-    expect(screen.getByText('This tenant does not rent any space at the moment.')).toBeInTheDocument()
+    // The page reloads its data in the background after the success message.
+    expect(await screen.findByText('This tenant does not rent any space at the moment.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Spaces' })).toHaveFocus()
     expect(screen.getByRole('region', { name: 'Past leases' })).toHaveTextContent('A 1')
     expect(await createDataLayer('localStorage').spaces.getById('space-helsinki-kallio-1')).toMatchObject({
