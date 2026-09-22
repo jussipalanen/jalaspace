@@ -12,6 +12,7 @@ import { PropertyDetailPage } from './pages/PropertyDetailPage'
 import { EditPropertyPage, NewPropertyPage } from './pages/PropertyFormPage'
 import { RouteErrorPage } from './pages/RouteErrorPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage'
 import { SpacesPage } from './pages/SpacesPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
 import { TenantsPage } from './pages/TenantsPage'
@@ -52,6 +53,12 @@ export const routes: RouteObject[] = [
             handle: handle('pages.propertyDetails.title'),
           },
           { path: 'units', element: <SpacesPage />, handle: handle('pages.spaces.title') },
+          { path: 'units/new', element: <NewSpacePage />, handle: handle('pages.spaceNew.title') },
+          {
+            path: 'units/:id/edit',
+            element: <EditSpacePage />,
+            handle: handle('pages.spaceEdit.title'),
+          },
           { path: 'maintenance', element: <MaintenancePage />, handle: handle('pages.maintenance.title') },
           {
             path: 'maintenance/:id',

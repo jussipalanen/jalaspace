@@ -1,0 +1,25 @@
+.danger-zone {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  max-width: 720px;
+  margin-top: var(--space-6);
+  padding: var(--space-5) var(--space-6);
+  border-color: color-mix(in srgb, var(--color-danger) 25%, var(--color-border));
+}
+
+.danger-zone__title {
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.danger-zone__description {
+  margin: var(--space-1) 0 0;
+  max-width: 48ch;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ErrorState, LoadingState } from '../components/DataState/DataState'
 import { EmptyState } from '../components/EmptyState/EmptyState'
-import { BuildingIcon, PencilIcon, TrashIcon } from '../components/icons'
+import { BuildingIcon, PencilIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { StatCard } from '../components/StatCard/StatCard'
 import { StatusBadge } from '../components/StatusBadge/StatusBadge'
@@ -125,6 +125,10 @@ function PropertyDetailsView({
           <h2 id="property-spaces-title" className="section__title">
             {t('properties.detail.spaces')}
           </h2>
+          <Link to={`/units/new?property=${property.id}`} className="button button--secondary">
+            <PlusIcon width={16} height={16} />
+            {t('properties.detail.addSpace')}
+          </Link>
         </div>
         {spaces.length === 0 ? (
           <p className="card section__empty">{t('properties.detail.noSpaces')}</p>
@@ -225,7 +229,13 @@ function SpaceTable({ spaces: rows }: { spaces: Space[] }) {
             .map((space) => (
               <tr key={space.id}>
                 <td className="data-table__main">
-                  <span className="data-table__primary">{space.name}</span>
+                  <Link
+                    to={`/units/${space.id}/edit`}
+                    className="data-table__primary"
+                    aria-label={t('spaces.editSpace', { name: space.name })}
+                  >
+                    {space.name}
+                  </Link>
                 </td>
                 <td data-label={columns.type}>{t(`space.type.${space.type}`)}</td>
                 <td data-label={columns.floor} className="is-numeric">

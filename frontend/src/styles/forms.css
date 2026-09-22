@@ -112,3 +112,49 @@ textarea.field__input {
 .button--danger-text:hover {
   background: var(--color-danger-subtle);
 }
+
+/* Create/edit forms of the management pages. */
+.entity-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 720px;
+  padding: var(--space-6);
+}
+
+.entity-form .field + .field {
+  margin-top: 0;
+}
+
+.entity-form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.entity-form__row--narrow-first {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+}
+
+.entity-form__locked {
+  margin: 0;
+}
+
+.entity-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+}
+
+@media (max-width: 559.98px) {
+  .entity-form {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .entity-form__row,
+  .entity-form__row--narrow-first {
+    grid-template-columns: 1fr;
+  }
+}
