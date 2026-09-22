@@ -117,6 +117,25 @@ Changing the property clears the space filter.
 
 Screenshots: [desktop list](docs/screenshots/maintenance-desktop.png) · [mobile task details](docs/screenshots/maintenance-mobile.png).
 
+## Tenants
+
+Open **Tenants** (`/tenants`) to see companies and people, sorted by name, with their contact details and current spaces.
+Search by name, contact person or email, and filter by type. Filters stay in the URL.
+
+- **Add tenant** asks for the type (company or person), name, email and optional phone and notes;
+  companies can also have a contact person. Emails must be unique, ignoring case.
+- A tenant's page shows their current and upcoming spaces, details and past leases.
+- **Assign to space** creates an open-ended lease for an available space, with a start date
+  (type `d.m.yyyy` or use the calendar) and an optional monthly rent. A start date today or earlier
+  makes the space Occupied; a later date reserves it, and the dashboard shows it as reserved.
+- **Remove from space** moves the tenant out: a running lease ends yesterday and the space becomes
+  Available, and a lease that has not started yet is cancelled. Scheduling a later move-out date is
+  part of Leases.
+- A tenant with leases, including past ones, cannot be deleted, so the lease history is kept.
+- An occupied space's page links to its tenant (view and edit), and a property's spaces table shows each space's current tenant.
+
+Screenshots: [desktop list](docs/screenshots/tenants-desktop.png) · [mobile tenant details](docs/screenshots/tenants-mobile.png).
+
 ## Frontend scripts
 
 Run these inside `frontend/`:

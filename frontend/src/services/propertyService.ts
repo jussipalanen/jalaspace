@@ -3,7 +3,10 @@ import { EntityNotFoundError } from '../repositories/Repository'
 import type { MaintenanceTask } from '../types/maintenance'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
+import type { Tenant } from '../types/tenant'
+import { toIsoDate } from '../utils/date'
 import { calculateOccupancy, isOpenMaintenance, type OccupancyMetrics } from './metrics'
+import { findActiveLease } from './spaces'
 import {
   applyPropertyChanges,
   buildNewProperty,
@@ -14,7 +17,7 @@ import {
   type PropertySummary,
 } from './properties'
 
-type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'maintenance'>
+type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'maintenance' | 'leases' | 'tenants'>
 
 export class PropertyDeletionBlockedError extends Error {
   readonly check: PropertyDeletionCheck
@@ -49,6 +52,8 @@ export interface PropertyDetails {
   property: Property
   metrics: OccupancyMetrics & { openMaintenanceCount: number }
   spaces: Space[]
+  /** The current tenant of each occupied space, by space id. */
+  tenantsBySpace: Record<string, Tenant>
   openMaintenance: MaintenanceTask[]
   deletion: PropertyDeletionCheck
 }
@@ -58,14 +63,23 @@ export async function loadPropertyDetails(
   data: Repositories,
   id: string,
 ): Promise<PropertyDetails | null> {
-  const [property, allSpaces, allMaintenance] = await Promise.all([
+  const [property, allSpaces, allMaintenance, leases, tenants] = await Promise.all([
     data.properties.getById(id),
     data.spaces.getAll(),
     data.maintenance.getAll(),
+    data.leases.getAll(),
+    data.tenants.getAll(),
   ])
   if (!property) return null
 
   const spaces = allSpaces.filter((space) => space.propertyId === id)
+  const today = toIsoDate(new Date())
+  const tenantsById = new Map(tenants.map((tenant) => [tenant.id, tenant]))
+  const tenantsBySpace: Record<string, Tenant> = {}
+  for (const space of spaces) {
+    const tenant = tenantsById.get(findActiveLease(space.id, leases, today)?.tenantId ?? '')
+    if (tenant) tenantsBySpace[space.id] = tenant
+  }
   const openMaintenance = allMaintenance
     .filter((task) => task.propertyId === id && isOpenMaintenance(task))
     .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -74,6 +88,7 @@ export async function loadPropertyDetails(
     property,
     metrics: { ...calculateOccupancy(spaces), openMaintenanceCount: openMaintenance.length },
     spaces,
+    tenantsBySpace,
     openMaintenance,
     deletion: checkPropertyDeletion(id, allSpaces, allMaintenance),
   }

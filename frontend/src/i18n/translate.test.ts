@@ -13,14 +13,14 @@ describe('createTranslator', () => {
   })
 
   it('fills in placeholders and formats numbers for the locale', () => {
-    expect(tEn('pages.details.reference', { id: 'abc' })).toBe('Reference: abc')
+    expect(tEn('spaces.editSpace', { name: 'A 101' })).toBe('Edit A 101')
     expect(tEn('dashboard.stats.available', { count: 1234 })).toBe('1,234 available')
     // Finnish groups thousands with a no-break space.
     expect(tFi('dashboard.stats.available', { count: 1234 })).toBe('1\u00a0234 vapaana')
   })
 
   it('keeps unknown placeholders visible', () => {
-    expect(tEn('pages.details.reference')).toBe('Reference: {id}')
+    expect(tEn('spaces.editSpace')).toBe('Edit {name}')
   })
 
   it('chooses plural forms by count in each language', () => {

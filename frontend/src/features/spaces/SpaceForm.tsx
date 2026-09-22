@@ -17,7 +17,10 @@ import {
   type SpaceFormValues,
 } from '../../services/spaces'
 import type { Property } from '../../types/property'
+import type { IsoDate } from '../../types/common'
 import type { Space } from '../../types/space'
+import type { Tenant } from '../../types/tenant'
+import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
 
 type Field = keyof SpaceFormValues
@@ -31,7 +34,7 @@ interface SpaceFormProps {
   spaces: Space[]
   editingId?: string
   /** Set when the space has an active lease: the status is then fixed to occupied. */
-  lockedStatus?: { tenantName: string | null }
+  lockedStatus?: { tenant: Pick<Tenant, 'id' | 'name'> | null; since: IsoDate }
   cancelTo: string
   onSubmit: (values: SpaceFormValues) => Promise<void>
 }
@@ -228,11 +231,22 @@ export function SpaceForm({
       {lockedStatus ? (
         <div className="field">
           <span className="field__label">{t('spaces.form.fields.status')}</span>
-          <p className="alert alert--info entity-form__locked">
-            {lockedStatus.tenantName
-              ? t('spaces.form.occupiedLocked', { tenant: lockedStatus.tenantName })
-              : t('spaces.form.occupiedLockedUnknownTenant')}
-          </p>
+          <div className="alert alert--info entity-form__locked">
+            <p>{t('spaces.form.occupiedLocked', { date: formatDate(lockedStatus.since) })}</p>
+            {lockedStatus.tenant && (
+              <p>
+                {t('spaces.form.tenant')}:{' '}
+                <Link to={`/tenants/${lockedStatus.tenant.id}`}>{lockedStatus.tenant.name}</Link>
+                {' · '}
+                <Link
+                  to={`/tenants/${lockedStatus.tenant.id}/edit`}
+                  aria-label={t('spaces.form.editTenantNamed', { name: lockedStatus.tenant.name })}
+                >
+                  {t('spaces.form.editTenant')}
+                </Link>
+              </p>
+            )}
+          </div>
         </div>
       ) : (
         <FormField

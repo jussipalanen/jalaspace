@@ -85,15 +85,21 @@ describe('spaces', () => {
     expect(row).toHaveTextContent('Maintenance')
   })
 
-  it('locks the status of a space with an active lease', async () => {
+  it('locks the status of a space with an active lease and links to its tenant', async () => {
     renderRoute('/units/space-joensuu-center-6/edit')
 
     expect(
-      await screen.findByText(
-        'Occupied by Nordic Pixel Oy under an active lease. The status changes when the lease ends.',
-      ),
+      await screen.findByText(/^Occupied under an active lease since \d+\.\d+\.\d{4}\./),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText(/^Status/)).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Nordic Pixel Oy' })).toHaveAttribute(
+      'href',
+      '/tenants/tenant-nordic-pixel',
+    )
+    expect(screen.getByRole('link', { name: 'Edit tenant Nordic Pixel Oy' })).toHaveAttribute(
+      'href',
+      '/tenants/tenant-nordic-pixel/edit',
+    )
   })
 
   it('shows a field error if another tab has used the name since the form opened', async () => {
@@ -168,6 +174,12 @@ describe('spaces', () => {
     expect(screen.getByRole('link', { name: 'Edit A 202' })).toHaveAttribute(
       'href',
       '/units/space-joensuu-center-6/edit',
+    )
+    // The spaces table shows the current tenant of each occupied space.
+    const a202 = screen.getByRole('link', { name: 'Edit A 202' }).closest('tr')!
+    expect(within(a202).getByRole('link', { name: 'Nordic Pixel Oy' })).toHaveAttribute(
+      'href',
+      '/tenants/tenant-nordic-pixel',
     )
   })
 

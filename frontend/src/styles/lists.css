@@ -118,8 +118,14 @@ a.data-table__primary:hover {
     border: 0;
   }
 
+  .data-table td {
+    /* Multi-line values line up with single values on the right. */
+    text-align: right;
+  }
+
   .data-table td::before {
     content: attr(data-label);
+    text-align: left;
     font-weight: 500;
     color: var(--color-text-muted);
   }
@@ -127,6 +133,7 @@ a.data-table__primary:hover {
   .data-table td.data-table__main {
     display: block;
     padding-bottom: var(--space-2);
+    text-align: left;
   }
 
   .data-table td.data-table__main::before {
@@ -189,5 +196,15 @@ a.data-table__primary:hover {
 .section__empty {
   margin: 0;
   padding: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.data-table__line {
+  display: block;
+  /* Wrap long values such as emails only when they do not fit at all. */
+  overflow-wrap: break-word;
+}
+
+.data-table__secondary-inline {
   color: var(--color-text-muted);
 }

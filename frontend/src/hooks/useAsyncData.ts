@@ -10,7 +10,9 @@ export type AsyncState<T> =
  * state and a `reload` function. Results of outdated runs are ignored.
  * Wrap `load` in `useCallback` to avoid reloading on every render.
  */
-export function useAsyncData<T>(load: () => Promise<T>): AsyncState<T> & { reload: () => void } {
+export function useAsyncData<T>(
+  load: () => Promise<T>,
+): AsyncState<T> & { reload: (options?: { keepData?: boolean }) => void } {
   const [state, setState] = useState<AsyncState<T>>({ status: 'loading' })
   const [attempt, setAttempt] = useState(0)
 
@@ -32,8 +34,9 @@ export function useAsyncData<T>(load: () => Promise<T>): AsyncState<T> & { reloa
     }
   }, [load, attempt])
 
-  const reload = useCallback(() => {
-    setState({ status: 'loading' })
+  /** Loads again; `keepData` keeps showing the current data until the new data arrives. */
+  const reload = useCallback((options?: { keepData?: boolean }) => {
+    if (!options?.keepData) setState({ status: 'loading' })
     setAttempt((value) => value + 1)
   }, [])
 
