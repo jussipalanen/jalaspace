@@ -164,9 +164,6 @@ export function ProfileForm({ profile, email, onSubmit }: ProfileFormProps) {
 
       <fieldset className="profile-form__birthdate">
         <legend className="field__label">{t('settings.profile.birthDate')}</legend>
-        <p id={birthHintId} className="field__hint">
-          {t('settings.profile.birthDateHint')}
-        </p>
         <div className="profile-form__date">
           <div className="field">
             <label className="field__label profile-form__part" htmlFor={fieldId('birthDay')}>
@@ -187,6 +184,9 @@ export function ProfileForm({ profile, email, onSubmit }: ProfileFormProps) {
             {birthSelect('birthYear', birthYearOptions(new Date()))}
           </div>
         </div>
+        <p id={birthHintId} className="field__hint">
+          {t('settings.profile.birthDateHint')}
+        </p>
         {errors.birthDate && (
           <p id={birthErrorId} className="field__error">
             {t(`settings.profile.validation.birthDate.${errors.birthDate}`)}
