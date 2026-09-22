@@ -211,6 +211,8 @@ The AI agent must not merge the Pull Request.
 
 Every Pull Request must be reviewed by a human.
 
+Pull Requests are squash-merged; the PR title must follow Conventional Commits because it becomes the commit on `main` and the changelog line (see Versioning and Releases).
+
 A Pull Request should include:
 
 ```text
@@ -1775,9 +1777,22 @@ v0.1.0   v0.1.1   v0.2.0   …   v1.0.0
 
 The first release is `v0.1.0`.
 
+## Squash merging
+
+Pull requests are merged with **squash merge only** (repository setting).
+The squash commit on `main` is titled with the PR title and has no body, so:
+
+* **the PR title becomes the changelog line** and decides the version bump
+* each PR produces exactly one changelog entry, never duplicates
+* commits inside a feature branch are not listed in the changelog
+
+Merge commits are disabled because GitHub always copies the PR title into them, which release-please counts as a second change.
+
+If a PR contains a feature and an unrelated fix, split it into two PRs so both appear in the changelog.
+
 ## Conventional Commits
 
-Every commit message must follow [Conventional Commits](https://www.conventionalcommits.org/):
+PR titles and commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```text
 <type>(<optional scope>): <description>
@@ -1804,7 +1819,7 @@ BREAKING CHANGE: existing demo data must be reset.
 
 Useful scopes: `app`, `auth`, `data`, `dashboard`, `properties`, `spaces`, `maintenance`, `tenants`, `leases`, `settings`, `i18n`, `a11y`, `deploy`, `deps`.
 
-Write the description for the reader of the release notes:
+Write the PR title for the reader of the release notes:
 
 ```text
 Good:  fix(dashboard): detail lines overflowed their panel on narrow screens
@@ -2104,7 +2119,7 @@ Also run appropriate security/dependency checks.
 ## 7. Commit Changes
 
 Use Conventional Commits (see Versioning and Releases).
-Commit messages become the changelog, so describe the change for a reader of the release notes.
+Pull requests are squash-merged, so the PR title becomes the changelog line; commit messages still document the steps for reviewers.
 
 Examples:
 
@@ -2149,6 +2164,7 @@ Before creating a PR verify:
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
 [ ] New UI text is translated in all supported languages
+[ ] PR title follows Conventional Commits and reads well as a release note
 [ ] Commit messages follow Conventional Commits
 [ ] UI changes have been manually sanity checked
 ```

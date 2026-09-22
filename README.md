@@ -191,6 +191,8 @@ Releases are prepared automatically by [release-please](https://github.com/googl
 - `fix:` → patch version (0.1.0 → 0.1.1)
 - `docs:`, `test:`, `ci:`, `chore:` → no release
 
+Pull requests are **squash-merged**, so each PR title (e.g. `feat(properties): …`) becomes one changelog line.
+
 After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [CLAUDE.md](CLAUDE.md).
 
 ## Development workflow
