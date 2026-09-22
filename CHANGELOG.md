@@ -5,6 +5,15 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.8.0](https://github.com/jussipalanen/jalaspace/compare/v0.7.0...v0.8.0) (2026-09-22)
+
+
+### Added
+
+* **backend:** add the properties REST API ([#62](https://github.com/jussipalanen/jalaspace/issues/62)) ([dc9804e](https://github.com/jussipalanen/jalaspace/commit/dc9804e0a210280d73edd42cdbd2a85bdd270ce9))
+* **backend:** start the API with the demo data and reset it on demand ([#66](https://github.com/jussipalanen/jalaspace/issues/66)) ([3838edb](https://github.com/jussipalanen/jalaspace/commit/3838edb6d9a3c6517092216655b196f486a81199))
+* **settings:** reset demo data and choose the language in Settings ([#60](https://github.com/jussipalanen/jalaspace/issues/60)) ([9ffdb76](https://github.com/jussipalanen/jalaspace/commit/9ffdb7689f46d52ca0956744424fe43fde48e292))
+
 ## [0.7.0](https://github.com/jussipalanen/jalaspace/compare/v0.6.0...v0.7.0) (2026-09-22)
 
 
