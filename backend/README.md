@@ -8,6 +8,8 @@ It is at an early stage: it has the project setup and a health endpoint. Domain 
 
 Requirements: Node.js 24 LTS (see `.nvmrc`) and npm.
 
+The Node.js major version is set in three places that must change together: `.nvmrc`, `@types/node` in `package.json`, and `NODE_VERSION` on Render. Dependabot therefore skips major `@types/node` updates.
+
 ```bash
 cd backend
 npm ci
