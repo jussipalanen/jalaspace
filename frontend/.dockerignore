@@ -13,3 +13,6 @@ coverage
 .DS_Store
 Dockerfile
 .dockerignore
+test-results
+playwright-report
+blob-report

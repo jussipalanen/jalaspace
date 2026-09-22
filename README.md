@@ -67,14 +67,30 @@ Sign in with the demo account:
 
 Run these inside `frontend/`:
 
-| Script              | Description                                         |
-| ------------------- | --------------------------------------------------- |
-| `npm run dev`       | Start the Vite development server                   |
-| `npm run lint`      | Lint with oxlint (warnings fail the check)          |
-| `npm run typecheck` | Type-check with the TypeScript compiler             |
-| `npm run test`      | Run unit and component tests (Vitest)               |
-| `npm run build`     | Type-check and create a production build in `dist/` |
-| `npm run preview`   | Serve the production build locally                  |
+| Script                | Description                                         |
+| --------------------- | --------------------------------------------------- |
+| `npm run dev`         | Start the Vite development server                   |
+| `npm run lint`        | Lint with oxlint (warnings fail the check)          |
+| `npm run typecheck`   | Type-check with the TypeScript compiler             |
+| `npm run test`        | Run unit and component tests (Vitest)               |
+| `npm run test:e2e`    | Run end-to-end tests in a browser (Playwright)      |
+| `npm run test:e2e:ui` | Run end-to-end tests in Playwright's UI mode        |
+| `npm run build`       | Type-check and create a production build in `dist/` |
+| `npm run preview`     | Serve the production build locally                  |
+
+## End-to-end tests
+
+[Playwright](https://playwright.dev) tests in [`frontend/e2e/`](frontend/e2e) run the production build in Chromium, on a desktop and a mobile viewport. They cover sign-in and sign-out, navigation, direct links and the mobile navigation drawer.
+
+Install the browser once, then run the tests:
+
+```bash
+cd frontend
+npx playwright install chromium
+npm run test:e2e
+```
+
+The tests build the app and serve it with `vite preview` on port 4173. After a run, `npx playwright show-report` opens the HTML report.
 
 ## Frontend architecture
 
@@ -100,14 +116,15 @@ frontend/src/
 GitHub Actions runs [`ci.yml`](.github/workflows/ci.yml) on every pull request and on pushes to `main`.
 Each check is a separate job:
 
-| Job              | Command                        |
-| ---------------- | ------------------------------ |
-| `lint`           | `npm run lint`                 |
-| `typecheck`      | `npm run typecheck`            |
-| `test`           | `npm run test`                 |
-| `build`          | `npm run build`                |
+| Job              | Command                                   |
+| ---------------- | ----------------------------------------- |
+| `lint`           | `npm run lint`                            |
+| `typecheck`      | `npm run typecheck`                       |
+| `test`           | `npm run test`                            |
+| `build`          | `npm run build`                           |
+| `e2e`            | `npm run test:e2e` (report kept on failure) |
 | `security-audit` | `npm audit --audit-level=high`            |
-| `docker-build`   | `docker build` of `frontend/Dockerfile`  |
+| `docker-build`   | `docker build` of `frontend/Dockerfile`   |
 
 The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc), so CI and local development use the same version.
 
