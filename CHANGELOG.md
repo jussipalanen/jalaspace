@@ -5,6 +5,19 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in CLAUDE.md.
 
+## [0.2.0](https://github.com/jussipalanen/jalaspace/compare/v0.1.0...v0.2.0) (2026-09-22)
+
+
+### Added
+
+* **properties:** manage properties with search, details, create, edit and delete ([0c9bda6](https://github.com/jussipalanen/jalaspace/commit/0c9bda619819ba6b219280a501bc137645f45b37)), closes [#27](https://github.com/jussipalanen/jalaspace/issues/27)
+* **properties:** property management with search, details, create, edit and delete ([bc05f71](https://github.com/jussipalanen/jalaspace/commit/bc05f715983465be8ca8cef47a1fac7681b2b31e))
+
+
+### Fixed
+
+* **properties:** create properties when the app is opened over plain HTTP ([548308b](https://github.com/jussipalanen/jalaspace/commit/548308bc3ae5ea3884f5d3b28318792b9da5d675)), closes [#27](https://github.com/jussipalanen/jalaspace/issues/27)
+
 ## [0.1.0](https://github.com/jussipalanen/jalaspace/releases/tag/v0.1.0) (2026-09-22)
 
 First public version of the JalaSpace property and space management demo.
