@@ -9,6 +9,7 @@ A Node.js backend is planned for a later milestone.
 
 ```text
 frontend/            React + TypeScript + Vite single-page application
+backend/             Node.js + TypeScript REST API (Express), see backend/README.md
 .github/             CI, release workflows, Dependabot and Copilot agent profiles
 CHANGELOG.md         Release notes for every version
 docker-compose.yml   Local development with Docker
@@ -30,6 +31,16 @@ npm run dev
 
 The development server runs at http://localhost:5173.
 
+The API is a separate project in `backend/`. It isn't needed to run the demo yet, because the frontend stores its data in the browser:
+
+```bash
+cd backend
+npm ci
+npm run dev
+```
+
+The API runs at http://localhost:3000 (try http://localhost:3000/api/health). See [backend/README.md](backend/README.md).
+
 ### With Docker
 
 Requirements: Docker with Docker Compose.
@@ -38,11 +49,11 @@ Requirements: Docker with Docker Compose.
 docker compose up
 ```
 
-The app runs at http://localhost:5173.
+The app runs at http://localhost:5173, and the API at http://localhost:3000.
 
-- The `frontend/` source is mounted into the container, so edits reload live.
+- The `frontend/` and `backend/` sources are mounted into their containers, so edits reload live.
 - `node_modules` stays inside the container and isn't written to your machine.
-- The container runs as the unprivileged `node` user.
+- The containers run as the unprivileged `node` user.
 
 | Task                                       | Command                         |
 | ------------------------------------------ | ------------------------------- |
@@ -235,12 +246,14 @@ Each check is a separate job:
 | `e2e`            | `npm run test:e2e` (report kept on failure) |
 | `security-audit` | `npm audit --audit-level=high`            |
 | `docker-build`   | `docker build` of `frontend/Dockerfile`   |
+| `backend-lint`, `backend-typecheck`, `backend-test`, `backend-security-audit` | The same checks for `backend/` |
+| `backend-docker-build` | Builds `backend/Dockerfile`, starts it and calls `/api/health` |
 
-The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc), so CI and local development use the same version.
+The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc) and [`backend/.nvmrc`](backend/.nvmrc), so CI and local development use the same version.
 
 Dependencies are also monitored between pull requests:
 
-- [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly and writes an `npm outdated` report to the job summary. It can also be started manually.
+- [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly for both `frontend/` and `backend/` and writes an `npm outdated` report to the job summary. It can also be started manually.
 - [Dependabot](.github/dependabot.yml) opens weekly update PRs for npm packages and GitHub Actions. Minor and patch updates are grouped; major updates arrive as separate PRs. These PRs go through the same CI and human review as any other change.
 
 ## Deployment

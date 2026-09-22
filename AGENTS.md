@@ -402,6 +402,15 @@ jalaspace/
 │   └── Dockerfile
 │
 ├── backend/
+│   ├── src/
+│   │   ├── routes/
+│   │   ├── app.ts
+│   │   ├── config.ts
+│   │   ├── errors.ts
+│   │   └── server.ts
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── Dockerfile
 │   └── README.md
 │
 ├── .github/
@@ -423,9 +432,9 @@ jalaspace/
 └── package.json
 ```
 
-The `backend/` directory may initially contain only documentation describing the planned backend.
+The `backend/` directory holds the Node.js + TypeScript API (Express). It runs the TypeScript sources directly on Node.js 24 (type stripping), so there is no build step. Its conventions are described in `backend/README.md`: routes under `/api`, errors as codes (`{ "error": { "code": "not_found" } }`), never stack traces.
 
-Do not implement backend functionality until requested.
+Add backend endpoints only when an issue asks for them. The frontend keeps using localStorage until the `api` data provider is implemented.
 
 ---
 
@@ -1489,6 +1498,15 @@ npm run build
 npm run test:e2e
 ```
 
+and for `backend/`:
+
+```bash
+npm ci
+npm run lint
+npm run typecheck
+npm test
+```
+
 If scripts use different names, adapt the workflow accordingly.
 
 No Pull Request should be considered ready for human review if mandatory CI checks fail.
@@ -2118,6 +2136,8 @@ npm run build
 npm run test:e2e
 ```
 
+in `frontend/`, and `npm run lint`, `npm run typecheck` and `npm test` in `backend/` when the backend changed.
+
 Also run appropriate security/dependency checks.
 
 ## 7. Commit Changes
@@ -2187,6 +2207,11 @@ build
 e2e
 security-audit
 docker-build
+backend-lint
+backend-typecheck
+backend-test
+backend-security-audit
+backend-docker-build
 ```
 
 All required checks should pass before merge.

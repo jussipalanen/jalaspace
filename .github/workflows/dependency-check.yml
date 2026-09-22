@@ -9,39 +9,49 @@ on:
 permissions:
   contents: read
 
-defaults:
-  run:
-    working-directory: frontend
-
 jobs:
   audit:
-    name: npm audit
+    name: npm audit (${{ matrix.package }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [frontend, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: frontend/.nvmrc
+          node-version-file: ${{ matrix.package }}/.nvmrc
       - run: npm audit --audit-level=high
 
   outdated:
-    name: npm outdated
+    name: npm outdated (${{ matrix.package }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [frontend, backend]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version-file: frontend/.nvmrc
+          node-version-file: ${{ matrix.package }}/.nvmrc
           cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache-dependency-path: ${{ matrix.package }}/package-lock.json
       - run: npm ci
       # Informational only: npm outdated exits 1 when anything is outdated.
       - name: Report outdated packages
         run: |
           {
-            echo '## Outdated npm packages'
+            echo '## Outdated npm packages (${{ matrix.package }})'
             echo
             echo '```'
             npm outdated || true
