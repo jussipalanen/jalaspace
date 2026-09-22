@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.7.0](https://github.com/jussipalanen/jalaspace/compare/v0.6.0...v0.7.0) (2026-09-22)
+
+
+### Added
+
+* **backend:** add the Node.js API with a health endpoint ([#53](https://github.com/jussipalanen/jalaspace/issues/53)) ([c4d8512](https://github.com/jussipalanen/jalaspace/commit/c4d85121331c0a7ff836822b78928af43048d051))
+
 ## [0.6.0](https://github.com/jussipalanen/jalaspace/compare/v0.5.0...v0.6.0) (2026-09-22)
 
 
