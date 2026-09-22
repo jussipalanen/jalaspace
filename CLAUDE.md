@@ -657,6 +657,9 @@ jalaspace_tenants
 jalaspace_leases
 jalaspace_maintenance
 jalaspace_session
+jalaspace_profile
+jalaspace_profile_image
+jalaspace_credentials
 ```
 
 ---
@@ -673,10 +676,13 @@ Resetting demo data should:
 
 1. clear JalaSpace localStorage data
 2. recreate seed data
-3. update the UI
-4. show success feedback
+3. restore the default demo profile, remove the profile image and restore the default demo password
+4. update the UI
+5. show success feedback
 
 Require confirmation before resetting.
+
+The Reset demo data action lives on the Settings page.
 
 ---
 
@@ -697,9 +703,33 @@ Store demo authentication state using:
 jalaspace_session
 ```
 
+The demo password can be changed in Settings (see Settings → Change password).
+Sign-in must therefore check the stored credentials, falling back to the default `demo` password when none are stored.
+
+Store the password only as a hash in:
+
+```text
+jalaspace_credentials
+```
+
+Never store the password in plain text.
+
+The login page must offer a way to restore the demo account in case a changed password is forgotten:
+
+```text
+Forgot your password? Restore demo account
+```
+
+Restoring the demo account:
+
+* requires confirmation
+* restores the default `demo` password
+* does not delete other demo data
+
 This is demo authentication only.
 
 It must never be presented as secure production authentication.
+Hashing in the browser does not make it secure; it only avoids storing plain-text passwords.
 
 ---
 
@@ -756,7 +786,7 @@ Implement JalaSpace incrementally:
 13. Maintenance
 14. Tenants
 15. Leases
-16. Settings
+16. Settings (profile, profile image, password change, demo reset)
 17. UI polish
 18. Tests
 ```
@@ -910,6 +940,137 @@ Ended
 
 ---
 
+# Settings
+
+The Settings page (`/settings`) contains:
+
+```text
+Profile
+Change password
+Demo data
+```
+
+Each section is saved independently and shows its own success or error feedback.
+
+## Profile
+
+Fields:
+
+| Field         | Input                           | Rules                                |
+| ------------- | ------------------------------- | ------------------------------------ |
+| Profile image | Image upload                    | Optional, see Profile image below    |
+| Email         | Read-only text                  | Cannot be changed                    |
+| First name    | Text input                      | Required, trimmed, max 50 characters |
+| Last name     | Text input                      | Required, trimmed, max 50 characters |
+| Birthdate     | Three selects: Day, Month, Year | Optional, see Birthdate below        |
+
+Email is read-only because it is the sign-in identifier of the demo account.
+
+Saving the profile:
+
+* validates the form before saving
+* persists through a profile repository (`jalaspace_profile`)
+* updates the name and avatar shown in the header immediately
+* shows success feedback
+
+The header shows the user's full name (`First name Last name`).
+
+### Birthdate
+
+Entered with three separate `<select>` controls in day-month-year order:
+
+```text
+Day      1–31
+Month    1–12
+Year     current year down to 120 years ago
+```
+
+Each select needs its own accessible label.
+
+Rules:
+
+* optional: either all three parts are selected, or none
+* must be a real calendar date, e.g. 31.2. is invalid and 29.2. is only valid in leap years
+* must not be in the future
+* the Day options should match the selected month and year where practical; validation must still reject invalid dates
+
+Storage and display:
+
+* store as a date-only ISO string: `1990-09-22`
+* display as `d.m.yyyy`: `22.9.1990`
+
+### Profile image
+
+Users can add, change and remove a profile image.
+
+Accepted formats:
+
+```text
+JPEG  (.jpg, .jpeg)
+PNG   (.png)
+WebP  (.webp)
+GIF   (.gif)
+```
+
+Do not accept SVG. SVG files can contain scripts.
+
+Rules:
+
+* check both the file's MIME type and that the browser can actually decode it as an image
+* reject files larger than 5 MB before processing, with a clear error message
+* resize and crop the image in the browser to a square, at most 256 × 256 pixels, using the Canvas API
+* store the processed image as a compressed data URL (JPEG or WebP) through a repository (`jalaspace_profile_image`)
+* keep the stored image small (target under 100 KB); localStorage has a total limit of roughly 5 MB per site
+* handle storage-quota errors with an understandable message instead of crashing
+* show a preview before saving
+* removing the image requires confirmation and falls back to the user's initials
+
+Where the image is shown:
+
+* header avatar
+* Settings → Profile
+
+Always provide alt text, e.g. `Profile image of Demo User`.
+Use the initials avatar when no image is set or the image fails to load.
+
+A future API version should upload the image to the backend instead of storing a data URL.
+
+## Change password
+
+Fields:
+
+```text
+Current password
+New password
+Confirm new password
+```
+
+Rules:
+
+* all fields are required
+* the current password must match the stored password
+* the new password must be at least 8 characters
+* the new password must differ from the current password
+* the confirmation must match the new password
+
+On success:
+
+* store the new password hash in `jalaspace_credentials`
+* keep the user signed in
+* clear the form
+* show success feedback
+
+After a change, sign-in requires the new password.
+Reset demo data and Restore demo account both restore the default `demo` password.
+
+Use `type="password"` inputs with suitable `autocomplete` values (`current-password`, `new-password`).
+
+## Demo data
+
+Contains the Reset demo data action described in Demo Reset.
+
+---
+
 # UI / UX Requirements
 
 JalaSpace should look like a modern B2B SaaS application.
@@ -1011,7 +1172,17 @@ Example:
 2026-09-22T10:30:00.000Z
 ```
 
+Store calendar dates without a time of day (for example birthdates) as date-only ISO strings:
+
+```text
+1990-09-22
+```
+
+Do not convert date-only values to timestamps; a timezone shift could change the day.
+
 Format them only in the presentation layer.
+
+The display format for dates is `d.m.yyyy`, for example `22.9.1990`.
 
 ---
 
@@ -1040,6 +1211,14 @@ Reset demo data restores seed data
 Maintenance status changes to completed
 
 Invalid property cannot be saved
+
+Profile cannot be saved with an invalid birthdate (31.2.)
+
+Profile image rejects unsupported formats such as SVG
+
+Password change requires the correct current password
+
+Reset demo data restores the default demo password
 ```
 
 ---
