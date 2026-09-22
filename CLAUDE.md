@@ -1327,13 +1327,22 @@ where appropriate.
 
 # ID Generation
 
+Locally generated entity IDs are random UUID v4 strings, e.g. `2f46a796-8488-470f-ac25-35fac8ea31da`.
+
 Use:
 
 ```ts
-crypto.randomUUID()
+import { generateId } from '../utils/id'
+
+generateId()
 ```
 
-for locally generated entity IDs.
+`generateId()` calls `crypto.randomUUID()` and falls back to `crypto.getRandomValues()`.
+Browsers only provide `crypto.randomUUID()` in secure contexts (HTTPS or localhost), so calling it directly breaks creating data when the dev server is opened over plain HTTP on a network address, e.g. from a phone.
+
+Do not call `crypto.randomUUID()` directly in application code.
+
+IDs are opaque: never derive them from names or other editable fields, and never show meaning in them. Seed data uses stable readable IDs (e.g. `property-joensuu-center`); the future backend must accept both, or migrate seed IDs to fixed UUIDs if it uses a UUID column type.
 
 ---
 
