@@ -3,6 +3,8 @@ import { expect, type Page } from '@playwright/test'
 export const DEMO_EMAIL = 'demo@jalaspace.app'
 export const DEMO_PASSWORD = 'demo'
 export const SESSION_KEY = 'jalaspace_session'
+/** The placeholder API URL the E2E build uses (see playwright.config.ts). */
+export const API_URL = 'http://api.jalaspace.test'
 
 /**
  * Browser storage state with a signed-in demo session, for tests that

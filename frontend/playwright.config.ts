@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test'
 const PORT = 4173
 const BASE_URL = `http://localhost:${PORT}`
 const isCI = Boolean(process.env.CI)
+/** Keep in step with `API_URL` in e2e/fixtures.ts. */
+const E2E_API_URL = 'http://api.jalaspace.test'
 
 // End-to-end tests run against the production build served by `vite preview`,
 // which is the closest local match to the Vercel deployment.
@@ -34,5 +36,7 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    // A placeholder API; tests that need it answer its requests with `page.route`.
+    env: { VITE_API_URL: E2E_API_URL },
   },
 })
