@@ -29,13 +29,13 @@ test.describe('application navigation', () => {
   })
 
   test('opens detail pages from a direct link', async ({ page }) => {
-    await page.goto('/maintenance/task-42')
+    await page.goto('/tenants/tenant-42')
 
-    await expectPageHeading(page, 'Maintenance task details')
-    await expect(page.getByText('Reference: task-42')).toBeVisible()
+    await expectPageHeading(page, 'Tenant details')
+    await expect(page.getByText('Reference: tenant-42')).toBeVisible()
 
-    await page.getByRole('link', { name: 'Back to maintenance' }).click()
-    await expectPageHeading(page, 'Maintenance')
+    await page.getByRole('link', { name: 'Back to tenants' }).click()
+    await expectPageHeading(page, 'Tenants')
   })
 
   test('shows the not-found page for unknown routes', async ({ page }) => {
