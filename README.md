@@ -9,12 +9,13 @@ A Node.js backend is planned for a later milestone.
 
 ```text
 frontend/   React + TypeScript + Vite single-page application
+.github/    CI workflows and Dependabot configuration
 CLAUDE.md   Development workflow and conventions (humans and AI agents)
 ```
 
 ## Getting started
 
-Requirements: Node.js 24 LTS and npm.
+Requirements: Node.js 24 LTS (see `frontend/.nvmrc`) and npm.
 
 ```bash
 cd frontend
@@ -55,6 +56,26 @@ frontend/src/
 ├── styles/        Design tokens and global styles
 └── router.tsx     Route definitions (React Router)
 ```
+
+## Continuous integration
+
+GitHub Actions runs [`ci.yml`](.github/workflows/ci.yml) on every pull request and on pushes to `main`.
+Each check is a separate job:
+
+| Job              | Command                        |
+| ---------------- | ------------------------------ |
+| `lint`           | `npm run lint`                 |
+| `typecheck`      | `npm run typecheck`            |
+| `test`           | `npm run test`                 |
+| `build`          | `npm run build`                |
+| `security-audit` | `npm audit --audit-level=high` |
+
+The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc), so CI and local development use the same version.
+
+Dependencies are also monitored between pull requests:
+
+- [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly and writes an `npm outdated` report to the job summary. It can also be started manually.
+- [Dependabot](.github/dependabot.yml) opens weekly update PRs for npm packages and GitHub Actions. Minor and patch updates are grouped; major updates arrive as separate PRs. These PRs go through the same CI and human review as any other change.
 
 ## Development workflow
 
