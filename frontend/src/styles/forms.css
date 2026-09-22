@@ -137,6 +137,12 @@ textarea.field__input {
 }
 
 .entity-form__locked {
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.entity-form__locked p {
   margin: 0;
 }
 

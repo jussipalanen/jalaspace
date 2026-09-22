@@ -12,6 +12,7 @@ import { formatArea, formatNumber, formatPercent } from '../i18n/format'
 import { useTranslation } from '../i18n/useTranslation'
 import type { PropertyDetails } from '../services/propertyService'
 import type { Space } from '../types/space'
+import type { Tenant } from '../types/tenant'
 import { formatDate } from '../utils/format'
 import { maintenancePriorityTones, maintenanceStatusTones, spaceStatusTones } from '../utils/tones'
 // Reuses the stat grid and item list styles from the dashboard.
@@ -53,7 +54,7 @@ function PropertyDetailsView({
 }) {
   const { t, locale } = useTranslation()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const { property, metrics, spaces, openMaintenance, deletion } = details
+  const { property, metrics, spaces, tenantsBySpace, openMaintenance, deletion } = details
 
   return (
     <>
@@ -133,7 +134,7 @@ function PropertyDetailsView({
         {spaces.length === 0 ? (
           <p className="card section__empty">{t('properties.detail.noSpaces')}</p>
         ) : (
-          <SpaceTable spaces={spaces} />
+          <SpaceTable spaces={spaces} tenantsBySpace={tenantsBySpace} />
         )}
       </section>
 
@@ -209,7 +210,13 @@ function PropertyDetailsView({
 
 }
 
-function SpaceTable({ spaces: rows }: { spaces: Space[] }) {
+function SpaceTable({
+  spaces: rows,
+  tenantsBySpace,
+}: {
+  spaces: Space[]
+  tenantsBySpace: Record<string, Tenant>
+}) {
   const { t, locale } = useTranslation()
   const columns = {
     name: t('properties.detail.spaceColumns.name'),
@@ -217,6 +224,7 @@ function SpaceTable({ spaces: rows }: { spaces: Space[] }) {
     floor: t('properties.detail.spaceColumns.floor'),
     area: t('properties.detail.spaceColumns.area'),
     status: t('properties.detail.spaceColumns.status'),
+    tenant: t('properties.detail.spaceColumns.tenant'),
   }
   const collator = new Intl.Collator(locale, { numeric: true })
   return (
@@ -233,6 +241,7 @@ function SpaceTable({ spaces: rows }: { spaces: Space[] }) {
               {columns.area}
             </th>
             <th scope="col">{columns.status}</th>
+            <th scope="col">{columns.tenant}</th>
           </tr>
         </thead>
         <tbody>
@@ -260,6 +269,15 @@ function SpaceTable({ spaces: rows }: { spaces: Space[] }) {
                   <StatusBadge tone={spaceStatusTones[space.status]}>
                     {t(`space.status.${space.status}`)}
                   </StatusBadge>
+                </td>
+                <td data-label={columns.tenant}>
+                  {tenantsBySpace[space.id] ? (
+                    <Link to={`/tenants/${tenantsBySpace[space.id]!.id}`}>
+                      {tenantsBySpace[space.id]!.name}
+                    </Link>
+                  ) : (
+                    '—'
+                  )}
                 </td>
               </tr>
             ))}

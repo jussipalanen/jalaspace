@@ -132,6 +132,7 @@ Search by name, contact person or email, and filter by type. Filters stay in the
   Available, and a lease that has not started yet is cancelled. Scheduling a later move-out date is
   part of Leases.
 - A tenant with leases, including past ones, cannot be deleted, so the lease history is kept.
+- An occupied space's page links to its tenant (view and edit), and a property's spaces table shows each space's current tenant.
 
 Screenshots: [desktop list](docs/screenshots/tenants-desktop.png) · [mobile tenant details](docs/screenshots/tenants-mobile.png).
 
