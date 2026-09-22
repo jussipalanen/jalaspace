@@ -4,26 +4,39 @@ import type { ErrorRequestHandler, RequestHandler } from 'express'
  * Error codes returned by the API. Responses carry codes, not English
  * messages, so the frontend can show them in the user's language.
  */
-export type ErrorCode = 'not_found' | 'invalid_json' | 'payload_too_large' | 'internal_error'
+export type ErrorCode =
+  | 'not_found'
+  | 'invalid_json'
+  | 'payload_too_large'
+  | 'validation_failed'
+  | 'property_in_use'
+  | 'internal_error'
+
+/** Extra machine-readable facts about an error, e.g. the invalid fields. Never English text. */
+export type ErrorDetails = Record<string, unknown> & { code?: never }
 
 export interface ErrorBody {
-  error: { code: ErrorCode }
+  error: { code: ErrorCode } & Record<string, unknown>
 }
 
 /** An error with an HTTP status and an API error code, thrown from route handlers. */
 export class ApiError extends Error {
   readonly status: number
   readonly code: ErrorCode
+  readonly details: ErrorDetails
 
-  constructor(status: number, code: ErrorCode) {
+  constructor(status: number, code: ErrorCode, details: ErrorDetails = {}) {
     super(code)
     this.name = 'ApiError'
     this.status = status
     this.code = code
+    this.details = details
   }
 }
 
-const body = (code: ErrorCode): ErrorBody => ({ error: { code } })
+const body = (code: ErrorCode, details: ErrorDetails = {}): ErrorBody => ({
+  error: { code, ...details },
+})
 
 /** Responds 404 for routes that do not exist. */
 export const notFoundHandler: RequestHandler = (_request, response) => {
@@ -38,7 +51,7 @@ export function errorHandler(log: (error: unknown) => void = console.error): Err
       return
     }
     if (error instanceof ApiError) {
-      response.status(error.status).json(body(error.code))
+      response.status(error.status).json(body(error.code, error.details))
       return
     }
     // Errors from the JSON body parser carry a `type`.
