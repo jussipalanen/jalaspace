@@ -259,6 +259,7 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 - Every pull request gets a preview deployment for review.
 - Merging to `main` deploys to production, so only reviewed code reaches production.
 - [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
+- The demo is kept out of search engines: every page has `<meta name="robots" content="noindex, nofollow">`, and `vercel.json` sends an `X-Robots-Tag: noindex, nofollow` header with every response. [`robots.txt`](frontend/public/robots.txt) deliberately allows crawling, because crawlers must fetch a page to see its noindex.
 
 ## Versions and releases
 

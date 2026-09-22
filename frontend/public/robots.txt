@@ -1,0 +1,6 @@
+# JalaSpace is a demo. Crawling is allowed on purpose: every page and file
+# carries "noindex" (meta tag and X-Robots-Tag header), and crawlers must be
+# able to fetch a page to see it. Blocking them here could still let URLs
+# appear in search results without a description.
+User-agent: *
+Allow: /
