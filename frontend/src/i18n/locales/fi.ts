@@ -35,6 +35,7 @@ export const fi: Messages = {
   },
   header: {
     signOut: 'Kirjaudu ulos',
+    editProfile: 'Muokkaa profiilia',
   },
   pages: {
     dashboard: {
@@ -74,8 +75,6 @@ export const fi: Messages = {
     settings: {
       title: 'Asetukset',
       description: 'Sovelluksen ja demoympäristön asetukset.',
-      comingSoonTitle: 'Asetukset ovat tulossa pian',
-      comingSoonDescription: 'Demotietojen palautus ja muut asetukset tulevat tänne.',
     },
     propertyDetails: {
       title: 'Kiinteistön tiedot',
@@ -289,6 +288,43 @@ export const fi: Messages = {
       created: 'Kiinteistö {name} lisättiin.',
       updated: 'Kiinteistön {name} muutokset tallennettiin.',
       deleted: 'Kiinteistö {name} poistettiin.',
+    },
+  },
+  settings: {
+    otherSections: 'Salasanan ja demotietojen asetukset ovat tulossa pian.',
+    profile: {
+      title: 'Profiili',
+      description: 'Nimesi ja tietosi JalaSpacessa.',
+      email: 'Sähköposti',
+      emailHint: 'Käytetään kirjautumiseen, eikä sitä voi muuttaa.',
+      firstName: 'Etunimi',
+      lastName: 'Sukunimi',
+      birthDate: 'Syntymäaika',
+      birthDateHint: 'Vapaaehtoinen. Valitse päivä, kuukausi ja vuosi.',
+      day: 'Päivä',
+      month: 'Kuukausi',
+      year: 'Vuosi',
+      notSelected: '–',
+      save: 'Tallenna profiili',
+      saving: 'Tallennetaan…',
+      saveError: 'Profiilin tallentaminen epäonnistui. Yritä uudelleen.',
+      errorSummary: 'Korjaa merkityt kentät.',
+      saved: 'Profiilisi tallennettiin.',
+      validation: {
+        firstName: {
+          required: 'Etunimi on pakollinen.',
+          tooLong: 'Etunimi voi olla enintään {max} merkkiä.',
+        },
+        lastName: {
+          required: 'Sukunimi on pakollinen.',
+          tooLong: 'Sukunimi voi olla enintään {max} merkkiä.',
+        },
+        birthDate: {
+          incomplete: 'Valitse päivä, kuukausi ja vuosi, tai jätä kaikki kolme tyhjiksi.',
+          invalid: 'Tätä päivämäärää ei ole olemassa.',
+          future: 'Syntymäaika ei voi olla tulevaisuudessa.',
+        },
+      },
     },
   },
   maintenance: {

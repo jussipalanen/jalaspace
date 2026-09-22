@@ -55,7 +55,7 @@ test.describe('properties', () => {
 
   test('edits a property from its details page', async ({ page }) => {
     await page.goto('/properties/property-tampere-hervanta')
-    await page.getByRole('link', { name: 'Edit' }).click()
+    await page.getByRole('link', { name: 'Edit', exact: true }).click()
     await page.getByLabel('Name').fill('Tampere Hervanta Logistics Park')
     await page.getByRole('button', { name: 'Save property' }).click()
 

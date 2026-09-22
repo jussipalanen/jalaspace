@@ -3,7 +3,9 @@ import type { DemoDataStore } from './DemoDataStore'
 import { STORAGE_KEYS } from './localStorage/keys'
 import { LocalStorageDemoDataStore } from './localStorage/LocalStorageDemoDataStore'
 import { LocalStorageRepository } from './localStorage/LocalStorageRepository'
+import { LocalStorageProfileRepository } from './localStorage/LocalStorageProfileRepository'
 import { LocalStorageSessionRepository } from './localStorage/LocalStorageSessionRepository'
+import type { ProfileRepository } from './ProfileRepository'
 import type {
   LeaseRepository,
   MaintenanceRepository,
@@ -54,3 +56,6 @@ export function getDataLayer(): DataLayer {
 }
 
 export const sessionRepository: SessionRepository = new LocalStorageSessionRepository()
+
+// Like the session, the profile belongs to the signed-in user rather than the data provider.
+export const profileRepository: ProfileRepository = new LocalStorageProfileRepository()

@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { useTranslation } from '../../i18n/useTranslation'
 import { LogOutIcon, MenuIcon } from '../icons'
 import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher'
@@ -49,12 +50,13 @@ export function Header({
       <div className="header__end">
         <LanguageSwitcher />
         <span className="badge header__badge">{t('app.demoBadge')}</span>
-        <div className="header__user">
+        <Link to="/settings" className="header__user" title={t('header.editProfile')}>
           <span className="header__avatar" aria-hidden="true">
             {getInitials(userName)}
           </span>
           <span className="header__user-name">{userName}</span>
-        </div>
+          <span className="visually-hidden">{t('header.editProfile')}</span>
+        </Link>
         <button
           type="button"
           className="icon-button"
