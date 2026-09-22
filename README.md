@@ -94,6 +94,25 @@ to create a space with that property already selected, or select a space to edit
 
 Screenshots: [desktop list](docs/screenshots/spaces-desktop.png) · [mobile form](docs/screenshots/spaces-mobile.png).
 
+## Maintenance
+
+Open **Maintenance** (`/maintenance`) to see every task, newest first. Search titles and descriptions,
+and filter by property, space, priority or status. Filters stay in the URL, so they survive a reload
+and can be shared as links. Changing the property clears the space filter.
+
+- Select a task to see its details and to **Start work**, **Mark as completed** or **Reopen task**.
+- Use **Add task** on the list or on a property's details page, where the property is already selected.
+- A task needs a property and a title (at most 120 characters). The space is optional: leave it empty
+  for the whole property or a common area; otherwise it must belong to the chosen property.
+- The due date is optional and entered as `d.m.yyyy`. Past dates are allowed, and open tasks past
+  their due date are marked overdue.
+- Completing a task records the completion time. Editing a completed task keeps it; reopening clears it.
+- Task statuses do not change space statuses. Deleting a task requires confirmation.
+- Saves recheck the property and space against current repository data, and the form keeps your input
+  if saving fails. Dashboard and property maintenance counts follow the changes.
+
+Screenshots: [desktop list](docs/screenshots/maintenance-desktop.png) · [mobile task details](docs/screenshots/maintenance-mobile.png).
+
 ## Frontend scripts
 
 Run these inside `frontend/`:
