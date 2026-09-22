@@ -1,0 +1,13 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - '5173:5173'
+    volumes:
+      # Mount the source so edits reload live in the container.
+      - ./frontend:/app
+      # Anonymous volume keeps the container's node_modules separate from the host.
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
