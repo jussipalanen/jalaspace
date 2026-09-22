@@ -869,6 +869,19 @@ Joensuu Center
 3 open maintenance tasks
 ```
 
+Rules:
+
+* required fields: name, address, postal code (5 digits) and city; name at most 100 characters
+* occupancy and open maintenance use the Dashboard metric definitions (`services/metrics.ts`)
+* search matches name, address, postal code and city, and is kept in the URL (`?q=`)
+* a property that still has spaces or maintenance tasks cannot be deleted; the confirmation explains what refers to it
+
+## Deleting related data
+
+Never leave references to deleted entities. When other data refers to an entity, block the delete and explain what must be removed or moved first, unless a feature explicitly specifies a cascading delete.
+
+Re-check the rule with current data when deleting, not only when the confirmation opens.
+
 ---
 
 # Spaces
