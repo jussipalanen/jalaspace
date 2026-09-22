@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it } from 'vitest'
 import { renderRoute } from './test/renderRoute'
@@ -42,7 +42,8 @@ describe('application routes', () => {
     renderRoute('/leases')
 
     await screen.findByRole('heading', { level: 1, name: 'Leases' })
-    expect(document.title).toBe('Leases · JalaSpace')
+    // The title is set in an effect, which may run after the heading renders.
+    await waitFor(() => expect(document.title).toBe('Leases · JalaSpace'))
   })
 })
 
