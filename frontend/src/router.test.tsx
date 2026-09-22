@@ -26,7 +26,7 @@ describe('application routes', () => {
   it('shows a not found page for unknown routes', async () => {
     renderRoute('/does-not-exist')
 
-    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Go to dashboard' })).toHaveAttribute('href', '/')
   })
 

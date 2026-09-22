@@ -41,7 +41,7 @@ test.describe('application navigation', () => {
   test('shows the not-found page for unknown routes', async ({ page }) => {
     await page.goto('/does-not-exist')
 
-    await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible()
+    await expect(page.getByRole('heading', { level: 1, name: 'Page not found' })).toBeVisible()
     await page.getByRole('link', { name: 'Go to dashboard' }).click()
     await expectPageHeading(page, 'Dashboard')
   })

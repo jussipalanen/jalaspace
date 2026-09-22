@@ -38,7 +38,7 @@ describe('language switcher', () => {
   it('starts in the stored language', async () => {
     renderRoute('/does-not-exist', { language: 'fi' })
 
-    expect(await screen.findByRole('heading', { name: 'Sivua ei löytynyt' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Sivua ei löytynyt' })).toBeInTheDocument()
     expect(document.documentElement.lang).toBe('fi')
   })
 

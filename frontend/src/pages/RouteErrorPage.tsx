@@ -15,6 +15,7 @@ export function RouteErrorPage() {
   return (
     <div className="route-error">
       <EmptyState
+        headingLevel="h1"
         title={t('pages.error.title')}
         description={t('pages.error.description')}
       >
