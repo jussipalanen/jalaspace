@@ -23,6 +23,11 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    ignore:
+      # @types/node must match the Node.js major the API runs on (backend/.nvmrc,
+      # Render NODE_VERSION). Upgrade them together when moving to a new LTS.
+      - dependency-name: '@types/node'
+        update-types: ['version-update:semver-major']
     commit-message:
       prefix: fix
       prefix-development: chore
