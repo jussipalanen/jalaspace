@@ -29,11 +29,11 @@ test.describe('application navigation', () => {
   })
 
   test('opens detail pages from a direct link', async ({ page }) => {
+    await page.goto('/tenants/tenant-aino-virtanen')
+    await expectPageHeading(page, 'Aino Virtanen')
+
     await page.goto('/tenants/tenant-42')
-
-    await expectPageHeading(page, 'Tenant details')
-    await expect(page.getByText('Reference: tenant-42')).toBeVisible()
-
+    await expectPageHeading(page, 'Tenant not found')
     await page.getByRole('link', { name: 'Back to tenants' }).click()
     await expectPageHeading(page, 'Tenants')
   })

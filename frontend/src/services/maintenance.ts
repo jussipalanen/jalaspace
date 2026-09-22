@@ -8,6 +8,7 @@ import type {
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 import { formatDate } from '../utils/format'
+import { parseDisplayDate } from '../utils/date'
 import { generateId } from '../utils/id'
 
 export const MAINTENANCE_CATEGORIES: readonly MaintenanceCategory[] = [
@@ -87,22 +88,9 @@ export function toMaintenanceForm(task: MaintenanceTask): MaintenanceFormValues 
   }
 }
 
-/**
- * Parses a `d.m.yyyy` date into a date-only ISO string, or `null` if it is not
- * a real calendar date. No timestamps are involved, so no timezone can shift the day.
- */
+/** Parses a `d.m.yyyy` due date into a date-only ISO string, or `null` if it is not a real date. */
 export function parseDueDate(value: string): IsoDate | null {
-  const parts = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(value.trim())
-  if (!parts) return null
-  const [, dayText, monthText, yearText] = parts
-  const day = Number(dayText)
-  const month = Number(monthText)
-  const year = Number(yearText)
-  if (year < 1 || month < 1 || month > 12) return null
-  // Day 0 of the next month is the last day of this month.
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate()
-  if (day < 1 || day > daysInMonth) return null
-  return `${yearText}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+  return parseDisplayDate(value)
 }
 
 /**

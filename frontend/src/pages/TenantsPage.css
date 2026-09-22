@@ -1,0 +1,20 @@
+.tenant-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.tenant-filters .field + .field {
+  margin-top: 0;
+}
+
+.tenant-filters__search .search-field {
+  max-width: none;
+}
+
+@media (max-width: 559.98px) {
+  .tenant-filters {
+    grid-template-columns: 1fr;
+  }
+}

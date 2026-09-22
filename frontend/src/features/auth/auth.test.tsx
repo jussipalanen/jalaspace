@@ -21,7 +21,7 @@ describe('demo authentication flow', () => {
     await user.click(screen.getByRole('button', { name: 'Sign in' }))
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: 'Tenant details' }),
+      await screen.findByRole('heading', { level: 1, name: 'Tenant not found' }),
     ).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/tenants/abc')
     expect(router.state.location.search).toBe('?tab=leases')

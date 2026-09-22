@@ -15,7 +15,9 @@ import { RouteErrorPage } from './pages/RouteErrorPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage'
 import { SpacesPage } from './pages/SpacesPage'
+import { TenantAssignPage } from './pages/TenantAssignPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
+import { EditTenantPage, NewTenantPage } from './pages/TenantFormPage'
 import { TenantsPage } from './pages/TenantsPage'
 import type { MessageKey } from './i18n/translate'
 import type { RouteHandle } from './types/navigation'
@@ -77,6 +79,17 @@ export const routes: RouteObject[] = [
             handle: handle('pages.maintenanceDetails.title'),
           },
           { path: 'tenants', element: <TenantsPage />, handle: handle('pages.tenants.title') },
+          { path: 'tenants/new', element: <NewTenantPage />, handle: handle('pages.tenantNew.title') },
+          {
+            path: 'tenants/:id/edit',
+            element: <EditTenantPage />,
+            handle: handle('pages.tenantEdit.title'),
+          },
+          {
+            path: 'tenants/:id/assign',
+            element: <TenantAssignPage />,
+            handle: handle('pages.tenantAssign.title'),
+          },
           { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('pages.tenantDetails.title') },
           { path: 'leases', element: <LeasesPage />, handle: handle('pages.leases.title') },
           { path: 'settings', element: <SettingsPage />, handle: handle('pages.settings.title') },

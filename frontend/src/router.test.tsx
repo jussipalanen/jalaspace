@@ -12,7 +12,7 @@ describe('application routes', () => {
     ['/maintenance', 'Maintenance'],
     ['/maintenance/abc-123', 'Maintenance task not found'],
     ['/tenants', 'Tenants'],
-    ['/tenants/abc-123', 'Tenant details'],
+    ['/tenants/abc-123', 'Tenant not found'],
     ['/leases', 'Leases'],
     ['/settings', 'Settings'],
   ])('renders %s inside the app shell', async (path, heading) => {
