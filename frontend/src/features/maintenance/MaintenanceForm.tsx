@@ -1,6 +1,6 @@
 import { useId, useMemo, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
-import { DatePicker } from '../../components/DatePicker/DatePicker'
+import { DateInput } from '../../components/DateInput/DateInput'
 import { FormField } from '../../components/FormField/FormField'
 import { useTranslation } from '../../i18n/useTranslation'
 import { EntityNotFoundError } from '../../repositories/Repository'
@@ -323,21 +323,15 @@ export function MaintenanceForm({
           error={messages.dueDate}
         >
           {(control) => (
-            <div className="date-field">
-              <input
-                {...control}
-                className="field__input"
-                autoComplete="off"
-                placeholder={t('maintenance.form.dueDatePlaceholder')}
-                value={values.dueDate}
-                onChange={(event) => update('dueDate', event.target.value)}
-              />
-              <DatePicker
-                value={parseDueDate(values.dueDate)}
-                field={t('maintenance.form.fields.dueDate').toLocaleLowerCase(locale)}
-                onSelect={(date) => update('dueDate', formatDate(date))}
-              />
-            </div>
+            <DateInput
+              control={control}
+              text={values.dueDate}
+              onTextChange={(text) => update('dueDate', text)}
+              value={parseDueDate(values.dueDate)}
+              onSelect={(date) => update('dueDate', formatDate(date))}
+              field={t('maintenance.form.fields.dueDate').toLocaleLowerCase(locale)}
+              placeholder={t('maintenance.form.dueDatePlaceholder')}
+            />
           )}
         </FormField>
       </div>

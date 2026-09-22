@@ -144,7 +144,10 @@ describe('maintenance', () => {
     renderRoute('/maintenance/new?property=property-joensuu-center')
 
     const input = await screen.findByLabelText(/^Due date/)
+    // Typing starts with a click, which opens the calendar; Escape closes it.
     await user.type(input, '30.9.2026')
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     const toggle = screen.getByRole('button', { name: 'Choose due date from a calendar' })
     await user.click(toggle)
 
@@ -159,13 +162,38 @@ describe('maintenance', () => {
 
     expect(input).toHaveValue('1.10.2026')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(toggle).toHaveFocus()
+    expect(input).toHaveFocus()
 
     await user.click(toggle)
     await user.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-    expect(toggle).toHaveFocus()
+    expect(input).toHaveFocus()
     expect(input).toHaveValue('1.10.2026')
+  })
+
+  it('opens the calendar from the field and still lets the date be typed', async () => {
+    const user = userEvent.setup()
+    renderRoute('/maintenance/new?property=property-joensuu-center')
+
+    const input = await screen.findByRole('textbox', { name: /^Due date/ })
+    await user.click(input)
+    const dialog = screen.getByRole('dialog', { name: 'Choose due date' })
+    expect(input).toHaveFocus()
+    expect(input).toHaveAttribute('aria-expanded', 'true')
+
+    await user.type(input, '15.3.2027')
+    expect(input).toHaveValue('15.3.2027')
+    expect(within(dialog).getByRole('heading', { name: 'March 2027' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('button', { name: /15 March 2027, Selected/ })).toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole('button', { name: /, 20 March 2027/ }))
+    expect(input).toHaveValue('20.3.2027')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+
+    await user.keyboard('{ArrowDown}')
+    expect(screen.getByRole('button', { name: /20 March 2027, Selected/ })).toHaveFocus()
+    await user.click(screen.getByRole('heading', { level: 1 }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
   it('creates a task from the property page and shows it after saving', async () => {

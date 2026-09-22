@@ -104,8 +104,9 @@ and can be shared as links. Changing the property clears the space filter.
 - Use **Add task** on the list or on a property's details page, where the property is already selected.
 - A task needs a property and a title (at most 120 characters). The space is optional: leave it empty
   for the whole property or a common area; otherwise it must belong to the chosen property.
-- The due date is optional. Type it as `d.m.yyyy` or choose it from the calendar button next to the
-  field (weeks start on Monday; arrow keys, Page Up/Down and Escape work). Past dates are allowed, and
+- The due date is optional. Clicking the field opens a calendar, and you can still type the date as
+  `d.m.yyyy` (weeks start on Monday; Arrow Down moves into the calendar, arrow keys, Page Up/Down and
+  Escape work). Past dates are allowed, and
   open tasks past their due date are marked overdue.
 - Completing a task records the completion time. Editing a completed task keeps it; reopening clears it.
 - Task statuses do not change space statuses. Deleting a task requires confirmation.

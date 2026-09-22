@@ -43,9 +43,11 @@ test.describe('maintenance', () => {
     await expect(page.getByRole('textbox', { name: 'Due date' })).toBeFocused()
 
     await page.getByRole('textbox', { name: 'Due date' }).fill('1.12.2099')
-    // Move one day forward in the calendar.
-    await page.getByRole('button', { name: 'Choose due date from a calendar' }).click()
+    // Clicking the field opens the calendar; move one day forward in it.
+    await page.getByRole('textbox', { name: 'Due date' }).click()
     await expect(page.getByRole('dialog', { name: 'Choose due date' })).toBeVisible()
+    await expect(page.getByRole('textbox', { name: 'Due date' })).toBeFocused()
+    await page.keyboard.press('ArrowDown')
     await page.keyboard.press('ArrowRight')
     await page.keyboard.press('Enter')
     await expect(page.getByRole('textbox', { name: 'Due date' })).toHaveValue('2.12.2099')
