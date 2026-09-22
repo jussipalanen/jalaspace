@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint and the properties endpoints. The other domain endpoints (spaces, maintenance, tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, the properties endpoints and AI suggestions for maintenance tasks. The other domain endpoints (spaces, maintenance, tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -51,6 +51,12 @@ Environment variables (see [`.env.example`](.env.example)):
 | `PORT`   | `3000`    | Port to listen on (1–65535)         |
 | `HOST`   | `0.0.0.0` | Network interface to listen on      |
 | `SEED_DEMO_DATA` | `false` | `true` starts the API with the demo data and enables `POST /api/demo/reset` |
+| `GEMINI_API_KEY` | none | Gemini API key for AI maintenance suggestions. A secret. Without it the feature is off |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model for the suggestions |
+| `CORS_ORIGINS` | none | Origins allowed to call the API from a browser, comma-separated. `*` matches part of one host label, e.g. `https://jalaspace-*-team.vercel.app` |
+| `TRUST_PROXY` | `0` | Number of proxies in front of the API (Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
+
+`npm run dev` reads `backend/.env` when it exists: copy `.env.example` to `.env` and add your key there. `npm start` reads only the real environment, as on Render.
 
 An invalid value stops the server at start with a clear message. Never commit real secrets; production values belong in the hosting platform.
 
@@ -70,7 +76,10 @@ An invalid value stops the server at start with a clear message. Never commit re
   | 404    | `not_found`         | The route or resource does not exist  |
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
   | 413    | `payload_too_large` | The request body is over the limit    |
+  | 429    | `rate_limited`      | Too many AI suggestions from this client (with `Retry-After`) or the AI quota is used up |
   | 500    | `internal_error`    | An unexpected error; details are only logged on the server, never sent |
+  | 502    | `invalid_suggestion` | The AI answered, but not with a usable suggestion |
+  | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
 - An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`):
 
@@ -87,12 +96,14 @@ An invalid value stops the server at start with a clear message. Never commit re
 | Method | Path                  | Response                                                       |
 | ------ | --------------------- | -------------------------------------------------------------- |
 | GET    | `/api/health`         | `{ "status": "ok", "version": "x.y.z" }`                       |
+| GET    | `/api/features`       | `{ "maintenanceSuggestions": true }`: optional features this API offers |
 | GET    | `/api/properties`     | All properties                                                 |
 | GET    | `/api/properties/:id` | One property, or `404 not_found`                               |
 | POST   | `/api/properties`     | `201` with the created property and a `Location` header        |
 | PUT    | `/api/properties/:id` | The updated property, or `404 not_found`                       |
 | DELETE | `/api/properties/:id` | `204`, `404 not_found`, or `409 property_in_use` with counts   |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
+| POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 
 The health version comes from `package.json`, which release-please keeps in step with the app version.
 
@@ -121,6 +132,31 @@ A property that still has spaces or maintenance tasks cannot be deleted, so no d
 { "error": { "code": "property_in_use", "spaceCount": 2, "maintenanceCount": 1 } }
 ```
 
+### Maintenance suggestions
+
+`POST /api/maintenance/suggestions` suggests a title, category and priority for a problem description. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
+
+```bash
+curl -X POST http://localhost:3000/api/maintenance/suggestions \
+  -H 'content-type: application/json' \
+  -d '{"description":"Water is leaking under the kitchen sink. It started this morning.","language":"en"}'
+# {"title":"Kitchen sink water leak","category":"plumbing","priority":"high"}
+```
+
+| Field         | Rules                                                     |
+| ------------- | --------------------------------------------------------- |
+| `description` | Required, at most 2000 characters                         |
+| `language`    | `en` (default) or `fi`: the language of the suggested title |
+
+- The suggestion comes from the [Gemini API](https://ai.google.dev/gemini-api/docs) free tier, called with plain `fetch` and asked for JSON that follows a schema. With billing off, the free tier cannot cost money; when its quota runs out, requests answer `429 rate_limited`.
+- The answer is never trusted: it is checked against the app's categories (`plumbing`, `electrical`, `hvac`, `structural`, `cleaning`, `general`), priorities (`low`, `medium`, `high`) and title length, and an unusable answer becomes `502 invalid_suggestion`.
+- The instructions tell the model to treat the description as data, not instructions. Gemini gives up after 20 seconds.
+- Each client can ask for 10 suggestions per 10 minutes (`429 rate_limited` with `Retry-After`). The limit is kept in memory per client IP; set `TRUST_PROXY` behind a proxy, or every visitor shares the proxy's limit.
+- Failures are logged without the description.
+- The provider is behind the `MaintenanceSuggester` interface (`src/ai/suggestions.ts`), so another provider can be added without changing the route. Tests use fakes and never call Gemini.
+
+Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Render, set it as a secret environment variable.
+
 ## Storage
 
 Data is kept **in memory** and is lost when the server restarts. Routes use the async `Store` interface (`src/store/store.ts`), so a database can replace the in-memory store later without changing them.
@@ -145,7 +181,9 @@ src/
 ├── server.ts       Starts the HTTP server and handles shutdown
 ├── config.ts       Reads and validates environment variables
 ├── errors.ts       ApiError, error codes, 404 and error handlers
+├── cors.ts         Allows the configured origins to call the API from a browser
 ├── version.ts      App version from package.json
+├── ai/             AI maintenance suggestions: provider interface, Gemini, rate limit
 ├── domain/         Entity types and business rules, e.g. validation (no Express)
 ├── store/          The Store interface and its in-memory implementation
 ├── routes/         One router per area, e.g. properties.ts
