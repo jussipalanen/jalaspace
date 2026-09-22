@@ -34,7 +34,7 @@ test.describe('dashboard', () => {
       .click()
 
     await expect(page).toHaveURL('/maintenance/maintenance-3')
-    await expectPageHeading(page, 'Maintenance task details')
+    await expectPageHeading(page, 'Main entrance door closer broken')
   })
 
   test('recalculates the figures when the data changes', async ({ page }) => {

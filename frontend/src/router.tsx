@@ -5,6 +5,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { LeasesPage } from './pages/LeasesPage'
 import { LoginPage } from './pages/LoginPage'
 import { MaintenanceDetailPage } from './pages/MaintenanceDetailPage'
+import { EditMaintenancePage, NewMaintenancePage } from './pages/MaintenanceFormPage'
 import { MaintenancePage } from './pages/MaintenancePage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import { PropertiesPage } from './pages/PropertiesPage'
@@ -60,6 +61,16 @@ export const routes: RouteObject[] = [
             handle: handle('pages.spaceEdit.title'),
           },
           { path: 'maintenance', element: <MaintenancePage />, handle: handle('pages.maintenance.title') },
+          {
+            path: 'maintenance/new',
+            element: <NewMaintenancePage />,
+            handle: handle('pages.maintenanceNew.title'),
+          },
+          {
+            path: 'maintenance/:id/edit',
+            element: <EditMaintenancePage />,
+            handle: handle('pages.maintenanceEdit.title'),
+          },
           {
             path: 'maintenance/:id',
             element: <MaintenanceDetailPage />,

@@ -142,6 +142,18 @@ function PropertyDetailsView({
           <h2 id="property-maintenance-title" className="section__title">
             {t('properties.detail.openMaintenance')}
           </h2>
+          <div className="section__actions">
+            <Link to={`/maintenance?property=${property.id}`} className="button button--secondary">
+              {t('properties.detail.viewAllMaintenance')}
+            </Link>
+            <Link
+              to={`/maintenance/new?property=${property.id}`}
+              className="button button--secondary"
+            >
+              <PlusIcon width={16} height={16} />
+              {t('properties.detail.addMaintenance')}
+            </Link>
+          </div>
         </div>
         {openMaintenance.length === 0 ? (
           <p className="card section__empty">{t('properties.detail.noOpenMaintenance')}</p>
