@@ -119,7 +119,11 @@ test.describe('maintenance', () => {
     await expect(page.getByRole('region', { name: 'Details' })).toContainText('Overdue')
 
     await page.goto('/maintenance')
-    await page.getByRole('checkbox', { name: 'Overdue only' }).check()
+    // The checkbox follows the URL, which the router updates asynchronously, so
+    // click and wait for the state instead of using check(), which reads it at once.
+    const overdueOnly = page.getByRole('checkbox', { name: 'Overdue only' })
+    await overdueOnly.click()
+    await expect(overdueOnly).toBeChecked()
     await expect(page).toHaveURL('/maintenance?overdue=1')
     await expect(count(page)).toHaveText('1 task')
 
