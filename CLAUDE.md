@@ -822,6 +822,20 @@ Include:
 
 Do not hardcode statistics when they can be derived from actual repository data.
 
+Metric definitions (use the same definitions everywhere, e.g. per property on the Properties page):
+
+```text
+Occupancy          occupied spaces / all spaces, rounded to a whole percent
+                   ("—" when there are no spaces)
+Open maintenance   tasks that are not completed (open + in progress)
+Available spaces   spaces with status available; flagged as reserved
+                   when an upcoming lease exists
+```
+
+Recent activity is derived from entity dates (maintenance completed, lease started, lease ended) until a stored activity log exists.
+
+Calculations belong in a pure, tested service (`services/dashboard.ts`), not in components.
+
 ---
 
 # Properties
