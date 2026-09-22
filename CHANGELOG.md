@@ -5,6 +5,18 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.6.0](https://github.com/jussipalanen/jalaspace/compare/v0.5.0...v0.6.0) (2026-09-22)
+
+
+### Added
+
+* **leases:** manage leases and keep space statuses in step with lease dates ([#49](https://github.com/jussipalanen/jalaspace/issues/49)) ([5920e27](https://github.com/jussipalanen/jalaspace/commit/5920e270a42a50c432206128a308d1e800c4db1c))
+
+
+### Fixed
+
+* **deploy:** keep the public demo out of search engine results ([#51](https://github.com/jussipalanen/jalaspace/issues/51)) ([07bdae7](https://github.com/jussipalanen/jalaspace/commit/07bdae7a69e37a510eadc52433d5cd96643a1c61))
+
 ## [0.5.0](https://github.com/jussipalanen/jalaspace/compare/v0.4.0...v0.5.0) (2026-09-22)
 
 
