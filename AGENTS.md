@@ -406,7 +406,9 @@ jalaspace/
 │
 ├── backend/
 │   ├── src/
+│   │   ├── domain/
 │   │   ├── routes/
+│   │   ├── store/
 │   │   ├── app.ts
 │   │   ├── config.ts
 │   │   ├── errors.ts

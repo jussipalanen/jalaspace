@@ -294,6 +294,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - Only changes in `backend/` trigger a deploy, and only after they are merged to `main`.
 - `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
+- The API keeps its data in memory, so the data is cleared whenever the service sleeps, restarts or is redeployed. A database comes later.
 - The frontend does not call the API yet; it still stores its data in the browser.
 
 ## Versions and releases
