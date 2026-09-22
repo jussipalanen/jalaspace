@@ -481,6 +481,28 @@ export const fi: Messages = {
     },
   },
   maintenance: {
+    suggestion: {
+      button: 'Ehdota tekoälyllä',
+      loading: 'Ehdotetaan…',
+      hint:
+        'Tekoäly ehdottaa kuvauksen perusteella otsikkoa, luokkaa ja prioriteettia. Kuvaus lähetetään Google Geminille, joten älä kirjoita siihen henkilötietoja.',
+      slowHint: 'Ensimmäinen ehdotus voi kestää minuutin, kun palvelin käynnistyy.',
+      title: 'Tekoälyn ehdotus',
+      review:
+        'Tarkista ehdotus ennen tallentamista. Ehdotuksen käyttäminen korvaa otsikon, luokan ja prioriteetin.',
+      apply: 'Käytä ehdotusta',
+      dismiss: 'Hylkää',
+      errors: {
+        required: 'Kuvaa ongelma ensin.',
+        tooLong: 'Kuvaus on liian pitkä ehdotusta varten (enintään {max} merkkiä).',
+        unavailable:
+          'Tekoälyehdotukset eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.',
+        rateLimited:
+          'Liian monta ehdotusta lyhyessä ajassa. Odota muutama minuutti ja yritä uudelleen.',
+        invalidSuggestion: 'Tekoäly ei löytänyt hyödyllistä ehdotusta. Kuvaa ongelma tarkemmin.',
+        network: 'JalaSpacen rajapintaan ei saada yhteyttä. Yritä uudelleen.',
+      },
+    },
     status: {
       open: 'Avoin',
       in_progress: 'Työn alla',
