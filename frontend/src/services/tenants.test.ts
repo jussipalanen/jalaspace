@@ -3,22 +3,16 @@ import { createSeedData } from '../data/seed'
 import type { Lease } from '../types/lease'
 import {
   applyTenantChanges,
-  buildAssignmentLease,
   buildNewTenant,
   buildTenantRows,
-  canAssignSpace,
   checkTenantDeletion,
-  emptyAssignmentForm,
   emptyTenantForm,
   filterTenantRows,
   groupTenantLeases,
-  parseMonthlyRent,
   planRemoval,
   TENANT_NAME_MAX_LENGTH,
   toTenantForm,
-  validateAssignmentForm,
   validateTenantForm,
-  type AssignmentFormValues,
   type TenantFormValues,
 } from './tenants'
 
@@ -137,84 +131,6 @@ describe('deleting tenants', () => {
       leaseCount: 1,
     })
     expect(checkTenantDeletion('tenant-new', seed.leases)).toEqual({ allowed: true, leaseCount: 0 })
-  })
-})
-
-describe('assigning tenants to spaces', () => {
-  const values: AssignmentFormValues = {
-    propertyId: 'property-kuopio-harbour',
-    spaceId: 'space-kuopio-harbour-10',
-    startDate: '22.9.2026',
-    monthlyRent: '1 250,50',
-  }
-  const validateAssignment = (overrides: Partial<AssignmentFormValues>) =>
-    validateAssignmentForm({ ...values, ...overrides }, seed.properties, seed.spaces, seed.leases)
-
-  it('parses monthly rents into cents', () => {
-    expect(parseMonthlyRent('1 250,50')).toBe(125050)
-    expect(parseMonthlyRent('980')).toBe(98000)
-    expect(parseMonthlyRent('0')).toBeNull()
-    expect(parseMonthlyRent('12,345')).toBeNull()
-    expect(parseMonthlyRent('lots')).toBeNull()
-  })
-
-  it('prefills today as the start date', () => {
-    expect(emptyAssignmentForm('2026-09-02').startDate).toBe('2.9.2026')
-  })
-
-  it('accepts an available space without later leases', () => {
-    expect(validateAssignment({})).toEqual({})
-    // A 201 had a lease that ended in July.
-    expect(
-      validateAssignment({ propertyId: 'property-joensuu-center', spaceId: 'space-joensuu-center-5' }),
-    ).toEqual({})
-  })
-
-  it('rejects occupied spaces, overlapping leases and spaces of another property', () => {
-    expect(
-      validateAssignment({ propertyId: 'property-joensuu-center', spaceId: 'space-joensuu-center-6' }),
-    ).toEqual({ spaceId: 'notAvailable' })
-    // A 302 is reserved for Aurora Yoga from 6.11.2026.
-    expect(
-      validateAssignment({ propertyId: 'property-joensuu-center', spaceId: 'space-joensuu-center-12' }),
-    ).toEqual({ spaceId: 'leaseOverlap' })
-    expect(validateAssignment({ spaceId: 'space-joensuu-center-5' })).toEqual({ spaceId: 'notFound' })
-  })
-
-  it('treats a lease that ended before the start date as no overlap', () => {
-    const space = seed.spaces.find((item) => item.id === 'space-joensuu-center-5')!
-    expect(canAssignSpace(space, seed.leases, '2026-07-24')).toBe('leaseOverlap')
-    expect(canAssignSpace(space, seed.leases, '2026-07-25')).toBe('ok')
-  })
-
-  it('requires the fields and validates the date and rent', () => {
-    expect(
-      validateAssignmentForm(
-        { propertyId: '', spaceId: '', startDate: '', monthlyRent: '' },
-        seed.properties,
-        seed.spaces,
-        seed.leases,
-      ),
-    ).toEqual({ propertyId: 'required', startDate: 'required' })
-    expect(validateAssignment({ spaceId: '', startDate: '31.2.2026', monthlyRent: '-5' })).toEqual({
-      spaceId: 'required',
-      startDate: 'invalid',
-      monthlyRent: 'invalid',
-    })
-  })
-
-  it('builds an open-ended lease with the rent in cents', () => {
-    expect(buildAssignmentLease('tenant-aino-virtanen', values, now, 'lease-new')).toEqual({
-      id: 'lease-new',
-      tenantId: 'tenant-aino-virtanen',
-      spaceId: 'space-kuopio-harbour-10',
-      startDate: '2026-09-22',
-      endDate: null,
-      monthlyRentCents: 125050,
-      createdAt: now,
-      updatedAt: now,
-    })
-    expect(buildAssignmentLease('t', { ...values, monthlyRent: '' }, now).monthlyRentCents).toBeNull()
   })
 })
 

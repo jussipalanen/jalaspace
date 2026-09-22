@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router'
 import { RequireAuth } from './features/auth/RequireAuth'
 import { AppLayout } from './layouts/AppLayout'
 import { DashboardPage } from './pages/DashboardPage'
+import { EditLeasePage, NewLeasePage } from './pages/LeaseFormPage'
 import { LeasesPage } from './pages/LeasesPage'
 import { LoginPage } from './pages/LoginPage'
 import { MaintenanceDetailPage } from './pages/MaintenanceDetailPage'
@@ -15,7 +16,6 @@ import { RouteErrorPage } from './pages/RouteErrorPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { EditSpacePage, NewSpacePage } from './pages/SpaceFormPage'
 import { SpacesPage } from './pages/SpacesPage'
-import { TenantAssignPage } from './pages/TenantAssignPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
 import { EditTenantPage, NewTenantPage } from './pages/TenantFormPage'
 import { TenantsPage } from './pages/TenantsPage'
@@ -85,13 +85,14 @@ export const routes: RouteObject[] = [
             element: <EditTenantPage />,
             handle: handle('pages.tenantEdit.title'),
           },
-          {
-            path: 'tenants/:id/assign',
-            element: <TenantAssignPage />,
-            handle: handle('pages.tenantAssign.title'),
-          },
           { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('pages.tenantDetails.title') },
           { path: 'leases', element: <LeasesPage />, handle: handle('pages.leases.title') },
+          { path: 'leases/new', element: <NewLeasePage />, handle: handle('pages.leaseNew.title') },
+          {
+            path: 'leases/:id/edit',
+            element: <EditLeasePage />,
+            handle: handle('pages.leaseEdit.title'),
+          },
           { path: 'settings', element: <SettingsPage />, handle: handle('pages.settings.title') },
           { path: '*', element: <NotFoundPage />, handle: handle('pages.notFound.title') },
         ],

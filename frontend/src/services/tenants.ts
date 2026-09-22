@@ -3,7 +3,7 @@ import type { Lease } from '../types/lease'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 import type { Tenant, TenantType } from '../types/tenant'
-import { parseDisplayDate, shiftIsoDate } from '../utils/date'
+import { shiftIsoDate } from '../utils/date'
 import { generateId } from '../utils/id'
 import { getLeaseStatus } from './leases'
 
@@ -15,8 +15,6 @@ export const TENANT_EMAIL_MAX_LENGTH = 254
 export const TENANT_NOTES_MAX_LENGTH = 2000
 export const TENANT_PHONE_MIN_LENGTH = 5
 export const TENANT_PHONE_MAX_LENGTH = 20
-/** Upper limit for a monthly rent, in euros. */
-export const MONTHLY_RENT_MAX_EUROS = 1_000_000
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_PATTERN = /^[\d\s()+-]+$/
@@ -233,109 +231,6 @@ export interface TenantDeletionCheck {
 export function checkTenantDeletion(tenantId: string, leases: Lease[]): TenantDeletionCheck {
   const leaseCount = leases.filter((lease) => lease.tenantId === tenantId).length
   return { allowed: leaseCount === 0, leaseCount }
-}
-
-/** Values of the "assign to space" form, as typed. */
-export interface AssignmentFormValues {
-  propertyId: string
-  spaceId: string
-  /** Start date typed as `d.m.yyyy`. */
-  startDate: string
-  /** Optional monthly rent in euros, e.g. `1 250,50`. */
-  monthlyRent: string
-}
-
-export interface AssignmentFormErrors {
-  propertyId?: 'required' | 'notFound'
-  spaceId?: 'required' | 'notFound' | 'notAvailable' | 'leaseOverlap'
-  startDate?: 'required' | 'invalid'
-  monthlyRent?: 'invalid'
-}
-
-export function emptyAssignmentForm(today: IsoDate): AssignmentFormValues {
-  const [year, month, day] = today.split('-')
-  return { propertyId: '', spaceId: '', startDate: `${Number(day)}.${Number(month)}.${year}`, monthlyRent: '' }
-}
-
-/** Parses a monthly rent in euros into cents, accepting a decimal comma and spaces; `null` if invalid. */
-export function parseMonthlyRent(value: string): number | null {
-  const normalized = value.trim().replace(/[\s  ]/g, '').replace(',', '.')
-  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null
-  const euros = Number(normalized)
-  if (euros <= 0 || euros > MONTHLY_RENT_MAX_EUROS) return null
-  return Math.round(euros * 100)
-}
-
-/**
- * A space can be assigned from `startDate` when it is available and no lease
- * of it is still running on or after that day (the new lease is open-ended).
- */
-export function canAssignSpace(
-  space: Space,
-  leases: Lease[],
-  startDate: IsoDate,
-): 'ok' | 'notAvailable' | 'leaseOverlap' {
-  if (space.status !== 'available') return 'notAvailable'
-  const overlaps = leases.some(
-    (lease) => lease.spaceId === space.id && (lease.endDate === null || lease.endDate >= startDate),
-  )
-  return overlaps ? 'leaseOverlap' : 'ok'
-}
-
-export function validateAssignmentForm(
-  values: AssignmentFormValues,
-  properties: Pick<Property, 'id'>[],
-  spaces: Space[],
-  leases: Lease[],
-): AssignmentFormErrors {
-  const errors: AssignmentFormErrors = {}
-
-  if (!values.propertyId) errors.propertyId = 'required'
-  else if (!properties.some((property) => property.id === values.propertyId)) {
-    errors.propertyId = 'notFound'
-  }
-
-  const startDate = parseDisplayDate(values.startDate)
-  if (!values.startDate.trim()) errors.startDate = 'required'
-  else if (!startDate) errors.startDate = 'invalid'
-
-  if (values.monthlyRent.trim() && parseMonthlyRent(values.monthlyRent) === null) {
-    errors.monthlyRent = 'invalid'
-  }
-
-  if (!values.spaceId) {
-    if (!errors.propertyId) errors.spaceId = 'required'
-  } else {
-    const space = spaces.find((item) => item.id === values.spaceId && item.propertyId === values.propertyId)
-    if (!space) errors.spaceId = 'notFound'
-    else {
-      const check = canAssignSpace(space, leases, startDate ?? '0000-01-01')
-      if (check === 'notAvailable') errors.spaceId = 'notAvailable'
-      // The overlap depends on the start date, so only check it for a valid date.
-      else if (check === 'leaseOverlap' && startDate) errors.spaceId = 'leaseOverlap'
-    }
-  }
-
-  return errors
-}
-
-/** Builds the open-ended lease created by assigning a tenant to a space. */
-export function buildAssignmentLease(
-  tenantId: string,
-  values: AssignmentFormValues,
-  now: IsoDateTime,
-  id: string = generateId(),
-): Lease {
-  return {
-    id,
-    tenantId,
-    spaceId: values.spaceId,
-    startDate: parseDisplayDate(values.startDate) ?? '',
-    endDate: null,
-    monthlyRentCents: values.monthlyRent.trim() ? parseMonthlyRent(values.monthlyRent) : null,
-    createdAt: now,
-    updatedAt: now,
-  }
 }
 
 /**

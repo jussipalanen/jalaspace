@@ -34,7 +34,7 @@ interface SpaceFormProps {
   spaces: Space[]
   editingId?: string
   /** Set when the space has an active lease: the status is then fixed to occupied. */
-  lockedStatus?: { tenant: Pick<Tenant, 'id' | 'name'> | null; since: IsoDate }
+  lockedStatus?: { tenant: Pick<Tenant, 'id' | 'name'> | null; since: IsoDate; leaseTo: string }
   cancelTo: string
   onSubmit: (values: SpaceFormValues) => Promise<void>
 }
@@ -232,7 +232,10 @@ export function SpaceForm({
         <div className="field">
           <span className="field__label">{t('spaces.form.fields.status')}</span>
           <div className="alert alert--info entity-form__locked">
-            <p>{t('spaces.form.occupiedLocked', { date: formatDate(lockedStatus.since) })}</p>
+            <p>
+              {t('spaces.form.occupiedLocked', { date: formatDate(lockedStatus.since) })}{' '}
+              <Link to={lockedStatus.leaseTo}>{t('spaces.form.viewLease')}</Link>
+            </p>
             {lockedStatus.tenant && (
               <p>
                 {t('spaces.form.tenant')}:{' '}

@@ -1,0 +1,30 @@
+.lease-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr) minmax(0, 2fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.lease-filters .field + .field {
+  margin-top: 0;
+}
+
+.lease-filters__search .search-field {
+  max-width: none;
+}
+
+@media (max-width: 719.98px) {
+  .lease-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lease-filters__search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 419.98px) {
+  .lease-filters {
+    grid-template-columns: 1fr;
+  }
+}

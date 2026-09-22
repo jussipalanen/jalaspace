@@ -243,3 +243,15 @@ export function checkSpaceDeletion(
   const maintenanceCount = maintenance.filter((task) => task.spaceId === spaceId).length
   return { allowed: leaseCount === 0 && maintenanceCount === 0, leaseCount, maintenanceCount }
 }
+
+/**
+ * Spaces whose stored status no longer matches their leases today, with the
+ * corrected status: occupied while a lease is active, otherwise not occupied.
+ * Used to catch up when a lease has started or ended since the last visit.
+ */
+export function reconcileSpaceStatuses(spaces: Space[], leases: Lease[], today: IsoDate): Space[] {
+  return spaces.flatMap((space) => {
+    const status = resolveSpaceStatus(space.status, findActiveLease(space.id, leases, today) !== null)
+    return status === space.status ? [] : [{ ...space, status }]
+  })
+}

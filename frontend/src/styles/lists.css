@@ -73,6 +73,18 @@ a.data-table__primary:hover {
   color: var(--color-text-muted);
 }
 
+.data-table td.data-table__action {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.button--small {
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--text-sm);
+}
+
 /* Below 720px each row becomes a card with labelled values. */
 @media (max-width: 719.98px) {
   .table-card {
@@ -128,6 +140,12 @@ a.data-table__primary:hover {
     text-align: left;
     font-weight: 500;
     color: var(--color-text-muted);
+  }
+
+  .data-table td.data-table__action {
+    width: auto;
+    justify-content: flex-end;
+    padding-top: var(--space-2);
   }
 
   .data-table td.data-table__main {

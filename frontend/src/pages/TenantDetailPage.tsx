@@ -98,7 +98,10 @@ function TenantDetailsView({ details, onChanged }: { details: TenantDetails; onC
           <h2 id="tenant-spaces-title" ref={spacesHeading} tabIndex={-1} className="section__title">
             {t('tenants.detail.spaces')}
           </h2>
-          <Link to={`/tenants/${tenant.id}/assign`} className="button button--secondary">
+          <Link
+            to={`/leases/new?tenant=${tenant.id}&returnTo=${encodeURIComponent(`/tenants/${tenant.id}`)}`}
+            className="button button--secondary"
+          >
             <PlusIcon width={16} height={16} />
             {t('tenants.detail.assign')}
           </Link>
@@ -145,6 +148,14 @@ function TenantDetailsView({ details, onChanged }: { details: TenantDetails; onC
                   </div>
                   <div className="tenant-spaces__actions">
                     {upcoming && <StatusBadge tone="info">{t('tenants.detail.upcoming')}</StatusBadge>}
+                    <Link
+                      to={`/leases/${entry.lease.id}/edit?returnTo=${encodeURIComponent(`/tenants/${tenant.id}`)}`}
+                      className="button button--secondary"
+                      aria-label={t('tenants.detail.editLeaseNamed', { space: spaceName })}
+                    >
+                      <PencilIcon width={16} height={16} />
+                      {t('tenants.detail.editLease')}
+                    </Link>
                     <button
                       type="button"
                       className="button button--secondary button--danger-text"

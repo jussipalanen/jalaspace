@@ -6,9 +6,9 @@ import { addDays, toIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import { initializeDemoData } from './demoDataService'
 import { findActiveLease } from './spaces'
+import { createLease, LeaseValidationError } from './leaseService'
+import type { LeaseFormValues } from './leases'
 import {
-  assignTenantToSpace,
-  AssignmentValidationError,
   createTenant,
   deleteTenant,
   getTenantDetails,
@@ -18,7 +18,7 @@ import {
   TenantValidationError,
   updateTenant,
 } from './tenantService'
-import type { AssignmentFormValues, TenantFormValues } from './tenants'
+import type { TenantFormValues } from './tenants'
 
 const values: TenantFormValues = {
   type: 'company',
@@ -30,12 +30,21 @@ const values: TenantFormValues = {
 }
 const today = () => toIsoDate(new Date())
 // B 204 in Kuopio Harbour is available and has never been leased.
-const assignment = (startDate = formatDate(today())): AssignmentFormValues => ({
+const assignment = (startDate = formatDate(today())): Omit<LeaseFormValues, 'tenantId'> => ({
   propertyId: 'property-kuopio-harbour',
   spaceId: 'space-kuopio-harbour-10',
   startDate,
+  endDate: '',
   monthlyRent: '980',
 })
+const assignTenantToSpace = async (
+  data: ReturnType<typeof createDataLayer>,
+  tenantId: string,
+  values: Omit<LeaseFormValues, 'tenantId'>,
+) => {
+  const lease = await createLease(data, { ...values, tenantId })
+  return { lease, space: (await data.spaces.getById(lease.spaceId))! }
+}
 
 describe('tenant service', () => {
   beforeEach(async () => {
@@ -120,15 +129,15 @@ describe('tenant service', () => {
         propertyId: 'property-joensuu-center',
         spaceId: 'space-joensuu-center-6',
       }),
-    ).rejects.toMatchObject({ errors: { spaceId: 'notAvailable' } })
+    ).rejects.toMatchObject({ errors: { spaceId: 'overlap' } })
     // A 302 is reserved for Aurora Yoga later this year.
     const error = await assignTenantToSpace(data, 'tenant-aino-virtanen', {
       ...assignment(),
       propertyId: 'property-joensuu-center',
       spaceId: 'space-joensuu-center-12',
     }).catch((e: unknown) => e)
-    expect(error).toBeInstanceOf(AssignmentValidationError)
-    expect(error).toMatchObject({ errors: { spaceId: 'leaseOverlap' } })
+    expect(error).toBeInstanceOf(LeaseValidationError)
+    expect(error).toMatchObject({ errors: { spaceId: 'overlap' } })
     expect(await data.leases.getAll()).toHaveLength(before.length)
   })
 
@@ -137,7 +146,7 @@ describe('tenant service', () => {
     await assignTenantToSpace(data, 'tenant-aino-virtanen', assignment())
     await expect(
       assignTenantToSpace(data, 'tenant-mikko-korhonen', assignment()),
-    ).rejects.toMatchObject({ errors: { spaceId: 'notAvailable' } })
+    ).rejects.toMatchObject({ errors: { spaceId: 'overlap' } })
   })
 
   it('removes a tenant who has moved in earlier: the lease ends yesterday and the space is freed', async () => {

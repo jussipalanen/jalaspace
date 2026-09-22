@@ -114,7 +114,15 @@ export function EditSpacePage() {
         properties={properties}
         spaces={state.data.spaces}
         editingId={space.id}
-        lockedStatus={activeLease ? { tenant, since: activeLease.startDate } : undefined}
+        lockedStatus={
+          activeLease
+            ? {
+                tenant,
+                since: activeLease.startDate,
+                leaseTo: `/leases/${activeLease.id}/edit?returnTo=${encodeURIComponent(`/units/${space.id}/edit`)}`,
+              }
+            : undefined
+        }
         cancelTo={`/units?property=${space.propertyId}`}
         onSubmit={save}
       />
