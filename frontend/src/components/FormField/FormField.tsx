@@ -36,17 +36,18 @@ export function FormField({ id, label, hint, error, required, children }: FormFi
           </span>
         )}
       </label>
-      {hint && (
-        <p id={hintId} className="field__hint">
-          {hint}
-        </p>
-      )}
       {children({
         id,
         'aria-invalid': error ? true : undefined,
         'aria-required': required ? true : undefined,
         'aria-describedby': describedBy || undefined,
       })}
+      {/* Hints go below the control so inputs side by side in a row line up. */}
+      {hint && (
+        <p id={hintId} className="field__hint">
+          {hint}
+        </p>
+      )}
       {error && (
         <p id={errorId} className="field__error">
           {error}
