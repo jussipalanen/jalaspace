@@ -3,7 +3,14 @@ import { API_URL, expectPageHeading, signedInState } from './fixtures'
 
 test.use({ storageState: async ({ baseURL }, use) => use(signedInState(baseURL!)) })
 
-const DESCRIPTION = 'Water is leaking under the kitchen sink. It started this morning.'
+const TITLE = 'kitchen sink leak'
+const SUGGESTED_DESCRIPTION = [
+  'Water is leaking at the kitchen sink.',
+  '',
+  'To check:',
+  '- the drain trap and connections under the sink',
+  '- the supply hoses and shut-off valves',
+].join('\n')
 
 /** Answers a request to the placeholder API, including the CORS headers a real API sends. */
 function fulfillJson(route: Route, status: number, body: unknown) {
@@ -38,10 +45,11 @@ async function mockSuggestions(page: Page, status: number, body: unknown) {
 }
 
 test.describe('maintenance AI suggestions', () => {
-  test('applies a suggestion to the form and saves the task', async ({ page }) => {
+  test('suggests a description from the title, applies it and saves the task', async ({ page }) => {
     await mockFeatures(page, true)
     const requests = await mockSuggestions(page, 200, {
       title: 'Kitchen sink water leak',
+      description: SUGGESTED_DESCRIPTION,
       category: 'plumbing',
       priority: 'high',
     })
@@ -52,19 +60,22 @@ test.describe('maintenance AI suggestions', () => {
     await expect(suggest).toBeDisabled()
     await expect(page.getByText(/sent to Google Gemini/)).toBeVisible()
 
-    await page.getByLabel('Description').fill(DESCRIPTION)
+    await page.getByLabel('Title').fill(TITLE)
     await suggest.click()
 
     const card = page.getByRole('region', { name: 'AI suggestion' })
     await expect(card).toContainText('Kitchen sink water leak')
+    await expect(card).toContainText('To check:')
+    await expect(card).toContainText('- the supply hoses and shut-off valves')
     await expect(card).toContainText('Plumbing')
     await expect(card).toContainText('High')
-    expect(requests).toEqual([{ description: DESCRIPTION, language: 'en' }])
+    expect(requests).toEqual([{ title: TITLE, description: '', language: 'en' }])
 
     await card.getByRole('button', { name: 'Apply suggestion' }).click()
     await expect(card).toBeHidden()
     await expect(page.getByLabel('Title')).toHaveValue('Kitchen sink water leak')
     await expect(page.getByLabel('Title')).toBeFocused()
+    await expect(page.getByLabel('Description')).toHaveValue(SUGGESTED_DESCRIPTION)
     await expect(page.getByLabel('Category')).toHaveValue('plumbing')
     await expect(page.getByLabel('Priority')).toHaveValue('high')
 
@@ -79,7 +90,7 @@ test.describe('maintenance AI suggestions', () => {
     await mockSuggestions(page, 429, { error: { code: 'rate_limited' } })
 
     await page.goto('/maintenance/new')
-    await page.getByLabel('Description').fill(DESCRIPTION)
+    await page.getByLabel('Description').fill('water leaking under kitchen sink')
     await page.getByRole('button', { name: 'Suggest with AI' }).click()
     await expect(page.getByText('Too many suggestions in a short time.', { exact: false })).toBeVisible()
 
@@ -96,7 +107,7 @@ test.describe('maintenance AI suggestions', () => {
 
     await page.goto('/maintenance/new')
     await featuresChecked
-    await page.getByLabel('Description').fill(DESCRIPTION)
+    await page.getByLabel('Description').fill('water leaking under kitchen sink')
     await expect(page.getByRole('button', { name: 'Suggest with AI' })).toHaveCount(0)
   })
 })

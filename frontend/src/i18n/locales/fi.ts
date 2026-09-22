@@ -485,16 +485,17 @@ export const fi: Messages = {
       button: 'Ehdota tekoälyllä',
       loading: 'Ehdotetaan…',
       hint:
-        'Tekoäly ehdottaa kuvauksen perusteella otsikkoa, luokkaa ja prioriteettia. Kuvaus lähetetään Google Geminille, joten älä kirjoita siihen henkilötietoja.',
+        'Tekoäly ehdottaa otsikon ja kuvauksen perusteella otsikkoa, kuvausta tarkistettavine asioineen, luokkaa ja prioriteettia. Ne lähetetään Google Geminille, joten älä kirjoita niihin henkilötietoja.',
       slowHint: 'Ensimmäinen ehdotus voi kestää minuutin, kun palvelin käynnistyy.',
       title: 'Tekoälyn ehdotus',
       review:
-        'Tarkista ehdotus ennen tallentamista. Ehdotuksen käyttäminen korvaa otsikon, luokan ja prioriteetin.',
+        'Tarkista ehdotus ennen tallentamista. Ehdotuksen käyttäminen korvaa otsikon, kuvauksen, luokan ja prioriteetin.',
       apply: 'Käytä ehdotusta',
       dismiss: 'Hylkää',
       errors: {
-        required: 'Kuvaa ongelma ensin.',
+        required: 'Kirjoita ensin otsikko tai kuvaa ongelma.',
         tooLong: 'Kuvaus on liian pitkä ehdotusta varten (enintään {max} merkkiä).',
+        titleTooLong: 'Otsikko on liian pitkä ehdotusta varten (enintään {max} merkkiä).',
         unavailable:
           'Tekoälyehdotukset eivät ole juuri nyt käytettävissä. Yritä myöhemmin uudelleen.',
         rateLimited:

@@ -3,6 +3,7 @@ import type { MaintenanceCategory, MaintenancePriority } from '../types/maintena
 import {
   isMaintenanceCategory,
   isMaintenancePriority,
+  MAINTENANCE_DESCRIPTION_MAX_LENGTH,
   MAINTENANCE_TITLE_MAX_LENGTH,
 } from './maintenance'
 
@@ -14,6 +15,8 @@ const TIMEOUT_MS = 60_000
 
 export interface MaintenanceSuggestion {
   title: string
+  /** The user's facts written clearly, followed by typical things to check. */
+  description: string
   category: MaintenanceCategory
   priority: MaintenancePriority
 }
@@ -22,6 +25,7 @@ export interface MaintenanceSuggestion {
 export type SuggestionErrorCode =
   | 'required'
   | 'tooLong'
+  | 'titleTooLong'
   | 'unavailable'
   | 'rateLimited'
   | 'invalidSuggestion'
@@ -56,9 +60,11 @@ export async function fetchSuggestionsAvailable(apiUrl: string, signal?: AbortSi
 
 /** Maps the API's error codes to the codes the UI translates. */
 function errorCodeFor(status: number, body: unknown): SuggestionErrorCode {
-  const error = (body as { error?: { code?: unknown; fields?: { description?: unknown } } } | null)
-    ?.error
+  const error = (
+    body as { error?: { code?: unknown; fields?: { title?: unknown; description?: unknown } } } | null
+  )?.error
   if (error?.code === 'validation_failed') {
+    if (error.fields?.title === 'tooLong') return 'titleTooLong'
     return error.fields?.description === 'tooLong' ? 'tooLong' : 'required'
   }
   if (error?.code === 'rate_limited' || status === 429) return 'rateLimited'
@@ -66,26 +72,34 @@ function errorCodeFor(status: number, body: unknown): SuggestionErrorCode {
   return 'unavailable'
 }
 
+/** What the user has written so far; one of them is enough. */
+export interface SuggestionInput {
+  title: string
+  description: string
+}
+
 /**
- * Asks the API to suggest a title, category and priority for a description.
- * The answer is checked again here; nothing is saved.
+ * Asks the API to suggest a title, a description, a category and a priority
+ * from the user's title and/or description. The answer is checked again here; nothing is saved.
  */
 export async function requestMaintenanceSuggestion(
   apiUrl: string,
-  description: string,
+  input: SuggestionInput,
   language: Language,
   signal?: AbortSignal,
 ): Promise<MaintenanceSuggestion> {
-  const text = description.trim()
-  if (!text) throw new SuggestionRequestError('required')
-  if (text.length > SUGGESTION_DESCRIPTION_MAX_LENGTH) throw new SuggestionRequestError('tooLong')
+  const title = input.title.trim()
+  const description = input.description.trim()
+  if (!title && !description) throw new SuggestionRequestError('required')
+  if (title.length > MAINTENANCE_TITLE_MAX_LENGTH) throw new SuggestionRequestError('titleTooLong')
+  if (description.length > SUGGESTION_DESCRIPTION_MAX_LENGTH) throw new SuggestionRequestError('tooLong')
 
   let response: Response
   try {
     response = await fetch(`${apiUrl}/api/maintenance/suggestions`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'accept-language': language },
-      body: JSON.stringify({ description: text, language }),
+      body: JSON.stringify({ title, description, language }),
       signal: withTimeout(signal),
     })
   } catch (error) {
@@ -97,11 +111,19 @@ export async function requestMaintenanceSuggestion(
   const body: unknown = await response.json().catch(() => null)
   if (!response.ok) throw new SuggestionRequestError(errorCodeFor(response.status, body))
 
-  const { title, category, priority } = (body ?? {}) as Record<string, unknown>
+  const {
+    title: suggestedTitle,
+    description: suggested,
+    category,
+    priority,
+  } = (body ?? {}) as Record<string, unknown>
   if (
-    typeof title !== 'string' ||
-    !title.trim() ||
-    title.length > MAINTENANCE_TITLE_MAX_LENGTH ||
+    typeof suggestedTitle !== 'string' ||
+    !suggestedTitle.trim() ||
+    suggestedTitle.length > MAINTENANCE_TITLE_MAX_LENGTH ||
+    typeof suggested !== 'string' ||
+    !suggested.trim() ||
+    suggested.length > MAINTENANCE_DESCRIPTION_MAX_LENGTH ||
     typeof category !== 'string' ||
     !isMaintenanceCategory(category) ||
     typeof priority !== 'string' ||
@@ -109,5 +131,5 @@ export async function requestMaintenanceSuggestion(
   ) {
     throw new SuggestionRequestError('invalidSuggestion')
   }
-  return { title: title.trim(), category, priority }
+  return { title: suggestedTitle.trim(), description: suggested.trim(), category, priority }
 }

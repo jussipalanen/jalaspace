@@ -10,6 +10,7 @@ import { serve } from '../test/serve.ts'
 
 const suggestion: MaintenanceSuggestion = {
   title: 'Kitchen sink leak',
+  description: 'Water leaks under the kitchen sink.',
   category: 'plumbing',
   priority: 'high',
 }
@@ -43,7 +44,25 @@ describe('maintenance suggestions API', () => {
 
     expect(response.status).toBe(200)
     expect(await response.json()).toEqual(suggestion)
-    expect(suggester.suggest).toHaveBeenCalledWith({ description: 'Water under the sink', language: 'fi' })
+    expect(suggester.suggest).toHaveBeenCalledWith({
+      title: '',
+      description: 'Water under the sink',
+      language: 'fi',
+    })
+  })
+
+  it('returns a suggestion for only a title', async () => {
+    const suggester = fakeSuggester()
+    const { post } = await start({ suggester })
+
+    const response = await post({ title: 'Kitchen sink leak' })
+
+    expect(response.status).toBe(200)
+    expect(suggester.suggest).toHaveBeenCalledWith({
+      title: 'Kitchen sink leak',
+      description: '',
+      language: 'en',
+    })
   })
 
   it('reports the feature in /api/features', async () => {

@@ -91,10 +91,16 @@ export function MaintenanceForm({
   }
 
   // Fills in the reviewed suggestion; the user can still change every field before saving.
-  const applySuggestion = ({ title, category, priority }: Suggestion) => {
-    setValues((current) => ({ ...current, title, category, priority }))
+  const applySuggestion = ({ title, description, category, priority }: Suggestion) => {
+    setValues((current) => ({ ...current, title, description, category, priority }))
     setErrors((current) => {
-      const { title: _title, category: _category, priority: _priority, ...rest } = current
+      const {
+        title: _title,
+        description: _description,
+        category: _category,
+        priority: _priority,
+        ...rest
+      } = current
       return rest
     })
     setSaveError(null)
@@ -253,7 +259,11 @@ export function MaintenanceForm({
         )}
       </FormField>
 
-      <MaintenanceSuggestion description={values.description} onApply={applySuggestion} />
+      <MaintenanceSuggestion
+        title={values.title}
+        description={values.description}
+        onApply={applySuggestion}
+      />
 
       <div className="entity-form__row">
         <FormField

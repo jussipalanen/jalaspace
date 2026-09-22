@@ -17,8 +17,9 @@ export interface SuggestionsRouterOptions {
 }
 
 /**
- * `POST /api/maintenance/suggestions`: suggests a title, category and priority
- * for a maintenance description. Nothing is stored; the user decides what to use.
+ * `POST /api/maintenance/suggestions`: suggests a title, a description, a category
+ * and a priority from the user's title and/or description. Nothing is stored; the
+ * user decides what to use.
  */
 export function suggestionsRouter({
   suggester,
@@ -44,7 +45,7 @@ export function suggestionsRouter({
       response.json(await suggester.suggest(parsed.values))
     } catch (error) {
       if (!(error instanceof SuggestionError)) throw error
-      // Logged for debugging; the description itself is not logged.
+      // Logged for debugging; the user's title and description are not logged.
       logError(`Maintenance suggestion failed: ${error.message}`)
       throw new ApiError(STATUS_BY_CODE[error.code], error.code)
     }

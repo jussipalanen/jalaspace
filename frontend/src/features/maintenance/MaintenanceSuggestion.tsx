@@ -8,10 +8,13 @@ import {
   type MaintenanceSuggestion as Suggestion,
   type SuggestionErrorCode,
 } from '../../services/maintenanceSuggestions'
+import { MAINTENANCE_TITLE_MAX_LENGTH } from '../../services/maintenance'
 import { useSuggestionsAvailable } from './useSuggestionsAvailable'
 import './MaintenanceSuggestion.css'
 
 interface MaintenanceSuggestionProps {
+  /** The form's title and description; either one is enough for a suggestion. */
+  title: string
   description: string
   /** Fills the form with the suggestion; the user still reviews and saves. */
   onApply: (suggestion: Suggestion) => void
@@ -24,11 +27,11 @@ type State =
   | { kind: 'error'; code: SuggestionErrorCode }
 
 /**
- * "Suggest with AI" for the maintenance form: the description is sent to the
- * API, which asks Gemini for a title, category and priority. The suggestion is
- * only shown; the user decides whether to apply it.
+ * "Suggest with AI" for the maintenance form: the title and description are sent
+ * to the API, which asks Gemini for a title, a description with things to check,
+ * a category and a priority. The suggestion is only shown; the user decides whether to apply it.
  */
-export function MaintenanceSuggestion({ description, onApply }: MaintenanceSuggestionProps) {
+export function MaintenanceSuggestion({ title, description, onApply }: MaintenanceSuggestionProps) {
   const { t, language } = useTranslation()
   const { apiUrl, available } = useSuggestionsAvailable()
   const [state, setState] = useState<State>({ kind: 'idle' })
@@ -47,7 +50,12 @@ export function MaintenanceSuggestion({ description, onApply }: MaintenanceSugge
     controller.current = request
     setState({ kind: 'loading' })
     try {
-      const suggestion = await requestMaintenanceSuggestion(apiUrl, description, language, request.signal)
+      const suggestion = await requestMaintenanceSuggestion(
+        apiUrl,
+        { title, description },
+        language,
+        request.signal,
+      )
       setState({ kind: 'suggested', suggestion })
     } catch (error) {
       if (request.signal.aborted) return
@@ -67,7 +75,7 @@ export function MaintenanceSuggestion({ description, onApply }: MaintenanceSugge
           type="button"
           className="button button--secondary"
           onClick={suggest}
-          disabled={loading || !description.trim()}
+          disabled={loading || (!title.trim() && !description.trim())}
           aria-describedby={hintId}
         >
           <SparklesIcon width={16} height={16} />
@@ -82,7 +90,10 @@ export function MaintenanceSuggestion({ description, onApply }: MaintenanceSugge
         {state.kind === 'error' && (
           <p className="alert alert--error maintenance-suggestion__error">
             {t(`maintenance.suggestion.errors.${state.code}`, {
-              max: SUGGESTION_DESCRIPTION_MAX_LENGTH,
+              max:
+                state.code === 'titleTooLong'
+                  ? MAINTENANCE_TITLE_MAX_LENGTH
+                  : SUGGESTION_DESCRIPTION_MAX_LENGTH,
             })}
           </p>
         )}
@@ -104,6 +115,10 @@ export function MaintenanceSuggestion({ description, onApply }: MaintenanceSugge
               <div>
                 <dt>{t('maintenance.form.fields.priority')}</dt>
                 <dd>{t(`maintenance.priority.${state.suggestion.priority}`)}</dd>
+              </div>
+              <div className="maintenance-suggestion__description">
+                <dt>{t('maintenance.form.fields.description')}</dt>
+                <dd>{state.suggestion.description}</dd>
               </div>
             </dl>
             <p className="maintenance-suggestion__review">{t('maintenance.suggestion.review')}</p>

@@ -54,6 +54,16 @@
   overflow-wrap: anywhere;
 }
 
+/* The description gets a full-width row below the title, category and priority. */
+.maintenance-suggestion__description {
+  grid-column: 1 / -1;
+}
+
+.maintenance-suggestion__description dd {
+  font-weight: 400;
+  white-space: pre-line;
+}
+
 .maintenance-suggestion__review {
   margin: var(--space-3) 0;
   font-size: var(--text-sm);

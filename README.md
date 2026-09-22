@@ -124,11 +124,14 @@ Changing the property clears the space filter.
   Escape work). Past dates are allowed, and
   open tasks past their due date are marked overdue.
 - Completing a task records the completion time. Editing a completed task keeps it; reopening clears it.
-- **Suggest with AI** (below the description) sends the description to the API, which asks Google Gemini
-  for a title, category and priority. The suggestion is shown as a card: **Apply suggestion** fills in
-  the fields, which you can still change before saving; nothing is saved automatically. The button is
+- **Suggest with AI** (below the description) sends the title and description to the API, which asks
+  Google Gemini for a title, a description, a category and a priority. A title alone is enough. The
+  description states the problem with only the facts you wrote, followed by a **To check** list of typical
+  things for a maintenance worker to check, so nothing made up is recorded as fact. The suggestion is shown as a card:
+  **Apply suggestion** fills in the fields, which you can still change before saving; nothing is saved
+  automatically. The button is
   shown only when `VITE_API_URL` is set and the API has a Gemini key. The form tells users not to include
-  personal information, because the description leaves the browser. The first suggestion can take up
+  personal information, because the title and description leave the browser. The first suggestion can take up
   to a minute while the free Render service wakes up.
 - Task statuses do not change space statuses. Deleting a task requires confirmation.
 - Saves recheck the property and space against current repository data, and the form keeps your input

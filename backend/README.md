@@ -134,25 +134,26 @@ A property that still has spaces or maintenance tasks cannot be deleted, so no d
 
 ### Maintenance suggestions
 
-`POST /api/maintenance/suggestions` suggests a title, category and priority for a problem description. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
+`POST /api/maintenance/suggestions` suggests a title, a description, a category and a priority from the user's title, description or both. The description first states the problem with only the facts from the user's text (no added causes, places, times or other details, and no names or contact details), then a `To check:` list (`Tarkistettavaa:` in Finnish) of typical things for a maintenance worker to check, written as checks, not findings. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
 
 ```bash
 curl -X POST http://localhost:3000/api/maintenance/suggestions \
   -H 'content-type: application/json' \
-  -d '{"description":"Water is leaking under the kitchen sink. It started this morning.","language":"en"}'
-# {"title":"Kitchen sink water leak","category":"plumbing","priority":"high"}
+  -d '{"title":"kitchen sink leak","language":"en"}'
+# {"title":"Kitchen sink leak","description":"Water is leaking at the kitchen sink.\n\nTo check:\n- the drain trap and connections under the sink\n- the supply hoses and shut-off valves","category":"plumbing","priority":"high"}
 ```
 
 | Field         | Rules                                                     |
 | ------------- | --------------------------------------------------------- |
-| `description` | Required, at most 2000 characters                         |
-| `language`    | `en` (default) or `fi`: the language of the suggested title |
+| `title`       | At most 120 characters                                    |
+| `description` | At most 2000 characters; a title or a description is required |
+| `language`    | `en` (default) or `fi`: the language of the suggested title and description |
 
 - The suggestion comes from the [Gemini API](https://ai.google.dev/gemini-api/docs) free tier, called with plain `fetch` and asked for JSON that follows a schema. With billing off, the free tier cannot cost money; when its quota runs out, requests answer `429 rate_limited`.
-- The answer is never trusted: it is checked against the app's categories (`plumbing`, `electrical`, `hvac`, `structural`, `cleaning`, `general`), priorities (`low`, `medium`, `high`) and title length, and an unusable answer becomes `502 invalid_suggestion`.
-- The instructions tell the model to treat the description as data, not instructions. Gemini gives up after 20 seconds.
+- The answer is never trusted: it is checked against the app's categories (`plumbing`, `electrical`, `hvac`, `structural`, `cleaning`, `general`), priorities (`low`, `medium`, `high`), title length (120) and description length (5000), and an unusable answer becomes `502 invalid_suggestion`.
+- The instructions tell the model to treat the title and description as data, not instructions. Gemini gives up after 20 seconds.
 - Each client can ask for 10 suggestions per 10 minutes (`429 rate_limited` with `Retry-After`). The limit is kept in memory per client IP; set `TRUST_PROXY` behind a proxy, or every visitor shares the proxy's limit.
-- Failures are logged without the description.
+- Failures are logged without the title and description.
 - The provider is behind the `MaintenanceSuggester` interface (`src/ai/suggestions.ts`), so another provider can be added without changing the route. Tests use fakes and never call Gemini.
 
 Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Render, set it as a secret environment variable.

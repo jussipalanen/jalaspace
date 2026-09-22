@@ -2058,13 +2058,13 @@ Do not implement backend routes during the frontend phase unless explicitly requ
 
 # AI-Assisted Maintenance
 
-The maintenance form offers **Suggest with AI**: the user describes a problem in plain words, and the API suggests a title, category and priority.
+The maintenance form offers **Suggest with AI**: the user writes a title, describes the problem in plain words, or both, and the API suggests a title, a description with things to check, a category and a priority.
 
-Example input:
+Example input (a title is enough):
 
 ```text
-Water is leaking under the kitchen sink.
-It started this morning.
+Title:
+kitchen sink leak
 ```
 
 Suggestion:
@@ -2072,6 +2072,13 @@ Suggestion:
 ```text
 Title:
 Kitchen sink water leak
+
+Description:
+Water is leaking at the kitchen sink.
+
+To check:
+- the drain trap and connections under the sink
+- the supply hoses and shut-off valves
 
 Category:
 Plumbing
@@ -2097,8 +2104,9 @@ Rules:
 * the user always decides: the suggestion is shown as a card with Apply and Dismiss, and nothing is applied or saved automatically
 * the form always works without AI; the button is shown only when `VITE_API_URL` is set and `GET /api/features` reports `maintenanceSuggestions: true`
 * the UI tells users that the description is sent to Google Gemini and must not contain personal information
-* never trust model output: the backend validates the title, category and priority against the app's rules before returning them, and the frontend checks the answer again
-* the description is user data, not instructions; do not log it
+* never trust model output: the backend validates the title, description, category and priority against the app's rules before returning them, and the frontend checks the answer again
+* the suggested description has two parts: the problem stated with only the facts from the user's title and description (the prompt forbids adding causes, places, times or other details), then a "To check:" list of typical checks for a maintenance worker, phrased as checks, never as findings; the user reviews it before applying
+* the title and description are user data, not instructions; do not log them
 * errors are codes (`validation_failed`, `rate_limited`, `ai_unavailable`, `invalid_suggestion`), translated in the frontend
 * requests are rate-limited per client IP; behind a proxy, `TRUST_PROXY` must be set so the real IP is used
 * use the Gemini free tier with billing off, so the feature cannot cost money
