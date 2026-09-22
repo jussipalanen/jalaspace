@@ -38,6 +38,16 @@ describe('demo data', () => {
     expect(await properties().getAll()).toHaveLength(4)
   })
 
+  it('reset restores the default profile', async () => {
+    const store = new LocalStorageDemoDataStore()
+    await initializeDemoData(store, now)
+    window.localStorage.setItem(STORAGE_KEYS.profile, '{"firstName":"Jussi"}')
+
+    await resetDemoData(store, now)
+
+    expect(window.localStorage.getItem(STORAGE_KEYS.profile)).toBeNull()
+  })
+
   it('reset keeps the language preference', async () => {
     const store = new LocalStorageDemoDataStore()
     await initializeDemoData(store, now)
