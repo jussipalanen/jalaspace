@@ -3,8 +3,8 @@ import type { DemoDataStore } from '../DemoDataStore'
 import { STORAGE_KEY_PREFIX, STORAGE_KEYS } from './keys'
 import { readJson, removeItem, writeJson } from './storage'
 
-/** Keys that survive a demo reset. */
-const PRESERVED_KEYS: ReadonlySet<string> = new Set([STORAGE_KEYS.session])
+/** Keys that survive a demo reset: the session and user preferences. */
+const PRESERVED_KEYS: ReadonlySet<string> = new Set([STORAGE_KEYS.session, STORAGE_KEYS.language])
 
 export class LocalStorageDemoDataStore implements DemoDataStore {
   async getSeedVersion(): Promise<number | null> {

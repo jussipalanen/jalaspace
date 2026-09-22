@@ -9,4 +9,5 @@ export const STORAGE_KEYS = {
   leases: 'jalaspace_leases',
   maintenance: 'jalaspace_maintenance',
   seedVersion: 'jalaspace_seed_version',
+  language: 'jalaspace_language',
 } as const

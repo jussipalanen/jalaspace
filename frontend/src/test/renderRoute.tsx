@@ -1,6 +1,8 @@
 import { render } from '@testing-library/react'
 import { createMemoryRouter, RouterProvider } from 'react-router'
 import { AuthProvider } from '../features/auth/AuthProvider'
+import { I18nProvider } from '../i18n/I18nProvider'
+import type { Language } from '../i18n/languages'
 import type { DataLayer } from '../repositories'
 import { DataLayerProvider } from '../repositories/DataLayerProvider'
 import { STORAGE_KEYS } from '../repositories/localStorage/keys'
@@ -17,21 +19,28 @@ interface RenderRouteOptions {
   authenticated?: boolean
   /** Replace the configured repositories, e.g. with failing fakes. */
   dataLayer?: DataLayer
+  /** UI language (default: English, as detected from jsdom's `en-US`). */
+  language?: Language
 }
 
 export function renderRoute(
   path: string,
-  { authenticated = true, dataLayer }: RenderRouteOptions = {},
+  { authenticated = true, dataLayer, language }: RenderRouteOptions = {},
 ) {
+  if (language) {
+    window.localStorage.setItem(STORAGE_KEYS.language, JSON.stringify(language))
+  }
   if (authenticated) {
     window.localStorage.setItem(STORAGE_KEYS.session, JSON.stringify(testSession))
   }
 
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   const app = (
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
+    <I18nProvider>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </I18nProvider>
   )
   return {
     router,

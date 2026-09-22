@@ -38,6 +38,16 @@ describe('demo data', () => {
     expect(await properties().getAll()).toHaveLength(4)
   })
 
+  it('reset keeps the language preference', async () => {
+    const store = new LocalStorageDemoDataStore()
+    await initializeDemoData(store, now)
+    window.localStorage.setItem(STORAGE_KEYS.language, '"fi"')
+
+    await resetDemoData(store, now)
+
+    expect(window.localStorage.getItem(STORAGE_KEYS.language)).toBe('"fi"')
+  })
+
   it('reset restores the seed data and keeps the session', async () => {
     const store = new LocalStorageDemoDataStore()
     await initializeDemoData(store, now)
