@@ -7,7 +7,7 @@ describe('application routes', () => {
   it.each([
     ['/', 'Dashboard'],
     ['/properties', 'Properties'],
-    ['/properties/abc-123', 'Property details'],
+    ['/properties/abc-123', 'Property not found'],
     ['/units', 'Spaces'],
     ['/maintenance', 'Maintenance'],
     ['/maintenance/abc-123', 'Maintenance task details'],

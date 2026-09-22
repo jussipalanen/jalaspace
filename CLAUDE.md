@@ -869,6 +869,19 @@ Joensuu Center
 3 open maintenance tasks
 ```
 
+Rules:
+
+* required fields: name, address, postal code (5 digits) and city; name at most 100 characters
+* occupancy and open maintenance use the Dashboard metric definitions (`services/metrics.ts`)
+* search matches name, address, postal code and city, and is kept in the URL (`?q=`)
+* a property that still has spaces or maintenance tasks cannot be deleted; the confirmation explains what refers to it
+
+## Deleting related data
+
+Never leave references to deleted entities. When other data refers to an entity, block the delete and explain what must be removed or moved first, unless a feature explicitly specifies a cascading delete.
+
+Re-check the rule with current data when deleting, not only when the confirmation opens.
+
 ---
 
 # Spaces
@@ -1314,13 +1327,22 @@ where appropriate.
 
 # ID Generation
 
+Locally generated entity IDs are random UUID v4 strings, e.g. `2f46a796-8488-470f-ac25-35fac8ea31da`.
+
 Use:
 
 ```ts
-crypto.randomUUID()
+import { generateId } from '../utils/id'
+
+generateId()
 ```
 
-for locally generated entity IDs.
+`generateId()` calls `crypto.randomUUID()` and falls back to `crypto.getRandomValues()`.
+Browsers only provide `crypto.randomUUID()` in secure contexts (HTTPS or localhost), so calling it directly breaks creating data when the dev server is opened over plain HTTP on a network address, e.g. from a phone.
+
+Do not call `crypto.randomUUID()` directly in application code.
+
+IDs are opaque: never derive them from names or other editable fields, and never show meaning in them. Seed data uses stable readable IDs (e.g. `property-joensuu-center`); the future backend must accept both, or migrate seed IDs to fixed UUIDs if it uses a UUID column type.
 
 ---
 

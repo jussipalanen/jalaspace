@@ -7,7 +7,7 @@
   text-decoration: none;
 }
 
-.stat-card:hover {
+.stat-card--link:hover {
   border-color: var(--color-border-strong);
 }
 

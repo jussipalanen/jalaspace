@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Outlet } from 'react-router'
+import { FlashMessage } from '../components/FlashMessage/FlashMessage'
 import { Header } from '../components/Header/Header'
 import { Sidebar } from '../components/Sidebar/Sidebar'
 import { useAuth } from '../features/auth/useAuth'
@@ -53,6 +54,7 @@ export function AppLayout() {
           onSignOut={() => void logout()}
         />
         <main id="main-content" className="app-layout__content" tabIndex={-1}>
+          <FlashMessage />
           <Outlet />
         </main>
       </div>

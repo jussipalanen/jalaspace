@@ -1,0 +1,23 @@
+.flash-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  color: var(--color-success);
+  background: var(--color-success-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-success) 25%, transparent);
+  border-radius: var(--radius-md);
+}
+
+.flash-message__text {
+  margin: 0;
+  font-weight: 500;
+}
+
+.flash-message__dismiss {
+  width: 28px;
+  height: 28px;
+  color: inherit;
+}

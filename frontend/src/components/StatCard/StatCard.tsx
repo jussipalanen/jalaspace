@@ -5,15 +5,23 @@ interface StatCardProps {
   label: string
   value: string
   detail?: string
-  to: string
+  /** Makes the whole card a link. */
+  to?: string
 }
 
 export function StatCard({ label, value, detail, to }: StatCardProps) {
-  return (
-    <Link to={to} className="card stat-card">
+  const content = (
+    <>
       <span className="stat-card__label">{label}</span>
       <span className="stat-card__value">{value}</span>
       {detail && <span className="stat-card__detail">{detail}</span>}
+    </>
+  )
+  return to ? (
+    <Link to={to} className="card stat-card stat-card--link">
+      {content}
     </Link>
+  ) : (
+    <div className="card stat-card">{content}</div>
   )
 }

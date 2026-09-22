@@ -1,0 +1,17 @@
+.property-details {
+  padding: var(--space-5);
+}
+
+.property-details .section__title {
+  margin-bottom: var(--space-4);
+}
+
+.property-maintenance {
+  margin: 0;
+  padding: 0 var(--space-5);
+  list-style: none;
+}
+
+.property-maintenance .dashboard-list__item:first-child {
+  border-top: 0;
+}
