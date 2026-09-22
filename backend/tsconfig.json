@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2024",
+    "lib": ["ES2024"],
+    "types": ["node"],
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    // Node runs the .ts files directly by stripping the types, so imports use
+    // .ts extensions, only erasable syntax is allowed and tsc only typechecks.
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true
+  },
+  "include": ["src"]
+}

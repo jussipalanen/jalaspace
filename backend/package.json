@@ -1,0 +1,28 @@
+{
+  "name": "jalaspace-backend",
+  "private": true,
+  "version": "0.6.0",
+  "description": "JalaSpace REST API",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "node --watch src/server.ts",
+    "start": "node src/server.ts",
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.13.6",
+    "oxlint": "^1.85.0",
+    "typescript": "~7.0.2",
+    "vitest": "^5.0.1"
+  }
+}

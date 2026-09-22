@@ -11,3 +11,16 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
+
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - '3000:3000'
+    volumes:
+      # Mount the source so `node --watch` restarts the API on edits.
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      PORT: 3000
