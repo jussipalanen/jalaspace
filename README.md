@@ -8,12 +8,15 @@ A Node.js backend is planned for a later milestone.
 ## Repository structure
 
 ```text
-frontend/   React + TypeScript + Vite single-page application
-.github/    CI workflows and Dependabot configuration
-CLAUDE.md   Development workflow and conventions (humans and AI agents)
+frontend/            React + TypeScript + Vite single-page application
+.github/             CI workflows and Dependabot configuration
+docker-compose.yml   Local development with Docker
+CLAUDE.md            Development workflow and conventions (humans and AI agents)
 ```
 
 ## Getting started
+
+### With Node.js
 
 Requirements: Node.js 24 LTS (see `frontend/.nvmrc`) and npm.
 
@@ -24,6 +27,30 @@ npm run dev
 ```
 
 The development server runs at http://localhost:5173.
+
+### With Docker
+
+Requirements: Docker with Docker Compose.
+
+```bash
+docker compose up
+```
+
+The app runs at http://localhost:5173.
+
+- The `frontend/` source is mounted into the container, so edits reload live.
+- `node_modules` stays inside the container and isn't written to your machine.
+- The container runs as the unprivileged `node` user.
+
+| Task                                       | Command                         |
+| ------------------------------------------ | ------------------------------- |
+| Start in the background                    | `docker compose up -d`          |
+| Follow logs                                | `docker compose logs -f`        |
+| Stop                                       | `docker compose down`           |
+| Rebuild after `package-lock.json` changes  | `docker compose up --build -V`  |
+| Run a command in the container, e.g. tests | `docker compose exec frontend npm run test` |
+
+`-V` recreates the container's `node_modules` volume, so newly installed dependencies are picked up.
 
 ## Demo sign-in
 
@@ -79,7 +106,8 @@ Each check is a separate job:
 | `typecheck`      | `npm run typecheck`            |
 | `test`           | `npm run test`                 |
 | `build`          | `npm run build`                |
-| `security-audit` | `npm audit --audit-level=high` |
+| `security-audit` | `npm audit --audit-level=high`            |
+| `docker-build`   | `docker build` of `frontend/Dockerfile`  |
 
 The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc), so CI and local development use the same version.
 

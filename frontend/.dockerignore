@@ -1,0 +1,15 @@
+# Keep the build context small and free of generated or secret files.
+node_modules
+dist
+coverage
+*.log
+*.local
+.env
+.env.*
+!.env.example
+.vercel
+.vscode
+.idea
+.DS_Store
+Dockerfile
+.dockerignore
