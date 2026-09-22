@@ -12,7 +12,8 @@ frontend/            React + TypeScript + Vite single-page application
 .github/             CI, release workflows and Dependabot configuration
 CHANGELOG.md         Release notes for every version
 docker-compose.yml   Local development with Docker
-CLAUDE.md            Development workflow and conventions (humans and AI agents)
+AGENTS.md            Development workflow and conventions for humans and AI agents
+CLAUDE.md            Imports AGENTS.md for Claude Code
 ```
 
 ## Getting started
@@ -75,7 +76,7 @@ JalaSpace is available in **English** and **Finnish**. Switch the language from 
 - Numbers, percentages and currency follow the language (`85%` / `85 %`); dates are `d.m.yyyy` in both.
 - User content, such as property names and maintenance titles, isn't translated. The demo data is in English.
 
-Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). English (`en.ts`) defines the keys; the Finnish dictionary is type-checked against it, so a missing translation fails the build. See the Internationalization section in [CLAUDE.md](CLAUDE.md).
+Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). English (`en.ts`) defines the keys; the Finnish dictionary is type-checked against it, so a missing translation fails the build. See the Internationalization section in [AGENTS.md](AGENTS.md).
 
 ## Frontend scripts
 
@@ -195,9 +196,9 @@ Releases are prepared automatically by [release-please](https://github.com/googl
 
 Pull requests are **squash-merged**, so each PR title (e.g. `feat(properties): …`) becomes one changelog line.
 
-After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [CLAUDE.md](CLAUDE.md).
+After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [AGENTS.md](AGENTS.md).
 
 ## Development workflow
 
 All changes go through a feature branch and a pull request that a human reviews and approves.
-See [CLAUDE.md](CLAUDE.md) for details.
+See [AGENTS.md](AGENTS.md) for details.
