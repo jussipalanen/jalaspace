@@ -91,7 +91,7 @@ describe('properties', () => {
     await user.click(screen.getByRole('button', { name: 'Save property' }))
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Oulu Tech Campus' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('Property Oulu Tech Campus was added.')
+    expect(screen.getByText('Property Oulu Tech Campus was added.')).toBeInTheDocument()
     expect(router.state.location.pathname).toMatch(/^\/properties\/[0-9a-f-]{36}$/)
     expect(screen.getByText('Industrial')).toBeInTheDocument()
     expect(screen.getByText('This property has no spaces yet.')).toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('properties', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Kuopio Harbour Offices' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('Changes to Kuopio Harbour Offices were saved.')
+    expect(screen.getByText('Changes to Kuopio Harbour Offices were saved.')).toBeInTheDocument()
   })
 
   it('explains why a property with spaces cannot be deleted', async () => {
@@ -143,8 +143,9 @@ describe('properties', () => {
     const dialog = screen.getByRole('dialog', { name: 'Delete Temporary Site?' })
     await user.click(within(dialog).getByRole('button', { name: 'Delete property' }))
 
-    expect(await screen.findByRole('heading', { level: 1, name: 'Properties' })).toBeInTheDocument()
-    expect(screen.getByRole('status')).toHaveTextContent('Property Temporary Site was deleted.')
+    // The list's loading indicator is also a status region, so match the message text.
+    expect(await screen.findByText('Property Temporary Site was deleted.')).toBeInTheDocument()
+    await screen.findByRole('table')
     expect(rows()).toHaveLength(4)
   })
 

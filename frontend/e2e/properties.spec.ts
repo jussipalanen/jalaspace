@@ -17,7 +17,7 @@ async function createProperty(page: Page, name: string) {
 test.describe('properties', () => {
   test('a created property appears in the list and survives a reload', async ({ page }) => {
     await createProperty(page, 'Oulu Tech Campus')
-    await expect(page.getByRole('status')).toHaveText('Property Oulu Tech Campus was added.')
+    await expect(page.getByText('Property Oulu Tech Campus was added.')).toBeVisible()
 
     await page.getByRole('link', { name: 'Properties' }).first().click()
     await expect(page.getByRole('link', { name: 'Oulu Tech Campus' })).toBeVisible()
@@ -26,7 +26,7 @@ test.describe('properties', () => {
     await page.reload()
     await expect(page.getByRole('link', { name: 'Oulu Tech Campus' })).toBeVisible()
     // The one-time success message is not shown again.
-    await expect(page.getByRole('status')).toHaveCount(0)
+    await expect(page.getByText('Property Oulu Tech Campus was added.')).toHaveCount(0)
   })
 
   test('an invalid property cannot be saved', async ({ page }) => {
@@ -60,7 +60,7 @@ test.describe('properties', () => {
     await page.getByRole('button', { name: 'Save property' }).click()
 
     await expectPageHeading(page, 'Tampere Hervanta Logistics Park')
-    await expect(page.getByRole('status')).toContainText('were saved')
+    await expect(page.getByText('Changes to Tampere Hervanta Logistics Park were saved.')).toBeVisible()
   })
 
   test('explains why a property with spaces cannot be deleted', async ({ page }) => {
@@ -84,7 +84,7 @@ test.describe('properties', () => {
     await dialog.getByRole('button', { name: 'Delete property' }).click()
 
     await expectPageHeading(page, 'Properties')
-    await expect(page.getByRole('status')).toHaveText('Property Temporary Site was deleted.')
+    await expect(page.getByText('Property Temporary Site was deleted.')).toBeVisible()
     await expect(page.getByRole('link', { name: 'Temporary Site' })).toHaveCount(0)
   })
 })
