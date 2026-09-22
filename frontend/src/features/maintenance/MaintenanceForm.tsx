@@ -21,8 +21,10 @@ import {
 import { MaintenanceValidationError } from '../../services/maintenanceService'
 import type { Property } from '../../types/property'
 import type { Space } from '../../types/space'
+import type { MaintenanceSuggestion as Suggestion } from '../../services/maintenanceSuggestions'
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
+import { MaintenanceSuggestion } from './MaintenanceSuggestion'
 
 type Field = keyof MaintenanceFormValues
 
@@ -86,6 +88,23 @@ export function MaintenanceForm({
       return next
     })
     setSaveError(null)
+  }
+
+  // Fills in the reviewed suggestion; the user can still change every field before saving.
+  const applySuggestion = ({ title, description, category, priority }: Suggestion) => {
+    setValues((current) => ({ ...current, title, description, category, priority }))
+    setErrors((current) => {
+      const {
+        title: _title,
+        description: _description,
+        category: _category,
+        priority: _priority,
+        ...rest
+      } = current
+      return rest
+    })
+    setSaveError(null)
+    document.getElementById(fieldId('title'))?.focus()
   }
 
   const messages: Partial<Record<Field, string>> = {
@@ -239,6 +258,12 @@ export function MaintenanceForm({
           />
         )}
       </FormField>
+
+      <MaintenanceSuggestion
+        title={values.title}
+        description={values.description}
+        onApply={applySuggestion}
+      />
 
       <div className="entity-form__row">
         <FormField

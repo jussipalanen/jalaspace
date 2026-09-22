@@ -31,7 +31,7 @@ npm run dev
 
 The development server runs at http://localhost:5173.
 
-The API is a separate project in `backend/`. It isn't needed to run the demo yet, because the frontend stores its data in the browser:
+The API is a separate project in `backend/`. The demo runs without it, because the frontend stores its data in the browser; only AI maintenance suggestions need it:
 
 ```bash
 cd backend
@@ -40,6 +40,8 @@ npm run dev
 ```
 
 The API runs at http://localhost:3000 (try http://localhost:3000/api/health). See [backend/README.md](backend/README.md).
+
+To try AI maintenance suggestions locally, copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY`, and set `VITE_API_URL=http://localhost:3000` in `frontend/.env.local` (Docker Compose already sets the frontend and CORS variables). Then restart both.
 
 ### With Docker
 
@@ -122,6 +124,15 @@ Changing the property clears the space filter.
   Escape work). Past dates are allowed, and
   open tasks past their due date are marked overdue.
 - Completing a task records the completion time. Editing a completed task keeps it; reopening clears it.
+- **Suggest with AI** (below the description) sends the title and description to the API, which asks
+  Google Gemini for a title, a description, a category and a priority. A title alone is enough. The
+  description states the problem with only the facts you wrote, followed by a **To check** list of typical
+  things for a maintenance worker to check, so nothing made up is recorded as fact. The suggestion is shown as a card:
+  **Apply suggestion** fills in the fields, which you can still change before saving; nothing is saved
+  automatically. The button is
+  shown only when `VITE_API_URL` is set and the API has a Gemini key. The form tells users not to include
+  personal information, because the title and description leave the browser. The first suggestion can take up
+  to a minute while the free Render service wakes up.
 - Task statuses do not change space statuses. Deleting a task requires confirmation.
 - Saves recheck the property and space against current repository data, and the form keeps your input
   if saving fails. Dashboard and property maintenance counts follow the changes.
@@ -268,6 +279,7 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 | Output Directory  | `dist`          |
 | Node.js Version   | 24.x            |
 | Production Branch | `main`          |
+| Environment       | `VITE_API_URL=https://jalaspace.onrender.com` (Production and Preview) |
 
 - Every pull request gets a preview deployment for review.
 - Merging to `main` deploys to production, so only reviewed code reaches production.
@@ -285,7 +297,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 | Root Directory    | `backend/`                                 |
 | Build Command     | `npm ci`                                   |
 | Start Command     | `npm start` (runs the TypeScript sources directly, no build step) |
-| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`; Render sets `PORT` |
+| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*.vercel.app`; `GEMINI_API_KEY` as a secret; Render sets `PORT` |
 | Health Check Path | `/api/health`                              |
 | Region            | Frankfurt (EU Central)                     |
 | Branch            | `main`, auto-deploy on commit              |
@@ -295,7 +307,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
 - The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). A database comes later.
-- The frontend does not call the API yet; it still stores its data in the browser.
+- The frontend still stores its data in the browser. It calls the API only for AI maintenance suggestions (`/api/features` and `/api/maintenance/suggestions`).
 
 ## Versions and releases
 

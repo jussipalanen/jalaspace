@@ -11,6 +11,8 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
+      # The API for features that need it; AI suggestions also need GEMINI_API_KEY in backend/.env.
+      VITE_API_URL: http://localhost:3000
 
   backend:
     build:
@@ -26,3 +28,5 @@ services:
       PORT: 3000
       # Start with the demo data, so it is back after every restart.
       SEED_DEMO_DATA: 'true'
+      # Let the frontend container's dev server call the API from the browser.
+      CORS_ORIGINS: http://localhost:5173

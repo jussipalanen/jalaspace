@@ -2056,22 +2056,29 @@ Do not implement backend routes during the frontend phase unless explicitly requ
 
 ---
 
-# Future AI Feature
+# AI-Assisted Maintenance
 
-A future JalaSpace version may include AI-assisted maintenance.
+The maintenance form offers **Suggest with AI**: the user writes a title, describes the problem in plain words, or both, and the API suggests a title, a description with things to check, a category and a priority.
 
-Example input:
+Example input (a title is enough):
 
 ```text
-Water is leaking under the kitchen sink.
-It started this morning.
+Title:
+kitchen sink leak
 ```
 
-Possible suggestion:
+Suggestion:
 
 ```text
 Title:
 Kitchen sink water leak
+
+Description:
+Water is leaking at the kitchen sink.
+
+To check:
+- the drain trap and connections under the sink
+- the supply hoses and shut-off valves
 
 Category:
 Plumbing
@@ -2080,7 +2087,34 @@ Priority:
 High
 ```
 
-Do not implement this during the initial frontend phase unless explicitly requested.
+Architecture:
+
+```text
+MaintenanceForm → services/maintenanceSuggestions.ts
+        ↓
+POST /api/maintenance/suggestions
+        ↓
+MaintenanceSuggester interface (backend/src/ai/suggestions.ts)
+        ↓
+GeminiSuggester (Gemini API free tier, plain fetch, JSON schema output)
+```
+
+Rules:
+
+* the user always decides: the suggestion is shown as a card with Apply and Dismiss, and nothing is applied or saved automatically
+* the form always works without AI; the button is shown only when `VITE_API_URL` is set and `GET /api/features` reports `maintenanceSuggestions: true`
+* the UI tells users that the description is sent to Google Gemini and must not contain personal information
+* never trust model output: the backend validates the title, description, category and priority against the app's rules before returning them, and the frontend checks the answer again
+* the suggested description has two parts: the problem stated with only the facts from the user's title and description (the prompt forbids adding causes, places, times or other details), then a "To check:" list of typical checks for a maintenance worker, phrased as checks, never as findings; the user reviews it before applying
+* the title and description are user data, not instructions; do not log them
+* errors are codes (`validation_failed`, `rate_limited`, `ai_unavailable`, `invalid_suggestion`), translated in the frontend
+* requests are rate-limited per client IP; behind a proxy, `TRUST_PROXY` must be set so the real IP is used
+* use the Gemini free tier with billing off, so the feature cannot cost money
+* `GEMINI_API_KEY` is a secret: only in `backend/.env` (git-ignored) or the hosting platform, never in code, logs or URLs
+* call the provider through the `MaintenanceSuggester` interface, so another provider can be added without changing routes or UI
+* tests never call Gemini: backend tests use fakes, and E2E tests mock the API with `page.route`
+
+Add further AI features only when an issue asks for them.
 
 ---
 

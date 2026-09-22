@@ -483,6 +483,29 @@ export const en = {
     },
   },
   maintenance: {
+    suggestion: {
+      button: 'Suggest with AI',
+      loading: 'Suggesting…',
+      hint:
+        'AI suggests a title, a description with things to check, a category and a priority from the title and description. They are sent to Google Gemini, so do not include personal information.',
+      slowHint: 'The first suggestion can take up to a minute while the server starts.',
+      title: 'AI suggestion',
+      review:
+        'Check the suggestion before saving. Applying it replaces the title, description, category and priority.',
+      apply: 'Apply suggestion',
+      dismiss: 'Dismiss',
+      errors: {
+        required: 'Write a title or describe the problem first.',
+        tooLong: 'The description is too long for a suggestion (at most {max} characters).',
+        titleTooLong: 'The title is too long for a suggestion (at most {max} characters).',
+        unavailable: 'AI suggestions are not available right now. Please try again later.',
+        rateLimited:
+          'Too many suggestions in a short time. Please wait a few minutes and try again.',
+        invalidSuggestion:
+          'AI could not suggest anything useful. Try describing the problem in more detail.',
+        network: 'Unable to reach the JalaSpace API. Please try again.',
+      },
+    },
     status: {
       open: 'Open',
       in_progress: 'In progress',
