@@ -10,6 +10,8 @@ export interface ProfileContextValue {
   email: string
   displayName: string
   saveProfile(values: ProfileFormValues): Promise<Profile>
+  /** Reads the stored profile again, e.g. after the demo data was reset. */
+  reloadProfile(): Promise<void>
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null)

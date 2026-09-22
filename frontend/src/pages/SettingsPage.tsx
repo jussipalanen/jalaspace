@@ -4,6 +4,8 @@ import { flashState } from '../components/FlashMessage/flash'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { ProfileForm } from '../features/profile/ProfileForm'
 import { useProfile } from '../features/profile/useProfile'
+import { DemoDataSettings } from '../features/settings/DemoDataSettings'
+import { LanguageSettings } from '../features/settings/LanguageSettings'
 import { useTranslation } from '../i18n/useTranslation'
 import type { ProfileFormValues } from '../services/profile'
 import './SettingsPage.css'
@@ -31,10 +33,39 @@ export function SettingsPage() {
           <p className="settings-section__description">{t('settings.profile.description')}</p>
         </div>
         {loaded && profile ? (
-          <ProfileForm profile={profile} email={email} onSubmit={save} />
+          // Keyed by the save time, so the form shows the restored profile after a demo reset.
+          <ProfileForm key={profile.updatedAt} profile={profile} email={email} onSubmit={save} />
         ) : (
           <LoadingState />
         )}
+      </section>
+
+      <section
+        id="language"
+        className="card settings-section"
+        aria-labelledby="settings-language-title"
+      >
+        <div className="settings-section__header">
+          <h2 id="settings-language-title" className="section__title">
+            {t('settings.language.title')}
+          </h2>
+          <p className="settings-section__description">{t('settings.language.description')}</p>
+        </div>
+        <LanguageSettings />
+      </section>
+
+      <section
+        id="demo-data"
+        className="card settings-section"
+        aria-labelledby="settings-demo-data-title"
+      >
+        <div className="settings-section__header">
+          <h2 id="settings-demo-data-title" className="section__title">
+            {t('settings.demoData.title')}
+          </h2>
+          <p className="settings-section__description">{t('settings.demoData.description')}</p>
+        </div>
+        <DemoDataSettings />
       </section>
 
       <p className="settings-note">{t('settings.otherSections')}</p>

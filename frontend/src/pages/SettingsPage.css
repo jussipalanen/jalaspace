@@ -7,9 +7,41 @@
   margin-bottom: var(--space-5);
 }
 
+.settings-section + .settings-section {
+  margin-top: var(--space-5);
+}
+
 .settings-section__description {
   margin: var(--space-1) 0 0;
   color: var(--color-text-muted);
+}
+
+.settings-section__list {
+  margin: 0 0 var(--space-5);
+  padding-left: var(--space-5);
+  color: var(--color-text-muted);
+}
+
+.settings-section__list li + li {
+  margin-top: var(--space-1);
+}
+
+.settings-section__note {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.settings-section__actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.settings-section__status .alert {
+  margin: var(--space-4) 0 0;
+}
+
+.language-settings {
+  max-width: 280px;
 }
 
 .settings-note {

@@ -311,7 +311,31 @@ export const en = {
     },
   },
   settings: {
-    otherSections: 'Password and demo data settings are coming soon.',
+    otherSections: 'Password settings are coming soon.',
+    language: {
+      title: 'Language',
+      description: 'The language of the JalaSpace user interface.',
+      label: 'Language',
+      hint: 'Applies immediately. Also available in the header.',
+    },
+    demoData: {
+      title: 'Demo data',
+      description: 'JalaSpace stores its demo data only in this browser.',
+      resets:
+        'Resetting restores the original properties, spaces, tenants, leases, maintenance tasks and profile.',
+      keeps: 'You stay signed in and the language is kept.',
+      reset: 'Reset demo data',
+      unavailable: 'The demo data cannot be reset with the current data provider.',
+      error: 'Unable to reset the demo data. Please try again.',
+      done: 'The demo data was reset.',
+      confirm: {
+        title: 'Reset demo data?',
+        description: 'All changes you have made to the demo data will be lost. This cannot be undone.',
+        cancel: 'Cancel',
+        confirm: 'Reset demo data',
+        busy: 'Resetting…',
+      },
+    },
     profile: {
       title: 'Profile',
       description: 'Your name and details shown in JalaSpace.',
