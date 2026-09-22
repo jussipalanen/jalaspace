@@ -401,12 +401,16 @@ jalaspace/
 ├── .github/
 │   ├── workflows/
 │   │   ├── ci.yml
-│   │   └── dependency-check.yml
+│   │   ├── dependency-check.yml
+│   │   └── release.yml
 │   └── dependabot.yml
 │
 ├── docker-compose.yml
 ├── .dockerignore
 ├── .gitignore
+├── CHANGELOG.md
+├── release-please-config.json
+├── .release-please-manifest.json
 ├── CLAUDE.md
 ├── AGENTS.md
 ├── README.md
@@ -1737,6 +1741,105 @@ Preview environments do not replace code review.
 
 ---
 
+# Versioning and Releases
+
+JalaSpace uses [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`.
+
+Tags use a `v` prefix:
+
+```text
+v0.1.0   v0.1.1   v0.2.0   …   v1.0.0
+```
+
+The first release is `v0.1.0`.
+
+## Conventional Commits
+
+Every commit message must follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```text
+<type>(<optional scope>): <description>
+```
+
+The type decides the next version and the changelog section:
+
+| Type                     | Version bump (below 1.0.0) | Version bump (1.0.0 and later) | Changelog section |
+| ------------------------ | -------------------------- | ------------------------------ | ----------------- |
+| `feat`                   | minor: 0.1.0 → 0.2.0       | minor: 1.2.0 → 1.3.0           | Added             |
+| `fix`                    | patch: 0.1.0 → 0.1.1       | patch: 1.2.0 → 1.2.1           | Fixed             |
+| `perf`, `refactor`       | patch                      | patch                          | Changed           |
+| `revert`                 | patch                      | patch                          | Reverted          |
+| breaking change          | minor: 0.1.0 → 0.2.0       | major: 1.2.0 → 2.0.0           | ⚠ BREAKING CHANGES |
+| `docs`, `test`, `ci`, `build`, `style`, `chore` | no release | no release        | not listed        |
+
+Mark a breaking change with `!` after the type or a `BREAKING CHANGE:` footer:
+
+```text
+feat!: store rents per lease period
+
+BREAKING CHANGE: existing demo data must be reset.
+```
+
+Useful scopes: `app`, `auth`, `data`, `dashboard`, `properties`, `spaces`, `maintenance`, `tenants`, `leases`, `settings`, `i18n`, `a11y`, `deploy`, `deps`.
+
+Write the description for the reader of the release notes:
+
+```text
+Good:  fix(dashboard): detail lines overflowed their panel on narrow screens
+Avoid: fix: css
+```
+
+Dependabot uses `fix(deps)` for runtime dependencies (a patch release) and `chore(deps-dev)` for development tools (no release).
+
+## Release process
+
+Releases are automated with [release-please](https://github.com/googleapis/release-please) (`.github/workflows/release.yml`):
+
+```text
+Feature PR merged to main
+      ↓
+release-please opens or updates the release PR
+("chore: release x.y.z": CHANGELOG.md entry + version bump)
+      ↓
+Human reviews and merges the release PR
+      ↓
+Tag vX.Y.Z and GitHub Release are created automatically
+```
+
+* several merged PRs can be collected into one release; merge the release PR when a release is wanted
+* the release PR updates `CHANGELOG.md`, `.release-please-manifest.json`, `frontend/package.json` and `frontend/package-lock.json`
+* the release notes on GitHub match the CHANGELOG entry
+* only a human merges the release PR
+
+Do not:
+
+* edit released sections of `CHANGELOG.md` or change the version fields by hand
+* create, move or delete version tags or GitHub Releases manually
+* push release commits directly to `main`
+
+The wording of a pending release can be improved by editing the release PR before merging it.
+
+## Version 1.0.0
+
+Below 1.0.0, breaking changes bump the minor version, and the API and data model may still change.
+
+Version 1.0.0 is a deliberate human decision, e.g. when the first milestone is complete.
+Release it by merging a commit with this footer:
+
+```text
+chore: prepare the first stable release
+
+Release-As: 1.0.0
+```
+
+## Tokens
+
+The workflow uses the `RELEASE_PLEASE_TOKEN` secret when it exists (a GitHub App token or fine-grained personal access token with contents and pull request write access), otherwise the default `GITHUB_TOKEN`.
+Pull requests opened with `GITHUB_TOKEN` do not trigger CI, so a dedicated token is preferred.
+Never commit the token.
+
+---
+
 # Security Rules for AI Agents
 
 Agents must never:
@@ -1751,6 +1854,8 @@ Agents must never:
 * approve their own Pull Requests
 * merge without human approval
 * deploy unreviewed code
+* merge release Pull Requests
+* create, move or delete version tags or GitHub Releases manually
 
 When a security check fails, fix the cause or clearly report the issue.
 
@@ -1976,7 +2081,8 @@ Also run appropriate security/dependency checks.
 
 ## 7. Commit Changes
 
-Use understandable commits.
+Use Conventional Commits (see Versioning and Releases).
+Commit messages become the changelog, so describe the change for a reader of the release notes.
 
 Examples:
 
@@ -2021,6 +2127,7 @@ Before creating a PR verify:
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
 [ ] New UI text is translated in all supported languages
+[ ] Commit messages follow Conventional Commits
 [ ] UI changes have been manually sanity checked
 ```
 
