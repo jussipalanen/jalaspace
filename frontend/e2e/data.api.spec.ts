@@ -36,6 +36,23 @@ test.describe('api data provider', () => {
     expect(await page.evaluate(entityKeys)).toEqual([])
   })
 
+  test('shows the app at once and explains the wait while the API wakes up', async ({ page }) => {
+    // Answer every API request 6 seconds late, like a sleeping free-plan server.
+    await page.route(`${E2E_BACKEND_URL}/api/**`, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 6000))
+      await route.continue()
+    })
+    await page.goto('/')
+
+    // The page is not blank while it waits: the app renders its loading state.
+    const status = page.getByRole('status').filter({ hasText: 'Loading dashboard…' })
+    await expect(status).toBeVisible({ timeout: 2000 })
+    await expect(status).toContainText('Waking up the demo server.')
+    await expect(page.getByRole('region', { name: 'Key figures' })).toContainText('58 of 68 spaces occupied', {
+      timeout: 15_000,
+    })
+  })
+
   test('saves a new property on the API, visible after a reload and in another browser', async ({
     page,
     browser,

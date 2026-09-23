@@ -141,6 +141,7 @@ export const en = {
   },
   states: {
     loading: 'Loading…',
+    wakingUp: 'Waking up the demo server. After a quiet period this can take up to a minute.',
     retryHint: 'Please try again.',
     retry: 'Try again',
   },

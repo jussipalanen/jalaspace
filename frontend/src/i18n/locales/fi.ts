@@ -140,6 +140,7 @@ export const fi: Messages = {
   },
   states: {
     loading: 'Ladataan…',
+    wakingUp: 'Demopalvelinta herätellään. Hiljaisen jakson jälkeen tämä voi kestää minuutin.',
     retryHint: 'Yritä hetken kuluttua uudelleen.',
     retry: 'Yritä uudelleen',
   },

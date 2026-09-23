@@ -42,5 +42,6 @@
 }
 
 .data-state__hint {
+  max-width: 44ch;
   margin: 0;
 }
