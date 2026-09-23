@@ -5,6 +5,18 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.12.0](https://github.com/jussipalanen/jalaspace/compare/v0.11.0...v0.12.0) (2026-09-23)
+
+
+### Added
+
+* **app:** explain the wait while the demo API wakes up ([#89](https://github.com/jussipalanen/jalaspace/issues/89)) ([a1a620a](https://github.com/jussipalanen/jalaspace/commit/a1a620a96433fe6aaf6b3db63acb517701959287))
+
+
+### Fixed
+
+* **app:** say that the demo data is shared when it is on the API ([#93](https://github.com/jussipalanen/jalaspace/issues/93)) ([e818400](https://github.com/jussipalanen/jalaspace/commit/e81840097619f69e601167403be7d0db08429dc7))
+
 ## [0.11.0](https://github.com/jussipalanen/jalaspace/compare/v0.10.0...v0.11.0) (2026-09-23)
 
 
