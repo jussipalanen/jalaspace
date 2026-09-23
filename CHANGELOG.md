@@ -5,6 +5,18 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.15.0](https://github.com/jussipalanen/jalaspace/compare/v0.14.0...v0.15.0) (2026-09-23)
+
+
+### Added
+
+* **auth:** show a hint that demo data stays in the browser ([#108](https://github.com/jussipalanen/jalaspace/issues/108)) ([6b2550c](https://github.com/jussipalanen/jalaspace/commit/6b2550c40ae190732afeeb78ef1759aff48b6fef))
+
+
+### Fixed
+
+* **auth:** remove the login hint that wrongly said data stays in the browser ([#110](https://github.com/jussipalanen/jalaspace/issues/110)) ([92de97f](https://github.com/jussipalanen/jalaspace/commit/92de97fd1243ef10480388a4b15311cf287b6c80))
+
 ## [0.14.0](https://github.com/jussipalanen/jalaspace/compare/v0.13.0...v0.14.0) (2026-09-23)
 
 
