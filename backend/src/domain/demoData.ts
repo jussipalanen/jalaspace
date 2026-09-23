@@ -1,8 +1,10 @@
 import type { Store } from '../store/store.ts'
 import { maintenanceSeeds } from './demoMaintenance.ts'
+import { tenantSeeds } from './demoTenants.ts'
 import type { MaintenanceTask } from './maintenance.ts'
 import type { Property, PropertyInput } from './properties.ts'
 import type { Space, SpaceStatus, SpaceType } from './spaces.ts'
+import type { Tenant } from './tenants.ts'
 
 const DAY_MS = 24 * 60 * 60 * 1000
 
@@ -31,7 +33,7 @@ const pad = (value: number) => String(value).padStart(2, '0')
 // The same properties and spaces, ids and creation dates as the frontend seed
 // (frontend/src/data/seed/properties.ts and index.ts), so the data matches
 // once the frontend reads it from the API. The remaining spaces are occupied;
-// their leases and the tenants are added here with their endpoints.
+// their leases are added here with the lease endpoints.
 const propertySeeds: PropertySeed[] = [
   {
     key: 'joensuu-center',
@@ -137,6 +139,7 @@ export interface DemoData {
   properties: Property[]
   spaces: Space[]
   maintenance: MaintenanceTask[]
+  tenants: Tenant[]
 }
 
 function createSpaces(seed: PropertySeed, propertyId: string, createdAt: string): Space[] {
@@ -177,7 +180,7 @@ export function createDemoData(now: Date = new Date()): DemoData {
   const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS).toISOString()
   const dateIn = (days: number) => daysAgo(-days).slice(0, 10)
 
-  const data: DemoData = { properties: [], spaces: [], maintenance: [] }
+  const data: DemoData = { properties: [], spaces: [], maintenance: [], tenants: [] }
   for (const seed of propertySeeds) {
     const { key, createdDaysAgo, spaces: _spaces, available: _available, maintenance: _maintenance, ...input } =
       seed
@@ -203,6 +206,11 @@ export function createDemoData(now: Date = new Date()): DemoData {
       updatedAt: completedAt ?? createdAt,
     }
   })
+
+  data.tenants = tenantSeeds.map(({ key, ...fields }, index) => {
+    const createdAt = daysAgo(700 - index * 20)
+    return { id: `tenant-${key}`, ...fields, phone: null, createdAt, updatedAt: createdAt }
+  })
   return data
 }
 
@@ -212,10 +220,12 @@ export async function resetDemoData(store: Store, now: Date = new Date()): Promi
     store.properties.clear(),
     store.spaces.clear(),
     store.maintenance.clear(),
+    store.tenants.clear(),
     store.leases.clear(),
   ])
   const data = createDemoData(now)
   for (const property of data.properties) await store.properties.insert(property)
   for (const space of data.spaces) await store.spaces.insert(space)
   for (const task of data.maintenance) await store.maintenance.insert(task)
+  for (const tenant of data.tenants) await store.tenants.insert(tenant)
 }

@@ -10,6 +10,7 @@ import { maintenanceRouter } from './routes/maintenance.ts'
 import { propertiesRouter } from './routes/properties.ts'
 import { spacesRouter } from './routes/spaces.ts'
 import { suggestionsRouter } from './routes/suggestions.ts'
+import { tenantsRouter } from './routes/tenants.ts'
 import { createMemoryStore } from './store/memoryStore.ts'
 import type { Store } from './store/store.ts'
 import { VERSION } from './version.ts'
@@ -59,6 +60,7 @@ export function createApp({
   api.use(propertiesRouter(store))
   api.use(spacesRouter(store))
   api.use(maintenanceRouter(store))
+  api.use(tenantsRouter(store))
   api.use(suggestionsRouter({ suggester, rateLimiter: suggestionRateLimiter, logError }))
   if (demoData) api.use(demoRouter(store))
   for (const router of routers) api.use(router)

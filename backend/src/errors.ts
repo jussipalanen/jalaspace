@@ -11,6 +11,7 @@ export type ErrorCode =
   | 'validation_failed'
   | 'property_in_use'
   | 'space_in_use'
+  | 'tenant_in_use'
   | 'rate_limited'
   | 'ai_unavailable'
   | 'invalid_suggestion'

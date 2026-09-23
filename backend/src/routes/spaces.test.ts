@@ -194,7 +194,7 @@ describe('spaces API', () => {
 
   it('refuses to delete a space that still has leases or maintenance tasks', async () => {
     const created = await create()
-    const reference = { spaceId: created.id, createdAt: '', updatedAt: '' }
+    const reference = { tenantId: 'tenant-1', spaceId: created.id, createdAt: '', updatedAt: '' }
     await store.leases.insert({ id: 'lease-1', ...reference })
     await store.leases.insert({ id: 'lease-2', ...reference })
     await store.maintenance.insert(maintenanceTask({ id: 'task-1', spaceId: created.id }))
