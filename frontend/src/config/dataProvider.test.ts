@@ -1,8 +1,14 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDataLayer } from '../repositories'
+import { ApiDemoDataStore } from '../repositories/api/ApiDemoDataStore'
+import { ApiRepository } from '../repositories/api/ApiRepository'
 import { parseDataProvider } from './dataProvider'
 
 describe('data provider configuration', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+  })
+
   it.each([undefined, '', '   '])('defaults to localStorage for %j', (value) => {
     expect(parseDataProvider(value)).toBe('localStorage')
   })
@@ -23,7 +29,15 @@ describe('data provider configuration', () => {
     expect(dataLayer.demoData).not.toBeNull()
   })
 
-  it('reports that the api provider is not implemented yet', () => {
-    expect(() => createDataLayer('api')).toThrow('not implemented yet')
+  it('creates API repositories and demo data support when the API URL is set', () => {
+    vi.stubEnv('VITE_API_URL', 'http://localhost:3000/')
+    const dataLayer = createDataLayer('api')
+    expect(dataLayer.spaces).toBeInstanceOf(ApiRepository)
+    expect(dataLayer.demoData).toBeInstanceOf(ApiDemoDataStore)
+  })
+
+  it('reports a missing API URL for the api provider', () => {
+    vi.stubEnv('VITE_API_URL', '')
+    expect(() => createDataLayer('api')).toThrow('The "api" data provider needs VITE_API_URL')
   })
 })

@@ -321,6 +321,7 @@ export const en = {
     demoData: {
       title: 'Demo data',
       description: 'JalaSpace stores its demo data only in this browser.',
+      descriptionShared: 'JalaSpace stores the demo data on the API server, shared by everyone who uses it.',
       resets:
         'Resetting restores the original properties, spaces, tenants, leases, maintenance tasks and profile.',
       keeps: 'You stay signed in and the language is kept.',
@@ -331,6 +332,8 @@ export const en = {
       confirm: {
         title: 'Reset demo data?',
         description: 'All changes you have made to the demo data will be lost. This cannot be undone.',
+        descriptionShared:
+          'The demo data is reset for everyone who uses this API, and all changes to it will be lost. This cannot be undone.',
         cancel: 'Cancel',
         confirm: 'Reset demo data',
         busy: 'Resetting…',

@@ -31,7 +31,7 @@ npm run dev
 
 The development server runs at http://localhost:5173.
 
-The API is a separate project in `backend/`. The demo runs without it, because the frontend stores its data in the browser; only AI maintenance suggestions need it:
+The API is a separate project in `backend/`. The demo runs without it, because by default the frontend stores its data in the browser; only AI maintenance suggestions and the `api` data provider (see [Data layer](#data-layer)) need it:
 
 ```bash
 cd backend
@@ -52,6 +52,8 @@ docker compose up
 ```
 
 The app runs at http://localhost:5173, and the API at http://localhost:3000.
+
+- With Docker the app keeps its data **on the API** (`VITE_DATA_PROVIDER=api` in `docker-compose.yml`): every browser sees the same data, and it returns to the demo data whenever the API restarts.
 
 - The `frontend/` and `backend/` sources are mounted into their containers, so edits reload live.
 - `node_modules` stays inside the container and isn't written to your machine.
@@ -222,7 +224,7 @@ frontend/src/
 ├── hooks/         Custom React hooks
 ├── i18n/          Translations (English, Finnish), language switching and locale formatting
 ├── features/      Feature modules (auth, ...)
-├── repositories/  Repository interfaces and their localStorage implementations
+├── repositories/  Repository interfaces and their localStorage and API implementations
 ├── services/      Business logic (auth, lease status, dashboard statistics, demo data)
 ├── types/         Domain types (Property, Space, Tenant, Lease, MaintenanceTask, ...)
 ├── utils/         Helpers such as date handling
@@ -233,17 +235,24 @@ frontend/src/
 
 ### Data layer
 
-Pages never touch `localStorage` directly. They go through repository interfaces, so the storage can later be swapped for a REST API without changing the UI:
+Pages never touch `localStorage` or `fetch` directly. They go through repository interfaces, so the storage can be swapped without changing the UI:
 
 ```text
-React UI → custom hook → Repository interface → LocalStorageRepository (today)
-                                              → ApiRepository (planned)
+React UI → custom hook → Repository interface → LocalStorageRepository   (VITE_DATA_PROVIDER=localStorage)
+                                              → ApiRepository → REST API (VITE_DATA_PROVIDER=api)
 ```
 
-- **Data provider:** `VITE_DATA_PROVIDER` selects the implementation. `localStorage` is the default; `api` is reserved for the planned backend. See [`frontend/.env.example`](frontend/.env.example); copy it to `.env.local` to override locally.
+- **Data provider:** `VITE_DATA_PROVIDER` selects the implementation. See [`frontend/.env.example`](frontend/.env.example); copy it to `.env.local` to override locally, and restart the dev server afterwards, because Vite reads it at start.
+
+  | Provider | Data is kept | Used by |
+  | --- | --- | --- |
+  | `localStorage` (default) | In this browser only | `npm run dev`, the public demo on Vercel, tests |
+  | `api` | On the JalaSpace API, shared by every browser; needs `VITE_API_URL` | Docker Compose |
+
+- **`api` provider:** the API assigns ids and timestamps and checks the business rules again. The browser does not seed data; the API starts with its own demo data. The signed-in session, profile, profile image, password and language stay in the browser in both modes.
 - **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_session` and `jalaspace_seed_version`.
 - **Seed data:** on the first visit the app seeds a demo portfolio: 4 properties, 68 spaces, 31 tenants, 62 leases and 14 maintenance tasks. Dates are relative to today, so the demo always has current, upcoming and past activity. Later visits keep your changes.
-- **Reset:** **Settings → Demo data → Reset demo data** (after confirmation) clears all JalaSpace data except the signed-in session and the language, restores the seed and restores the default demo profile.
+- **Reset:** **Settings → Demo data → Reset demo data** (after confirmation) clears all JalaSpace data except the signed-in session and the language, restores the seed and restores the default demo profile. With the `api` provider it asks the API to restore its demo data (`POST /api/demo/reset`), which affects everyone who uses that API.
 - **Data conventions:**
   - Timestamps are ISO strings (`2026-09-22T10:30:00.000Z`), and calendar dates are date-only strings (`2026-09-22`).
   - Rent is stored in euro cents.
@@ -313,7 +322,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
 - The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). A database comes later.
-- The frontend still stores its data in the browser. It calls the API only for AI maintenance suggestions (`/api/features` and `/api/maintenance/suggestions`).
+- The public frontend keeps its data in the browser (`localStorage`). It calls the API only for AI maintenance suggestions (`/api/features` and `/api/maintenance/suggestions`). The `api` data provider could use the deployed API too, but all visitors would then share one dataset.
 
 ## Versions and releases
 

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router'
 import { LoadingState } from '../components/DataState/DataState'
 import { flashState } from '../components/FlashMessage/flash'
 import { PageHeader } from '../components/PageHeader/PageHeader'
+import { isSharedData } from '../config/dataProvider'
 import { ProfileForm } from '../features/profile/ProfileForm'
 import { useProfile } from '../features/profile/useProfile'
 import { DemoDataSettings } from '../features/settings/DemoDataSettings'
@@ -63,7 +64,9 @@ export function SettingsPage() {
           <h2 id="settings-demo-data-title" className="section__title">
             {t('settings.demoData.title')}
           </h2>
-          <p className="settings-section__description">{t('settings.demoData.description')}</p>
+          <p className="settings-section__description">
+            {t(isSharedData() ? 'settings.demoData.descriptionShared' : 'settings.demoData.description')}
+          </p>
         </div>
         <DemoDataSettings />
       </section>

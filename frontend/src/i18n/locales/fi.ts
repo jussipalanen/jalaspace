@@ -319,6 +319,7 @@ export const fi: Messages = {
     demoData: {
       title: 'Demotiedot',
       description: 'JalaSpace tallentaa demotiedot vain tähän selaimeen.',
+      descriptionShared: 'JalaSpace tallentaa demotiedot API-palvelimelle, ja ne ovat yhteisiä kaikille sen käyttäjille.',
       resets:
         'Palautus palauttaa alkuperäiset kiinteistöt, tilat, vuokralaiset, vuokrasopimukset, huoltotehtävät ja profiilin.',
       keeps: 'Pysyt kirjautuneena, ja kieli säilyy.',
@@ -329,6 +330,8 @@ export const fi: Messages = {
       confirm: {
         title: 'Palautetaanko demotiedot?',
         description: 'Kaikki demotietoihin tekemäsi muutokset menetetään. Toimintoa ei voi perua.',
+        descriptionShared:
+          'Demotiedot palautetaan kaikille tämän API:n käyttäjille, ja kaikki niihin tehdyt muutokset menetetään. Toimintoa ei voi perua.',
         cancel: 'Peruuta',
         confirm: 'Palauta demotiedot',
         busy: 'Palautetaan…',
