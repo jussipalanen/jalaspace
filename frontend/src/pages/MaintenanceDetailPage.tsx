@@ -21,6 +21,7 @@ import type { MaintenanceStatus } from '../types/maintenance'
 import { toIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import './MaintenanceDetailPage.css'
+import { saveErrorMessage } from '../utils/apiLimits'
 
 type StatusAction = 'start' | 'complete' | 'reopen'
 
@@ -86,7 +87,7 @@ function MaintenanceDetailsView({ details }: { details: MaintenanceDetails }) {
       setStatusError(
         error instanceof EntityNotFoundError
           ? t('maintenance.form.notFoundError')
-          : t('maintenance.detail.statusError'),
+          : saveErrorMessage(error, t, t('maintenance.detail.statusError')),
       )
     } finally {
       setPending(null)

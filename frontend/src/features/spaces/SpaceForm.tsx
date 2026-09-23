@@ -22,6 +22,7 @@ import type { Space } from '../../types/space'
 import type { Tenant } from '../../types/tenant'
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
+import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof SpaceFormValues
 
@@ -53,7 +54,7 @@ export function SpaceForm({
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState<SpaceFormErrors>({})
   const [showSummary, setShowSummary] = useState(false)
-  const [saveError, setSaveError] = useState(false)
+  const [saveError, setSaveError] = useState<'failed' | ApiLimitCode | null>(null)
   const [saving, setSaving] = useState(false)
 
   const fieldId = (field: Field) => `${idPrefix}-${field}`
@@ -67,7 +68,7 @@ export function SpaceForm({
       for (const key of cleared) delete next[key as keyof SpaceFormErrors]
       return next
     })
-    setSaveError(false)
+    setSaveError(null)
   }
 
   const messages: Partial<Record<Field, string>> = {
@@ -104,13 +105,13 @@ export function SpaceForm({
     }
 
     setShowSummary(false)
-    setSaveError(false)
+    setSaveError(null)
     setSaving(true)
     try {
       await onSubmit(values)
     } catch (error) {
       if (error instanceof SpaceValidationError) showValidation(error.errors)
-      else setSaveError(true)
+      else setSaveError(apiLimitCode(error) ?? 'failed')
       setSaving(false)
     }
   }
@@ -126,7 +127,7 @@ export function SpaceForm({
       )}
       {saveError && (
         <div className="alert alert--error" role="alert">
-          {t('spaces.form.saveError')}
+          {saveError === 'failed' ? t('spaces.form.saveError') : t(`states.apiLimit.${saveError}`)}
         </div>
       )}
 

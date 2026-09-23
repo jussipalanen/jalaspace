@@ -6,6 +6,7 @@ import { useDataLayer } from '../../hooks/useDataLayer'
 import { useTranslation } from '../../i18n/useTranslation'
 import { deleteMaintenance } from '../../services/maintenanceService'
 import type { MaintenanceTask } from '../../types/maintenance'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 interface DeleteMaintenanceDialogProps {
   open: boolean
@@ -33,9 +34,9 @@ export function DeleteMaintenanceDialog({ open, task, onClose }: DeleteMaintenan
       navigate('/maintenance', {
         state: flashState(t('maintenance.flash.deleted', { title: task.title })),
       })
-    } catch {
+    } catch (caught) {
       setBusy(false)
-      setError(t('maintenance.delete.error'))
+      setError(saveErrorMessage(caught, t, t('maintenance.delete.error')))
     }
   }
 

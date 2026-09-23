@@ -12,6 +12,7 @@ export const ERROR_CODES = [
   'property_in_use',
   'space_in_use',
   'tenant_in_use',
+  'limit_reached',
   'rate_limited',
   'ai_unavailable',
   'invalid_suggestion',

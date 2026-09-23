@@ -9,6 +9,7 @@ import { parsePropertyInput } from '../domain/properties.ts'
 import { parseSpaceInput } from '../domain/spaces.ts'
 import { parseTenantInput } from '../domain/tenants.ts'
 import { ERROR_CODES } from '../errors.ts'
+import { DEFAULT_COLLECTION_LIMITS } from '../limits.ts'
 import { DOCS_CSP } from '../routes/docs.ts'
 import { serve } from '../test/serve.ts'
 import { EXAMPLES, OPERATIONS, type OpenApiDocument } from './document.ts'
@@ -89,6 +90,18 @@ describe('OpenAPI description', () => {
     expect(properties('SpaceInput').floor).toMatchObject({ minimum: -10, maximum: 200 })
     expect(properties('LeaseInput').monthlyRentCents).toMatchObject({ maximum: 100_000_000 })
     expect(properties('MaintenanceTask').completedAt).toMatchObject({ readOnly: true })
+  })
+
+  it('documents the write limit and the record caps the server is configured with', async () => {
+    const document = await fetchDocument({
+      demoData: true,
+      collectionLimits: { ...DEFAULT_COLLECTION_LIMITS, properties: 7 },
+    })
+    const create = document.paths['/api/properties']?.post as { responses: Record<string, unknown> }
+
+    expect(JSON.stringify(create.responses[409])).toContain('{"code":"limit_reached","limit":7}')
+    expect(create.responses[429]).toMatchObject({ headers: { 'Retry-After': {} } })
+    expect(document.paths['/api/demo/reset']?.post).toMatchObject({ responses: { 429: {} } })
   })
 
   it('has request examples that the API itself accepts', () => {

@@ -149,6 +149,11 @@ export const en = {
     wakingUp: 'Waking up the demo server. After a quiet period this can take up to a minute.',
     retryHint: 'Please try again.',
     retry: 'Try again',
+    apiLimit: {
+      rateLimited: 'Too many changes in a short time. Wait a moment and try again.',
+      limitReached:
+        'The shared demo is full, so nothing more can be added. Delete something first, or reset the demo data in Settings.',
+    },
   },
   dashboard: {
     loading: 'Loading dashboard…',

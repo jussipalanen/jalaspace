@@ -1,4 +1,10 @@
 import type { ErrorCode } from '../errors.ts'
+import {
+  DEFAULT_COLLECTION_LIMITS,
+  DEFAULT_RESET_RATE_LIMIT,
+  DEFAULT_WRITE_RATE_LIMIT,
+  type CollectionLimits,
+} from '../limits.ts'
 import type { RouteInfo } from './routes.ts'
 import { SCHEMAS, type Schema } from './schemas.ts'
 
@@ -41,6 +47,17 @@ const validationError = error('Invalid input; `fields` has an error code per fie
 const notFound = error('No resource with this id.', ['not_found'])
 const internalError = error('Unexpected error; details are only logged on the server.', ['internal_error'])
 const tooLarge = error('The request body is over 100 kB.', ['payload_too_large'])
+
+const retryAfter = { 'Retry-After': { description: 'Seconds to wait before trying again.', schema: { type: 'integer' } } }
+
+/** Every write counts against the per-client write limit (see `limits.ts`). */
+const writeLimited = {
+  ...error(
+    `Too many writes from this client: by default ${DEFAULT_WRITE_RATE_LIMIT} POST, PUT and DELETE requests per minute.`,
+    ['rate_limited'],
+  ),
+  headers: retryAfter,
+}
 
 /** Valid request bodies; a test checks them against the API's own validation. */
 export const EXAMPLES = {
@@ -90,6 +107,8 @@ export const EXAMPLES = {
 
 interface Collection {
   tag: string
+  /** Its entry in the record caps. */
+  limitKey: keyof CollectionLimits
   path: string
   singular: string
   schema: string
@@ -102,6 +121,7 @@ interface Collection {
 const COLLECTIONS: Collection[] = [
   {
     tag: 'Properties',
+    limitKey: 'properties',
     path: '/api/properties',
     singular: 'property',
     schema: 'Property',
@@ -114,6 +134,7 @@ const COLLECTIONS: Collection[] = [
   },
   {
     tag: 'Spaces',
+    limitKey: 'spaces',
     path: '/api/units',
     singular: 'space',
     schema: 'Space',
@@ -129,6 +150,7 @@ const COLLECTIONS: Collection[] = [
   },
   {
     tag: 'Maintenance',
+    limitKey: 'maintenance',
     path: '/api/maintenance',
     singular: 'maintenance task',
     schema: 'MaintenanceTask',
@@ -140,6 +162,7 @@ const COLLECTIONS: Collection[] = [
   },
   {
     tag: 'Tenants',
+    limitKey: 'tenants',
     path: '/api/tenants',
     singular: 'tenant',
     schema: 'Tenant',
@@ -152,6 +175,7 @@ const COLLECTIONS: Collection[] = [
   },
   {
     tag: 'Leases',
+    limitKey: 'leases',
     path: '/api/leases',
     singular: 'lease',
     schema: 'Lease',
@@ -164,7 +188,8 @@ const COLLECTIONS: Collection[] = [
   },
 ]
 
-function collectionOperations(c: Collection): Record<string, Operation> {
+function collectionOperations(c: Collection, limits: CollectionLimits): Record<string, Operation> {
+  const limit = limits[c.limitKey]
   const item = `${c.path}/{id}`
   const body = { required: true, content: json(ref(c.input), EXAMPLES[c.input]) }
   const tags = [c.tag]
@@ -186,6 +211,7 @@ function collectionOperations(c: Collection): Record<string, Operation> {
       summary: `Create a ${c.singular}`,
       description: [
         'The server assigns `id`, `createdAt` and `updatedAt`; other fields it does not know are ignored.',
+        `At most ${limit} ${c.tag.toLowerCase()} can be stored.`,
         c.notes?.create,
       ]
         .filter(Boolean)
@@ -198,7 +224,11 @@ function collectionOperations(c: Collection): Record<string, Operation> {
           headers: { Location: { description: 'URL of the new resource.', schema: { type: 'string' } } },
         },
         400: validationError,
+        409: error(`The collection is full: at most ${limit} ${c.tag.toLowerCase()}.`, ['limit_reached'], {
+          limit_reached: { limit },
+        }),
         413: tooLarge,
+        429: writeLimited,
         500: internalError,
       },
     },
@@ -215,6 +245,7 @@ function collectionOperations(c: Collection): Record<string, Operation> {
         400: validationError,
         404: notFound,
         413: tooLarge,
+        429: writeLimited,
         500: internalError,
       },
     },
@@ -229,56 +260,72 @@ function collectionOperations(c: Collection): Record<string, Operation> {
         ...(c.inUse
           ? { 409: error(c.inUse.description, [c.inUse.code], { [c.inUse.code]: c.inUse.details }) }
           : {}),
+        429: writeLimited,
         500: internalError,
       },
     },
   }
 }
 
-/** Hand-written summaries and descriptions per route (`method path`). */
-export const OPERATIONS: Record<string, Operation> = {
-  'get /api/health': {
-    tags: ['Service'],
-    summary: 'Health check',
-    operationId: 'getHealth',
-    responses: { 200: ok('The API is running', ref('Health')) },
-  },
-  'get /api/features': {
-    tags: ['Service'],
-    summary: 'Optional features',
-    description: 'Which optional features this API offers, so clients can hide what is unavailable.',
-    operationId: 'getFeatures',
-    responses: { 200: ok('Feature flags', ref('Features')) },
-  },
-  ...Object.assign({}, ...COLLECTIONS.map(collectionOperations)),
-  'post /api/maintenance/suggestions': {
-    tags: ['Maintenance'],
-    summary: 'Suggest maintenance task details with AI',
-    description:
-      'Suggests a title, a description, a category and a priority from a title, a description or both. Nothing is stored. Each client can ask for 10 suggestions per 10 minutes.',
-    operationId: 'suggestMaintenanceTask',
-    requestBody: { required: true, content: json(ref('SuggestionRequest'), EXAMPLES.SuggestionRequest) },
-    responses: {
-      200: ok('The suggestion', ref('MaintenanceSuggestion')),
-      400: validationError,
-      429: {
-        ...error('Too many suggestions from this client, or the AI quota is used up.', ['rate_limited']),
-        headers: { 'Retry-After': { description: 'Seconds to wait.', schema: { type: 'integer' } } },
-      },
-      502: error('The AI answered, but not with a usable suggestion.', ['invalid_suggestion']),
-      503: error('No AI provider is configured, or it failed or timed out.', ['ai_unavailable']),
-      500: internalError,
+/** Hand-written summaries and descriptions per route (`method path`), with the record caps in use. */
+export function operations(limits: CollectionLimits = DEFAULT_COLLECTION_LIMITS): Record<string, Operation> {
+  return {
+    'get /api/health': {
+      tags: ['Service'],
+      summary: 'Health check',
+      operationId: 'getHealth',
+      responses: { 200: ok('The API is running', ref('Health')) },
     },
-  },
-  'post /api/demo/reset': {
-    tags: ['Demo data'],
-    summary: 'Restore the demo data',
-    description:
-      'Removes all data and restores the demo dataset, for everyone who uses this API. Exists only when the server runs with `SEED_DEMO_DATA=true`.',
-    operationId: 'resetDemoData',
-    responses: { 204: { description: 'The demo data was restored.' }, 500: internalError },
-  },
+    'get /api/features': {
+      tags: ['Service'],
+      summary: 'Optional features',
+      description: 'Which optional features this API offers, so clients can hide what is unavailable.',
+      operationId: 'getFeatures',
+      responses: { 200: ok('Feature flags', ref('Features')) },
+    },
+    ...Object.assign({}, ...COLLECTIONS.map((c) => collectionOperations(c, limits))),
+    'post /api/maintenance/suggestions': {
+      tags: ['Maintenance'],
+      summary: 'Suggest maintenance task details with AI',
+      description:
+        'Suggests a title, a description, a category and a priority from a title, a description or both. Nothing is stored. Each client can ask for 10 suggestions per 10 minutes.',
+      operationId: 'suggestMaintenanceTask',
+      requestBody: { required: true, content: json(ref('SuggestionRequest'), EXAMPLES.SuggestionRequest) },
+      responses: {
+        200: ok('The suggestion', ref('MaintenanceSuggestion')),
+        400: validationError,
+        429: {
+          ...error('Too many suggestions from this client, or the AI quota is used up.', ['rate_limited']),
+          headers: { 'Retry-After': { description: 'Seconds to wait.', schema: { type: 'integer' } } },
+        },
+        502: error('The AI answered, but not with a usable suggestion.', ['invalid_suggestion']),
+        503: error('No AI provider is configured, or it failed or timed out.', ['ai_unavailable']),
+        500: internalError,
+      },
+    },
+    'post /api/demo/reset': {
+      tags: ['Demo data'],
+      summary: 'Restore the demo data',
+      description:
+        'Removes all data and restores the demo dataset, for everyone who uses this API. Exists only when the server runs with `SEED_DEMO_DATA=true`.',
+      operationId: 'resetDemoData',
+      responses: {
+        204: { description: 'The demo data was restored.' },
+        429: {
+          ...error(
+            `Too many resets from this client: by default ${DEFAULT_RESET_RATE_LIMIT} per hour, on top of the write limit.`,
+            ['rate_limited'],
+          ),
+          headers: retryAfter,
+        },
+        500: internalError,
+      },
+    },
+  }
 }
+
+/** The documented routes with the default record caps, e.g. for tests. */
+export const OPERATIONS = operations()
 
 const TAGS = [
   { name: 'Service', description: 'Health and optional features.' },
@@ -314,10 +361,15 @@ function pathParameters(path: string) {
  * The OpenAPI description of the given routes. A route without a hand-written
  * summary is still listed, marked `x-undocumented`; tests make sure there are none.
  */
-export function buildOpenApiDocument(routes: RouteInfo[], version: string): OpenApiDocument {
+export function buildOpenApiDocument(
+  routes: RouteInfo[],
+  version: string,
+  limits: CollectionLimits = DEFAULT_COLLECTION_LIMITS,
+): OpenApiDocument {
+  const documented = operations(limits)
   const paths: OpenApiDocument['paths'] = {}
   for (const { method, path } of routes) {
-    const operation = OPERATIONS[`${method} ${path}`] ?? {
+    const operation = documented[`${method} ${path}`] ?? {
       summary: 'Undocumented route',
       'x-undocumented': true,
       responses: { default: { description: 'Not documented.' } },
@@ -336,6 +388,7 @@ export function buildOpenApiDocument(routes: RouteInfo[], version: string): Open
       description: [
         'All routes send and receive JSON. Errors return a machine-readable code, never English text: `{ "error": { "code": "not_found" } }`.',
         'The data is demo data kept in memory: it returns to the demo dataset whenever the server restarts, and everyone who uses this API shares it.',
+        `Writes are limited per client (by default ${DEFAULT_WRITE_RATE_LIMIT} per minute, demo resets ${DEFAULT_RESET_RATE_LIMIT} per hour), answering \`429 rate_limited\` with \`Retry-After\`, and each collection has a record cap, answering \`409 limit_reached\`. Reads are not limited.`,
         'This description is generated from the running API: its routes and the same constants the validation uses.',
       ].join('\n\n'),
     },
