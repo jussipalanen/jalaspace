@@ -29,11 +29,13 @@ The deployed API runs on Render: https://jalaspace.onrender.com/api/health. See 
 
 | Script              | What it does                                   |
 | ------------------- | ---------------------------------------------- |
-| `npm run dev`       | Starts the API and restarts it when files change |
+| `npm run dev`       | Starts the API and restarts it when a file in `src/` changes |
 | `npm start`         | Starts the API                                 |
 | `npm run lint`      | Lints with oxlint                              |
 | `npm run typecheck` | Type-checks with `tsc`                         |
 | `npm test`          | Runs the Vitest tests                          |
+
+`npm run dev` watches the whole `src/` directory (`--watch-path=src`), not only the files the server has loaded. So the API picks up every file after a branch switch or `git pull`, and restarts by itself after a failed start once the problem is fixed; with plain `--watch` it could keep running a mix of old and new code. Saving a test file under `src/` also restarts it.
 
 ### No build step
 
