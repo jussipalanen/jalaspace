@@ -4,7 +4,7 @@ import type { Property } from '../domain/properties.ts'
 import type { Space } from '../domain/spaces.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
-import { maintenanceTask } from '../test/fixtures.ts'
+import { lease, maintenanceTask } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const property = (id: string): Property => ({
@@ -157,16 +157,30 @@ describe('spaces API', () => {
     expect(await store.spaces.get(created.id)).toEqual(created)
   })
 
-  it('keeps an occupied space occupied and does not let a client occupy one', async () => {
-    const free = await create()
-    const occupied: Space = { ...free, id: 'space-occupied', name: 'A 102', status: 'occupied' }
-    await store.spaces.insert(occupied)
+  it('keeps a space with an active lease occupied and does not let a client occupy one', async () => {
+    const leased = await create()
+    const free = await create({ name: 'A 102' })
+    await store.leases.insert(lease({ id: 'lease-1', spaceId: leased.id }))
 
-    const freed = await send('PUT', `/units/${occupied.id}`, { ...input, name: 'A 102', status: 'available' })
-    const taken = await send('PUT', `/units/${free.id}`, { ...input, status: 'occupied' })
+    const kept = await send('PUT', `/units/${leased.id}`, { ...input, status: 'maintenance' })
+    const taken = await send('PUT', `/units/${free.id}`, { ...input, name: 'A 102', status: 'occupied' })
 
-    expect(((await freed.json()) as Space).status).toBe('occupied')
+    expect(((await kept.json()) as Space).status).toBe('occupied')
     expect(((await taken.json()) as Space).status).toBe('available')
+  })
+
+  it('brings statuses up to date with the leases when spaces are read', async () => {
+    const started = await create()
+    const ended = await create({ name: 'A 102' })
+    // Stored statuses that no longer match: a lease has started, and one has ended.
+    await store.leases.insert(lease({ id: 'lease-1', spaceId: started.id }))
+    await store.spaces.update({ ...ended, status: 'occupied' })
+    await store.leases.insert(lease({ id: 'lease-2', spaceId: ended.id, endDate: '2021-12-31' }))
+
+    const byId = await send('GET', `/units/${started.id}`)
+    expect(((await byId.json()) as Space).status).toBe('occupied')
+    const list = (await (await send('GET', '/units')).json()) as Space[]
+    expect(list.map(({ status }) => status)).toEqual(['occupied', 'available'])
   })
 
   it('does not move a space with maintenance tasks to another property', async () => {
@@ -194,9 +208,8 @@ describe('spaces API', () => {
 
   it('refuses to delete a space that still has leases or maintenance tasks', async () => {
     const created = await create()
-    const reference = { tenantId: 'tenant-1', spaceId: created.id, createdAt: '', updatedAt: '' }
-    await store.leases.insert({ id: 'lease-1', ...reference })
-    await store.leases.insert({ id: 'lease-2', ...reference })
+    await store.leases.insert(lease({ id: 'lease-1', spaceId: created.id, endDate: '2021-12-31' }))
+    await store.leases.insert(lease({ id: 'lease-2', spaceId: created.id, startDate: '2022-01-01' }))
     await store.maintenance.insert(maintenanceTask({ id: 'task-1', spaceId: created.id }))
 
     const response = await send('DELETE', `/units/${created.id}`)

@@ -1,6 +1,7 @@
 import type { Store } from '../store/store.ts'
 import { maintenanceSeeds } from './demoMaintenance.ts'
 import { tenantSeeds } from './demoTenants.ts'
+import type { Lease } from './leases.ts'
 import type { MaintenanceTask } from './maintenance.ts'
 import type { Property, PropertyInput } from './properties.ts'
 import type { Space, SpaceStatus, SpaceType } from './spaces.ts'
@@ -26,14 +27,18 @@ interface PropertySeed extends PropertyInput {
   available: number[]
   /** Space indexes that are out of use because of maintenance. */
   maintenance: number[]
+  /** Tenant keys for the remaining, occupied spaces, in order. */
+  occupants: string[]
 }
 
 const pad = (value: number) => String(value).padStart(2, '0')
 
+const repeat = (key: string, count: number): string[] => Array<string>(count).fill(key)
+
 // The same properties and spaces, ids and creation dates as the frontend seed
 // (frontend/src/data/seed/properties.ts and index.ts), so the data matches
-// once the frontend reads it from the API. The remaining spaces are occupied;
-// their leases are added here with the lease endpoints.
+// once the frontend reads it from the API. The remaining spaces are occupied,
+// each with an active lease.
 const propertySeeds: PropertySeed[] = [
   {
     key: 'joensuu-center',
@@ -62,6 +67,17 @@ const propertySeeds: PropertySeed[] = [
     ],
     available: [4, 11],
     maintenance: [15],
+    occupants: [
+      'jarvi-coffee',
+      'northwind-outdoor',
+      'lumo-florist',
+      'harbour-health',
+      ...repeat('nordic-pixel', 4),
+      ...repeat('karelia-accounting', 3),
+      ...repeat('saimaa-design', 2),
+      ...repeat('koivu-manty-law', 3),
+      ...repeat('revontuli-games', 3),
+    ],
   },
   {
     key: 'kuopio-harbour',
@@ -83,6 +99,13 @@ const propertySeeds: PropertySeed[] = [
     ],
     available: [2, 9, 16],
     maintenance: [],
+    occupants: [
+      ...repeat('kivea-architects', 4),
+      ...repeat('revontuli-games', 3),
+      ...repeat('nordic-pixel', 2),
+      ...repeat('savo-energy', 3),
+      ...repeat('kallavesi-marketing', 3),
+    ],
   },
   {
     key: 'tampere-hervanta',
@@ -111,6 +134,13 @@ const propertySeeds: PropertySeed[] = [
     ],
     available: [7],
     maintenance: [3],
+    occupants: [
+      ...repeat('arctic-freight', 3),
+      ...repeat('tervas-machinery', 3),
+      'arctic-freight',
+      ...repeat('northwind-outdoor', 2),
+      'karelia-accounting',
+    ],
   },
   {
     key: 'helsinki-kallio',
@@ -132,14 +162,57 @@ const propertySeeds: PropertySeed[] = [
     ],
     available: [10],
     maintenance: [6],
+    occupants: [
+      'aino-virtanen',
+      'mikko-korhonen',
+      'laura-makinen',
+      'juha-nieminen',
+      'emilia-hamalainen',
+      'ville-laine',
+      'sanna-heikkinen',
+      'antti-koskinen',
+      'noora-jarvinen',
+      'eero-lehtonen',
+      'helmi-saarinen',
+      'onni-salminen',
+      'iida-lindqvist',
+      'matias-tuominen',
+    ],
   },
 ]
+
+/** Leases that are not currently active, on spaces without an active lease. */
+interface InactiveLeaseSeed {
+  tenant: string
+  property: string
+  spaceIndex: number
+  /** Offsets in days from today. */
+  startInDays: number
+  endInDays: number | null
+}
+
+const inactiveLeaseSeeds: InactiveLeaseSeed[] = [
+  { tenant: 'aurora-yoga', property: 'joensuu-center', spaceIndex: 11, startInDays: 45, endInDays: null },
+  { tenant: 'saimaa-design', property: 'joensuu-center', spaceIndex: 4, startInDays: -900, endInDays: -60 },
+  { tenant: 'old-town-books', property: 'kuopio-harbour', spaceIndex: 2, startInDays: -1100, endInDays: -120 },
+  { tenant: 'kalle-rantanen', property: 'helsinki-kallio', spaceIndex: 10, startInDays: -700, endInDays: -30 },
+]
+
+/** Monthly rent in euros per square metre, by space type. */
+const rentPerSquareMetre: Record<SpaceType, number> = {
+  office: 19,
+  retail: 26,
+  industrial: 9,
+  storage: 11,
+  apartment: 18,
+}
 
 export interface DemoData {
   properties: Property[]
   spaces: Space[]
   maintenance: MaintenanceTask[]
   tenants: Tenant[]
+  leases: Lease[]
 }
 
 function createSpaces(seed: PropertySeed, propertyId: string, createdAt: string): Space[] {
@@ -180,14 +253,61 @@ export function createDemoData(now: Date = new Date()): DemoData {
   const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS).toISOString()
   const dateIn = (days: number) => daysAgo(-days).slice(0, 10)
 
-  const data: DemoData = { properties: [], spaces: [], maintenance: [], tenants: [] }
+  const today = dateIn(0)
+
+  const data: DemoData = { properties: [], spaces: [], maintenance: [], tenants: [], leases: [] }
+  const spacesByProperty = new Map<string, Space[]>()
+
+  const addLease = (space: Space, tenantKey: string, startDate: string, endDate: string | null) => {
+    // Leases are recorded when they start, or ahead of time for upcoming leases.
+    const timestamp = startDate <= today ? `${startDate}T09:00:00.000Z` : daysAgo(10)
+    data.leases.push({
+      id: `lease-${data.leases.length + 1}`,
+      tenantId: `tenant-${tenantKey}`,
+      spaceId: space.id,
+      startDate,
+      endDate,
+      monthlyRentCents: Math.round(space.areaM2 * rentPerSquareMetre[space.type] * 100),
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    })
+  }
+
   for (const seed of propertySeeds) {
-    const { key, createdDaysAgo, spaces: _spaces, available: _available, maintenance: _maintenance, ...input } =
-      seed
+    const {
+      key,
+      createdDaysAgo,
+      spaces: _spaces,
+      available: _available,
+      maintenance: _maintenance,
+      occupants,
+      ...input
+    } = seed
     const id = `property-${key}`
     const createdAt = daysAgo(createdDaysAgo)
     data.properties.push({ id, ...input, createdAt, updatedAt: createdAt })
-    data.spaces.push(...createSpaces(seed, id, createdAt))
+    const spaces = createSpaces(seed, id, createdAt)
+    data.spaces.push(...spaces)
+    spacesByProperty.set(key, spaces)
+
+    const occupied = spaces.filter((space) => space.status === 'occupied')
+    if (occupied.length !== occupants.length) {
+      throw new Error(`Seed "${key}" has ${occupied.length} occupied spaces but ${occupants.length} occupants`)
+    }
+    // Occupied spaces get an active lease that started in the past.
+    // Every third lease is fixed-term, the rest are open-ended.
+    occupied.forEach((space, index) => {
+      const ordinal = data.leases.length
+      const startDate = dateIn(-(90 + ((ordinal * 47) % 1000)))
+      const endDate = ordinal % 3 === 0 ? dateIn(180 + ((ordinal * 29) % 540)) : null
+      addLease(space, occupants[index]!, startDate, endDate)
+    })
+  }
+
+  for (const seed of inactiveLeaseSeeds) {
+    const space = spacesByProperty.get(seed.property)?.[seed.spaceIndex]
+    if (!space) throw new Error(`Seed space ${seed.property}[${seed.spaceIndex}] does not exist`)
+    addLease(space, seed.tenant, dateIn(seed.startInDays), seed.endInDays === null ? null : dateIn(seed.endInDays))
   }
 
   data.maintenance = maintenanceSeeds.map((seed, index) => {
@@ -227,5 +347,6 @@ export async function resetDemoData(store: Store, now: Date = new Date()): Promi
   for (const property of data.properties) await store.properties.insert(property)
   for (const space of data.spaces) await store.spaces.insert(space)
   for (const task of data.maintenance) await store.maintenance.insert(task)
+  for (const lease of data.leases) await store.leases.insert(lease)
   for (const tenant of data.tenants) await store.tenants.insert(tenant)
 }

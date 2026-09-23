@@ -6,6 +6,7 @@ import { errorHandler, notFoundHandler } from './errors.ts'
 import { demoRouter } from './routes/demo.ts'
 import { featuresRouter } from './routes/features.ts'
 import { healthRouter } from './routes/health.ts'
+import { leasesRouter } from './routes/leases.ts'
 import { maintenanceRouter } from './routes/maintenance.ts'
 import { propertiesRouter } from './routes/properties.ts'
 import { spacesRouter } from './routes/spaces.ts'
@@ -61,6 +62,7 @@ export function createApp({
   api.use(spacesRouter(store))
   api.use(maintenanceRouter(store))
   api.use(tenantsRouter(store))
+  api.use(leasesRouter(store))
   api.use(suggestionsRouter({ suggester, rateLimiter: suggestionRateLimiter, logError }))
   if (demoData) api.use(demoRouter(store))
   for (const router of routers) api.use(router)

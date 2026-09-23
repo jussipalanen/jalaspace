@@ -26,8 +26,11 @@ describe('demo data API', () => {
     expect(await count(base, '/units')).toBe(68)
     expect(await count(base, '/maintenance')).toBe(14)
     expect(await count(base, '/tenants')).toBe(31)
+    expect(await count(base, '/leases')).toBe(62)
+    // Demo tenants have leases, so they cannot be deleted.
+    expect((await fetch(`${base}/api/tenants/tenant-nordic-pixel`, { method: 'DELETE' })).status).toBe(409)
 
-    await fetch(`${base}/api/tenants/tenant-nordic-pixel`, { method: 'DELETE' })
+    await fetch(`${base}/api/leases/lease-1`, { method: 'DELETE' })
     await fetch(`${base}/api/maintenance/maintenance-2`, { method: 'DELETE' })
     await fetch(`${base}/api/units/space-joensuu-center-1`, { method: 'DELETE' })
     await fetch(`${base}/api/properties`, {
@@ -44,7 +47,7 @@ describe('demo data API', () => {
     expect(await propertyNames(base)).toEqual([...DEMO_NAMES, 'New'])
     expect(await count(base, '/units')).toBe(67)
     expect(await count(base, '/maintenance')).toBe(13)
-    expect(await count(base, '/tenants')).toBe(30)
+    expect(await count(base, '/leases')).toBe(61)
 
     const response = await fetch(`${base}/api/demo/reset`, { method: 'POST' })
 
@@ -53,6 +56,7 @@ describe('demo data API', () => {
     expect(await count(base, '/units')).toBe(68)
     expect(await count(base, '/maintenance')).toBe(14)
     expect(await count(base, '/tenants')).toBe(31)
+    expect(await count(base, '/leases')).toBe(62)
   })
 
   it('has no reset endpoint unless the demo data is enabled', async () => {

@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryStore } from '../store/memoryStore.ts'
-import { maintenanceTask } from '../test/fixtures.ts'
+import { lease, maintenanceTask } from '../test/fixtures.ts'
 import { createDemoData, resetDemoData } from './demoData.ts'
+import { checkLeaseReferences, getLeaseStatus, parseLeaseInput, reconcileSpaceStatuses, toIsoDate } from './leases.ts'
 import { checkMaintenanceReferences, parseMaintenanceInput } from './maintenance.ts'
 import { parsePropertyInput } from './properties.ts'
 import { checkSpaceReferences, parseSpaceInput } from './spaces.ts'
-import { checkTenantEmail, parseTenantInput } from './tenants.ts'
+import { checkTenantDeletion, checkTenantEmail, parseTenantInput } from './tenants.ts'
 
 const now = new Date('2026-09-22T10:30:00.000Z')
 
@@ -144,13 +145,53 @@ describe('demo data', () => {
     }
   })
 
+  it('has the 62 demo leases of the frontend seed', () => {
+    const { leases } = createDemoData(now)
+    const today = toIsoDate(now)
+    const count = (status: string) => leases.filter((lease) => getLeaseStatus(lease, today) === status).length
+
+    expect(leases).toHaveLength(62)
+    expect(count('active')).toBe(58)
+    expect(count('upcoming')).toBe(1)
+    expect(count('ended')).toBe(3)
+    expect(leases[0]).toEqual({
+      id: 'lease-1',
+      tenantId: 'tenant-jarvi-coffee',
+      spaceId: 'space-joensuu-center-1',
+      startDate: '2026-06-24',
+      endDate: '2027-03-21',
+      monthlyRentCents: 364000,
+      createdAt: '2026-06-24T09:00:00.000Z',
+      updatedAt: '2026-06-24T09:00:00.000Z',
+    })
+  })
+
+  it('follows the lease rules: occupied exactly with an active lease, no overlaps', () => {
+    const { spaces, leases, tenants } = createDemoData(now)
+    const today = toIsoDate(now)
+
+    expect(reconcileSpaceStatuses(spaces, leases, today)).toEqual([])
+    for (const lease of leases) {
+      const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = lease
+      expect(parseLeaseInput(input)).toEqual({ ok: true, values: input })
+      const space = spaces.find(({ id }) => id === lease.spaceId) ?? null
+      const tenantExists = tenants.some(({ id }) => id === lease.tenantId)
+      expect(checkLeaseReferences(input, { tenantExists, space, leases, today, editingId: lease.id })).toEqual({})
+    }
+  })
+
+  it('gives every demo tenant a lease, so none can be deleted', () => {
+    const { tenants, leases } = createDemoData(now)
+    for (const tenant of tenants) expect(checkTenantDeletion(tenant.id, leases).allowed).toBe(false)
+  })
+
   it('replaces all data with the demo data on reset', async () => {
     const store = createMemoryStore()
     const demo = createDemoData(now)
     await store.properties.insert({ ...demo.properties[0]!, id: 'mine', name: 'Mine' })
     await store.spaces.insert({ ...demo.spaces[0]!, id: 'space-mine', propertyId: 'mine' })
     await store.maintenance.insert(maintenanceTask({ id: 'task-mine', propertyId: 'mine' }))
-    await store.leases.insert({ id: 'lease-1', tenantId: 'tenant-mine', spaceId: 'space-mine', createdAt: '', updatedAt: '' })
+    await store.leases.insert(lease({ id: 'lease-mine', tenantId: 'tenant-mine', spaceId: 'space-mine' }))
     await store.tenants.insert({ ...demo.tenants[0]!, id: 'tenant-mine', email: 'mine@example.com' })
 
     await resetDemoData(store, now)
@@ -159,6 +200,6 @@ describe('demo data', () => {
     expect(await store.spaces.list()).toEqual(demo.spaces)
     expect(await store.maintenance.list()).toEqual(demo.maintenance)
     expect(await store.tenants.list()).toEqual(demo.tenants)
-    expect(await store.leases.list()).toEqual([])
+    expect(await store.leases.list()).toEqual(demo.leases)
   })
 })

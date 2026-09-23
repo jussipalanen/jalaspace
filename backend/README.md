@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, the properties, spaces, maintenance and tenants endpoints and AI suggestions for maintenance tasks. The lease endpoints and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) and AI suggestions for maintenance tasks. The frontend's `api` data provider comes next. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -83,7 +83,7 @@ An invalid value stops the server at start with a clear message. Never commit re
   | 502    | `invalid_suggestion` | The AI answered, but not with a usable suggestion |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
-- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, and for rules that compare with the stored data `notFound`, `duplicate` and `maintenanceLinked`):
+- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
 
   ```json
   { "error": { "code": "validation_failed", "fields": { "name": "required", "postalCode": "invalid" } } }
@@ -119,6 +119,11 @@ An invalid value stops the server at start with a clear message. Never commit re
 | POST   | `/api/tenants`        | `201` with the created tenant and a `Location` header          |
 | PUT    | `/api/tenants/:id`    | The updated tenant, or `404 not_found`                         |
 | DELETE | `/api/tenants/:id`    | `204`, `404 not_found`, or `409 tenant_in_use` with the lease count |
+| GET    | `/api/leases`         | All leases                                                     |
+| GET    | `/api/leases/:id`     | One lease, or `404 not_found`                                  |
+| POST   | `/api/leases`         | `201` with the created lease and a `Location` header           |
+| PUT    | `/api/leases/:id`     | The updated lease, or `404 not_found`                          |
+| DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 
@@ -168,7 +173,8 @@ curl -X POST http://localhost:3000/api/units \
   -d '{"propertyId":"property-joensuu-center","name":"A 501","type":"office","floor":5,"areaM2":62.5,"status":"available"}'
 ```
 
-- **Status follows the leases:** a space is occupied exactly when it has an active lease. A new space has no leases, so `occupied` is saved as `available`; an occupied space stays occupied whatever the client sends. Until the lease endpoints exist, the stored status stands in for "has an active lease".
+- **Status follows the leases:** a space is occupied exactly when it has an active lease (see Leases). A new space has no leases, so `occupied` is saved as `available`; a space with an active lease stays occupied whatever the client sends, and one without cannot be made occupied. Clients choose between `available` and `maintenance`.
+- Leases start and end as days pass, so the stored statuses are brought up to date whenever spaces are read.
 - A space with maintenance tasks cannot move to another property (`propertyId`: `maintenanceLinked`), because the tasks refer to both.
 - A space that still has leases or maintenance tasks cannot be deleted:
 
@@ -225,7 +231,32 @@ A tenant that still has leases (current, upcoming or past) cannot be deleted:
 { "error": { "code": "tenant_in_use", "leaseCount": 2 } }
 ```
 
-Assigning a tenant to a space and removing them from one are lease operations; they come with the lease endpoints.
+Assigning a tenant to a space and removing them from one are lease operations, see below.
+
+### Leases
+
+Fields and rules (the same as in the app):
+
+| Field              | Rules                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| `tenantId`         | Required; the tenant must exist (`notFound`). Fixed once the lease exists |
+| `spaceId`          | Required; the space must exist (`notFound`). Fixed once the lease exists; see the period rules below |
+| `startDate`        | Required, a date-only ISO string such as `2026-10-01`              |
+| `endDate`          | Optional (`null` for an open-ended lease), not before the start (`beforeStart`) |
+| `monthlyRentCents` | Optional (`null`), a whole number of euro cents over 0 and at most 100 000 000 (1 000 000 €) |
+
+```bash
+curl -X POST http://localhost:3000/api/leases \
+  -H 'content-type: application/json' \
+  -d '{"tenantId":"tenant-aurora-yoga","spaceId":"space-kuopio-harbour-10","startDate":"2026-10-01","endDate":null,"monthlyRentCents":125050}'
+```
+
+- **Status is derived, not stored:** `upcoming` before the start date, `ended` after the end date, otherwise `active`. Both dates count as days of the lease, and "today" is the server's UTC date.
+- **One lease at a time per space:** the period must not overlap another lease of the same space (`spaceId`: `overlap`).
+- A lease that is active today cannot start on a space in maintenance (`spaceId`: `maintenance`). An upcoming lease can.
+- **Space status follows:** after a lease is created, updated or deleted, its space is occupied exactly when it has an active lease. An upcoming lease does not occupy it.
+- An update changes only the period and the rent; the stored tenant and space are kept, whatever the client sends.
+- **Removing a tenant from a space**, as in the app: end a running lease yesterday with a `PUT`, or `DELETE` a lease that has not started to cancel it. Nothing refers to a lease, so it can always be deleted.
 
 ### Maintenance suggestions
 
@@ -259,7 +290,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties, their 68 spaces, 14 maintenance tasks and 31 tenants, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants and 62 leases, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 
