@@ -1,9 +1,9 @@
 # JalaSpace
 
 A property and space management demo application built with React and TypeScript.
-A Node.js backend is planned for a later milestone.
+It has a Node.js + TypeScript REST API in `backend/`.
 
-> This is a portfolio/demo project. Data is stored only in the user's browser.
+> This is a portfolio/demo project with fictional data. The public demo shares one dataset through the demo API, which anyone can change and which returns to the demo data whenever the API restarts. Don't enter real personal data.
 
 ## Repository structure
 
@@ -258,8 +258,8 @@ React UI → custom hook → Repository interface → LocalStorageRepository   (
 
   | Provider | Data is kept | Used by |
   | --- | --- | --- |
-  | `localStorage` (default) | In this browser only | `npm run dev`, the public demo on Vercel, tests |
-  | `api` | On the JalaSpace API, shared by every browser; needs `VITE_API_URL` | Docker Compose |
+  | `localStorage` (default) | In this browser only | `npm run dev`, Vercel preview deployments, tests |
+  | `api` | On the JalaSpace API, shared by every browser; needs `VITE_API_URL` | The public demo on Vercel, Docker Compose |
 
 - **`api` provider:** the API assigns ids and timestamps and checks the business rules again. The browser does not seed data; the API starts with its own demo data. The signed-in session, profile, profile image, password and language stay in the browser in both modes.
 - **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_session` and `jalaspace_seed_version`.
@@ -307,9 +307,10 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 | Output Directory  | `dist`          |
 | Node.js Version   | 24.x            |
 | Production Branch | `main`          |
-| Environment       | `VITE_API_URL=https://jalaspace.onrender.com` (Production and Preview) |
+| Environment       | Production: `VITE_DATA_PROVIDER=api`; Preview: `VITE_DATA_PROVIDER=localStorage`; both: `VITE_API_URL=https://jalaspace.onrender.com` |
 
-- Every pull request gets a preview deployment for review.
+- Every pull request gets a preview deployment for review. Previews keep their data in the reviewer's browser, so reviewing a pull request never changes the public data; AI suggestions still use the API.
+- Production reads and saves its data through the API on Render (see below).
 - Merging to `main` deploys to production, so only reviewed code reaches production.
 - [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
 - The demo is kept out of search engines: every page has `<meta name="robots" content="noindex, nofollow">`, and `vercel.json` sends an `X-Robots-Tag: noindex, nofollow` header with every response. [`robots.txt`](frontend/public/robots.txt) deliberately allows crawling, because crawlers must fetch a page to see its noindex.
@@ -325,7 +326,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 | Root Directory    | `backend/`                                 |
 | Build Command     | `npm ci`                                   |
 | Start Command     | `npm start` (runs the TypeScript sources directly, no build step) |
-| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*.vercel.app`; `GEMINI_API_KEY` as a secret; Render sets `PORT` |
+| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` as a secret; Render sets `PORT` |
 | Health Check Path | `/api/health`                              |
 | Region            | Frankfurt (EU Central)                     |
 | Branch            | `main`, auto-deploy on commit              |
@@ -335,7 +336,8 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
 - The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). A database comes later.
-- The public frontend keeps its data in the browser (`localStorage`). It calls the API only for AI maintenance suggestions (`/api/features` and `/api/maintenance/suggestions`). The `api` data provider could use the deployed API too, but all visitors would then share one dataset.
+- The public frontend (Vercel Production) reads and saves all data through this API, so every visitor shares one dataset. Sign-in is simulated in the browser, so anyone can change the data or reset it for everyone; it is demo data only.
+- `CORS_ORIGINS` allows the production site, this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
 
 ## Versions and releases
 
