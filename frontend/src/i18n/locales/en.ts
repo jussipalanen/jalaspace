@@ -18,6 +18,7 @@ export const en = {
     open: 'Open navigation',
     close: 'Close navigation',
     demoNote: 'Demo environment. Data is stored only in this browser.',
+    demoNoteShared: 'Demo environment. The data is shared by everyone who uses this demo.',
     sections: {
       overview: 'Overview',
       portfolio: 'Portfolio',
@@ -127,6 +128,8 @@ export const en = {
     fillDemo: 'Fill in demo credentials',
     notice:
       'This is a demo. Sign-in is simulated in your browser and is not secure. Data is stored only in this browser.',
+    noticeShared:
+      'This is a demo. Sign-in is simulated in your browser and is not secure. The data is shared by everyone who uses this demo, so do not enter personal information.',
     invalidCredentials: 'Invalid email or password.',
     unavailable: 'Unable to sign in. Please try again.',
     validation: {

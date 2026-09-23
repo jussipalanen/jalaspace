@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router'
+import { isSharedData } from '../../config/dataProvider'
 import { mainNavigation, secondaryNavigation } from '../../config/navigation'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { NavItem } from '../../types/navigation'
@@ -71,7 +72,9 @@ export function Sidebar({ id, isOpen, onClose }: SidebarProps) {
             <SidebarLink key={item.to} item={item} onNavigate={onClose} />
           ))}
         </ul>
-        <p className="sidebar__demo-note">{t('nav.demoNote')}</p>
+        <p className="sidebar__demo-note">
+          {t(isSharedData() ? 'nav.demoNoteShared' : 'nav.demoNote')}
+        </p>
       </div>
     </aside>
   )
