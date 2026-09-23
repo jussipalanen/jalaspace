@@ -1,5 +1,6 @@
 import type { Entity } from '../domain/common.ts'
 import type { Property } from '../domain/properties.ts'
+import type { Space } from '../domain/spaces.ts'
 
 /**
  * Storage for one kind of entity. Asynchronous so the in-memory
@@ -18,15 +19,22 @@ export interface Collection<T extends Entity> {
 }
 
 /**
- * The part of a space or maintenance task that refers to a property. They get
- * their full types when their own endpoints are added.
+ * The part of a maintenance task that refers to a property and optionally a
+ * space. It gets its full type when the maintenance endpoints are added.
  */
-export interface PropertyReference extends Entity {
+export interface MaintenanceReference extends Entity {
   propertyId: string
+  spaceId: string | null
+}
+
+/** The part of a lease that refers to a space, until the lease endpoints are added. */
+export interface LeaseReference extends Entity {
+  spaceId: string
 }
 
 export interface Store {
   properties: Collection<Property>
-  spaces: Collection<PropertyReference>
-  maintenance: Collection<PropertyReference>
+  spaces: Collection<Space>
+  maintenance: Collection<MaintenanceReference>
+  leases: Collection<LeaseReference>
 }

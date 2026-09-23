@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, the properties endpoints and AI suggestions for maintenance tasks. The other domain endpoints (spaces, maintenance, tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, the properties and spaces endpoints and AI suggestions for maintenance tasks. The other domain endpoints (maintenance, tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -75,13 +75,14 @@ An invalid value stops the server at start with a clear message. Never commit re
   | 400    | `validation_failed` | The body has invalid fields, listed in `fields` |
   | 404    | `not_found`         | The route or resource does not exist  |
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
+  | 409    | `space_in_use`      | The space still has leases or maintenance tasks |
   | 413    | `payload_too_large` | The request body is over the limit    |
   | 429    | `rate_limited`      | Too many AI suggestions from this client (with `Retry-After`) or the AI quota is used up |
   | 500    | `internal_error`    | An unexpected error; details are only logged on the server, never sent |
   | 502    | `invalid_suggestion` | The AI answered, but not with a usable suggestion |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
-- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`):
+- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, and for rules that compare with the stored data `notFound`, `duplicate` and `maintenanceLinked`):
 
   ```json
   { "error": { "code": "validation_failed", "fields": { "name": "required", "postalCode": "invalid" } } }
@@ -102,6 +103,11 @@ An invalid value stops the server at start with a clear message. Never commit re
 | POST   | `/api/properties`     | `201` with the created property and a `Location` header        |
 | PUT    | `/api/properties/:id` | The updated property, or `404 not_found`                       |
 | DELETE | `/api/properties/:id` | `204`, `404 not_found`, or `409 property_in_use` with counts   |
+| GET    | `/api/units`          | All spaces                                                     |
+| GET    | `/api/units/:id`      | One space, or `404 not_found`                                  |
+| POST   | `/api/units`          | `201` with the created space and a `Location` header           |
+| PUT    | `/api/units/:id`      | The updated space, or `404 not_found`                          |
+| DELETE | `/api/units/:id`      | `204`, `404 not_found`, or `409 space_in_use` with counts      |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 
@@ -131,6 +137,33 @@ A property that still has spaces or maintenance tasks cannot be deleted, so no d
 ```json
 { "error": { "code": "property_in_use", "spaceCount": 2, "maintenanceCount": 1 } }
 ```
+
+### Spaces
+
+Spaces are served under `/api/units`, like the app route; the entity is called a space. Editable fields and rules (the same as in the app):
+
+| Field        | Rules                                                                    |
+| ------------ | ------------------------------------------------------------------------ |
+| `propertyId` | Required; the property must exist (`notFound`)                           |
+| `name`       | Required, at most 50 characters, unique within the property ignoring case (`duplicate`) |
+| `type`       | Required: `office`, `retail`, `industrial`, `storage` or `apartment`     |
+| `floor`      | Required, a whole number from −10 to 200                                 |
+| `areaM2`     | Required, a number over 0 and at most 100 000 with at most two decimals  |
+| `status`     | Required: `available`, `occupied` or `maintenance`, see below            |
+
+```bash
+curl -X POST http://localhost:3000/api/units \
+  -H 'content-type: application/json' \
+  -d '{"propertyId":"property-joensuu-center","name":"A 501","type":"office","floor":5,"areaM2":62.5,"status":"available"}'
+```
+
+- **Status follows the leases:** a space is occupied exactly when it has an active lease. A new space has no leases, so `occupied` is saved as `available`; an occupied space stays occupied whatever the client sends. Until the lease endpoints exist, the stored status stands in for "has an active lease".
+- A space with maintenance tasks cannot move to another property (`propertyId`: `maintenanceLinked`), because the tasks refer to both.
+- A space that still has leases or maintenance tasks cannot be deleted:
+
+  ```json
+  { "error": { "code": "space_in_use", "leaseCount": 1, "maintenanceCount": 2 } }
+  ```
 
 ### Maintenance suggestions
 
@@ -164,7 +197,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, …) and dates relative to today; for now it has the four demo properties, and it grows as the other endpoints are added.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties and their 68 spaces, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted.
 
 Restore it at any time, undoing all changes:
 
