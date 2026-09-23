@@ -126,6 +126,7 @@ export const fi: Messages = {
     password: 'Salasana',
     submitting: 'Kirjaudutaan…',
     demoAccount: 'Demotili',
+    demoHint: 'Demotiedot tallennetaan vain tähän selaimeen.',
     fillDemo: 'Täytä demotunnukset',
     notice:
       'Tämä on demo. Kirjautuminen tapahtuu vain selaimessasi, eikä se ole turvallinen. Tiedot tallennetaan vain tähän selaimeen.',

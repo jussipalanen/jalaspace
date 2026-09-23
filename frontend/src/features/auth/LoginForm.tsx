@@ -60,6 +60,7 @@ export function LoginForm() {
               <code>{DEMO_CREDENTIALS.password}</code>
             </dd>
           </dl>
+          <p className="login-form__demo-hint">{t('auth.demoHint')}</p>
           <button type="button" className="login-form__demo-fill" onClick={fillDemoCredentials}>
             {t('auth.fillDemo')}
           </button>

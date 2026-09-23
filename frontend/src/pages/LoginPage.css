@@ -98,6 +98,12 @@
   font-size: 0.95em;
 }
 
+.login-form__demo-hint {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-subtle);
+}
+
 .login-form__demo-fill {
   margin-top: var(--space-2);
   padding: 0;
