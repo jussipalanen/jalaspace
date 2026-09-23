@@ -439,7 +439,7 @@ jalaspace/
 
 The `backend/` directory holds the Node.js + TypeScript API (Express). It runs the TypeScript sources directly on Node.js 24 (type stripping), so there is no build step. Its conventions are described in `backend/README.md`: routes under `/api`, errors as codes (`{ "error": { "code": "not_found" } }`), never stack traces.
 
-Add backend endpoints only when an issue asks for them. The frontend's `api` data provider (`VITE_DATA_PROVIDER=api`) reads and writes all entities through these endpoints; `localStorage` stays the default and is used by the public demo.
+Add backend endpoints only when an issue asks for them. The frontend's `api` data provider (`VITE_DATA_PROVIDER=api`) reads and writes all entities through these endpoints; `localStorage` stays the default for development, tests and preview deployments, and production on Vercel uses `api` (see Environment Separation).
 
 ---
 
@@ -1721,15 +1721,15 @@ preview
 production
 ```
 
-For the demo application production may use:
+The demo application uses:
 
-```env
-VITE_DATA_PROVIDER=localStorage
+```text
+development   localStorage (npm run dev) or api (Docker Compose, local API)
+preview       localStorage, so a preview never changes the public data
+production    api, the shared demo API on Render
 ```
 
-Pull Request preview environments may use the same provider.
-
-Do not accidentally connect preview environments to future production databases.
+Do not connect preview environments to production data: not to the production API's data, and not to a future production database.
 
 ---
 
@@ -1761,7 +1761,13 @@ dist
 Environment:
 
 ```env
+# Production
+VITE_DATA_PROVIDER=api
+VITE_API_URL=https://jalaspace.onrender.com
+
+# Preview
 VITE_DATA_PROVIDER=localStorage
+VITE_API_URL=https://jalaspace.onrender.com
 ```
 
 Pull Requests may create preview deployments.
