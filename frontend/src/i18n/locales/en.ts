@@ -34,6 +34,8 @@ export const en = {
       leases: 'Leases',
       settings: 'Settings',
     },
+    apiDocs: 'API docs',
+    opensInNewTab: '(opens in a new tab)',
   },
   header: {
     signOut: 'Sign out',

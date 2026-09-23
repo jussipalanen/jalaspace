@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router'
+import { getApiUrl } from '../../config/api'
 import { isSharedData } from '../../config/dataProvider'
 import { mainNavigation, secondaryNavigation } from '../../config/navigation'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { NavItem } from '../../types/navigation'
-import { CloseIcon, LogoMark } from '../icons'
+import { CloseIcon, CodeIcon, ExternalLinkIcon, LogoMark } from '../icons'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -26,6 +27,30 @@ function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate: () => vo
         <Icon className="sidebar__link-icon" />
         <span>{t(item.labelKey)}</span>
       </NavLink>
+    </li>
+  )
+}
+
+/** The API's interactive documentation (`/docs`), when the app knows the API's address. */
+function ApiDocsLink({ onNavigate }: { onNavigate: () => void }) {
+  const { t } = useTranslation()
+  const apiUrl = getApiUrl()
+  if (!apiUrl) return null
+  return (
+    <li>
+      <a
+        className="sidebar__link"
+        href={`${apiUrl}/docs`}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={onNavigate}
+      >
+        <CodeIcon className="sidebar__link-icon" />
+        <span>{t('nav.apiDocs')}</span>
+        <ExternalLinkIcon className="sidebar__external-icon" width={14} height={14} />
+        {/* The space keeps the accessible name "API docs (opens in a new tab)". */}{' '}
+        <span className="visually-hidden">{t('nav.opensInNewTab')}</span>
+      </a>
     </li>
   )
 }
@@ -71,6 +96,7 @@ export function Sidebar({ id, isOpen, onClose }: SidebarProps) {
           {secondaryNavigation.map((item) => (
             <SidebarLink key={item.to} item={item} onNavigate={onClose} />
           ))}
+          <ApiDocsLink onNavigate={onClose} />
         </ul>
         <p className="sidebar__demo-note">
           {t(isSharedData() ? 'nav.demoNoteShared' : 'nav.demoNote')}
