@@ -913,6 +913,8 @@ Features:
 * list
 * property filter
 * status filter
+* rooms filter
+* features filter
 * search
 * create
 * edit
@@ -925,6 +927,17 @@ Available
 Occupied
 Maintenance
 ```
+
+Rooms and features:
+
+```text
+rooms       optional whole number 1–50 (null when not recorded)
+features    sauna, balcony, furnished, parking, accessible, loading_dock, kitchen
+```
+
+* features are a fixed list of codes, translated in the UI, stored without duplicates in the order above
+* the rooms filter offers 1–4 rooms exactly and 5 or more; the features filter requires every chosen feature
+* the API treats missing `rooms` and `features` as `null` and `[]`, so older clients keep working
 
 ---
 
