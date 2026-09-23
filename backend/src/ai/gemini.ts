@@ -63,12 +63,11 @@ export interface GeminiOptions {
 export class GeminiSuggester implements MaintenanceSuggester {
   readonly #options: Required<GeminiOptions>
 
-  constructor({ apiKey, model, timeoutMs = 20_000, fetch: fetchImpl = fetch }: GeminiOptions) {
-    this.#options = { apiKey, model, timeoutMs, fetch: fetchImpl }
+  constructor(options: GeminiOptions) {
+    this.#options = withDefaults(options)
   }
 
   async suggest({ title, description, language }: SuggestionRequest): Promise<MaintenanceSuggestion> {
-    const { apiKey, model, timeoutMs, fetch: fetchImpl } = this.#options
     const instruction = [
       SYSTEM_INSTRUCTION,
       `Write the title and the description in ${LANGUAGE_NAMES[language]}.`,
@@ -78,47 +77,93 @@ export class GeminiSuggester implements MaintenanceSuggester {
     const userText = [title && `Title: ${title}`, description && `Description: ${description}`]
       .filter(Boolean)
       .join('\n')
-    const body = {
-      systemInstruction: { parts: [{ text: instruction }] },
-      contents: [{ role: 'user', parts: [{ text: userText }] }],
-      generationConfig: {
-        responseMimeType: 'application/json',
-        responseSchema: RESPONSE_SCHEMA,
-        temperature: 0.2,
-        maxOutputTokens: 1024,
-      },
-    }
-
-    let response: Response
     try {
-      response = await fetchImpl(`${API_URL}/${encodeURIComponent(model)}:generateContent`, {
-        method: 'POST',
-        // The key goes in a header, not the URL, so it never ends up in logged URLs.
-        headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(timeoutMs),
+      const answer = await generateJson(this.#options, {
+        instruction,
+        userText,
+        schema: RESPONSE_SCHEMA,
+        maxOutputTokens: 1024,
       })
+      return parseSuggestion(answer)
     } catch (error) {
-      throw new SuggestionError('ai_unavailable', `Gemini request failed: ${String(error)}`)
-    }
-
-    if (response.status === 429) throw new SuggestionError('rate_limited', 'Gemini quota exceeded')
-    if (!response.ok) {
-      // Google's message (e.g. an unknown model) is logged on the server only.
+      if (!(error instanceof GeminiError)) throw error
       throw new SuggestionError(
-        'ai_unavailable',
-        `Gemini answered ${response.status}: ${await errorMessage(response)}`,
+        error.code === 'invalid' ? 'invalid_suggestion' : error.code,
+        error.message,
       )
     }
-
-    let data: unknown
-    try {
-      data = await response.json()
-    } catch (error) {
-      throw new SuggestionError('ai_unavailable', `Gemini response was unreadable: ${String(error)}`)
-    }
-    return parseSuggestion(parseJson(extractText(data)))
   }
+}
+
+/** Why a Gemini request gave no usable JSON; each feature maps it to its own error code. */
+export class GeminiError extends Error {
+  readonly code: 'ai_unavailable' | 'rate_limited' | 'invalid'
+
+  constructor(code: GeminiError['code'], message: string) {
+    super(message)
+    this.name = 'GeminiError'
+    this.code = code
+  }
+}
+
+export function withDefaults({ apiKey, model, timeoutMs = 20_000, fetch: fetchImpl = fetch }: GeminiOptions) {
+  return { apiKey, model, timeoutMs, fetch: fetchImpl }
+}
+
+export interface JsonRequest {
+  instruction: string
+  userText: string
+  /**
+   * The answer format, which Gemini's JSON mode then follows strictly. Leave it out
+   * for large formats: described in the instruction instead, the model fills them in
+   * more reliably. Callers check the answer either way.
+   */
+  schema?: object
+  maxOutputTokens: number
+}
+
+/** Calls `generateContent` with JSON output and returns the parsed answer. */
+export async function generateJson(
+  { apiKey, model, timeoutMs, fetch: fetchImpl }: Required<GeminiOptions>,
+  { instruction, userText, schema, maxOutputTokens }: JsonRequest,
+): Promise<unknown> {
+  const body = {
+    systemInstruction: { parts: [{ text: instruction }] },
+    contents: [{ role: 'user', parts: [{ text: userText }] }],
+    generationConfig: {
+      responseMimeType: 'application/json',
+      ...(schema ? { responseSchema: schema } : {}),
+      temperature: 0.2,
+      maxOutputTokens,
+    },
+  }
+
+  let response: Response
+  try {
+    response = await fetchImpl(`${API_URL}/${encodeURIComponent(model)}:generateContent`, {
+      method: 'POST',
+      // The key goes in a header, not the URL, so it never ends up in logged URLs.
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': apiKey },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeoutMs),
+    })
+  } catch (error) {
+    throw new GeminiError('ai_unavailable', `Gemini request failed: ${String(error)}`)
+  }
+
+  if (response.status === 429) throw new GeminiError('rate_limited', 'Gemini quota exceeded')
+  if (!response.ok) {
+    // Google's message (e.g. an unknown model) is logged on the server only.
+    throw new GeminiError('ai_unavailable', `Gemini answered ${response.status}: ${await errorMessage(response)}`)
+  }
+
+  let data: unknown
+  try {
+    data = await response.json()
+  } catch (error) {
+    throw new GeminiError('ai_unavailable', `Gemini response was unreadable: ${String(error)}`)
+  }
+  return parseJson(extractText(data))
 }
 
 /** Returns the answer text of the first candidate, skipping any "thought" parts. */
@@ -131,7 +176,7 @@ function extractText(data: unknown): string {
     .map((part) => (part as { text: string }).text)
     .join('')
   // An empty answer usually means the request was blocked or cut off.
-  if (!text) throw new SuggestionError('invalid_suggestion', 'Gemini returned no text')
+  if (!text) throw new GeminiError('invalid', 'Gemini returned no text')
   return text
 }
 
@@ -139,7 +184,7 @@ function parseJson(text: string): unknown {
   try {
     return JSON.parse(text)
   } catch {
-    throw new SuggestionError('invalid_suggestion', 'Gemini returned invalid JSON')
+    throw new GeminiError('invalid', 'Gemini returned invalid JSON')
   }
 }
 

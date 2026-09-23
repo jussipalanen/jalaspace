@@ -36,5 +36,5 @@ export function useDashboard() {
     [data, locale],
   )
 
-  return { status: state.status, summary, reload: state.reload }
+  return { status: state.status, data, summary, reload: state.reload }
 }
