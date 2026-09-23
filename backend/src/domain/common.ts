@@ -8,8 +8,12 @@ export interface Entity {
   updatedAt: IsoDateTime
 }
 
-/** Error code for one invalid field. The frontend translates it per field. */
-export type FieldErrorCode = 'required' | 'tooLong' | 'invalid'
+/**
+ * Error code for one invalid field. The frontend translates it per field.
+ * `notFound`, `duplicate` and `maintenanceLinked` compare the input with the
+ * stored data, e.g. a space's property must exist.
+ */
+export type FieldErrorCode = 'required' | 'tooLong' | 'invalid' | 'notFound' | 'duplicate' | 'maintenanceLinked'
 
 /** The result of checking a request body: the cleaned values, or an error code per field. */
 export type ParseResult<T> =

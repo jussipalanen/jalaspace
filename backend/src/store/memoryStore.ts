@@ -44,5 +44,6 @@ export function createMemoryStore(): Store {
     properties: new MemoryCollection(),
     spaces: new MemoryCollection(),
     maintenance: new MemoryCollection(),
+    leases: new MemoryCollection(),
   }
 }

@@ -7,6 +7,7 @@ import { demoRouter } from './routes/demo.ts'
 import { featuresRouter } from './routes/features.ts'
 import { healthRouter } from './routes/health.ts'
 import { propertiesRouter } from './routes/properties.ts'
+import { spacesRouter } from './routes/spaces.ts'
 import { suggestionsRouter } from './routes/suggestions.ts'
 import { createMemoryStore } from './store/memoryStore.ts'
 import type { Store } from './store/store.ts'
@@ -55,6 +56,7 @@ export function createApp({
   api.use(healthRouter(version))
   api.use(featuresRouter({ maintenanceSuggestions: suggester !== null }))
   api.use(propertiesRouter(store))
+  api.use(spacesRouter(store))
   api.use(suggestionsRouter({ suggester, rateLimiter: suggestionRateLimiter, logError }))
   if (demoData) api.use(demoRouter(store))
   for (const router of routers) api.use(router)

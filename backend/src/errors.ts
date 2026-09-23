@@ -10,6 +10,7 @@ export type ErrorCode =
   | 'payload_too_large'
   | 'validation_failed'
   | 'property_in_use'
+  | 'space_in_use'
   | 'rate_limited'
   | 'ai_unavailable'
   | 'invalid_suggestion'

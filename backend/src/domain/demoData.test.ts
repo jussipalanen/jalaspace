@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import { createDemoData, resetDemoData } from './demoData.ts'
 import { parsePropertyInput } from './properties.ts'
+import { checkSpaceReferences, parseSpaceInput } from './spaces.ts'
 
 const now = new Date('2026-09-22T10:30:00.000Z')
 
@@ -30,16 +31,53 @@ describe('demo data', () => {
     }
   })
 
+  it('has the 68 demo spaces of the frontend seed', () => {
+    const { spaces } = createDemoData(now)
+    const count = (status: string) => spaces.filter((space) => space.status === status).length
+
+    expect(spaces).toHaveLength(68)
+    expect(count('occupied')).toBe(58)
+    expect(count('available')).toBe(7)
+    expect(count('maintenance')).toBe(3)
+    expect(new Set(spaces.map(({ id }) => id)).size).toBe(68)
+  })
+
+  it('names, sizes and dates the spaces like the frontend seed', () => {
+    const { properties, spaces } = createDemoData(now)
+    const byId = (id: string) => spaces.find((space) => space.id === id)
+
+    expect(byId('space-joensuu-center-1')).toMatchObject({ name: 'Retail 1', type: 'retail', floor: 1, areaM2: 140 })
+    expect(byId('space-joensuu-center-5')).toMatchObject({ name: 'A 201', floor: 2, areaM2: 67, status: 'available' })
+    expect(byId('space-joensuu-center-16')).toMatchObject({ name: 'A 306', status: 'maintenance' })
+    expect(byId('space-kuopio-harbour-18')).toMatchObject({ name: 'B 306', floor: 3, areaM2: 86 })
+    expect(byId('space-tampere-hervanta-12')).toMatchObject({ name: 'Storage 6', type: 'storage', areaM2: 30 })
+    expect(byId('space-helsinki-kallio-16')).toMatchObject({ name: 'A 16', type: 'apartment', floor: 4, areaM2: 77 })
+    expect(byId('space-helsinki-kallio-1')?.createdAt).toBe(properties[3]!.createdAt)
+  })
+
+  it('has spaces that pass the same validation as data sent by clients', () => {
+    const { properties, spaces } = createDemoData(now)
+    for (const space of spaces) {
+      const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = space
+      expect(parseSpaceInput(input)).toEqual({ ok: true, values: input })
+      const propertyExists = properties.some(({ id }) => id === space.propertyId)
+      expect(checkSpaceReferences(input, { propertyExists, spaces, maintenance: [], existing: space })).toEqual({})
+    }
+  })
+
   it('replaces all data with the demo data on reset', async () => {
     const store = createMemoryStore()
-    await store.properties.insert({ ...createDemoData(now).properties[0]!, id: 'mine', name: 'Mine' })
-    await store.spaces.insert({ id: 'space-1', propertyId: 'mine', createdAt: '', updatedAt: '' })
-    await store.maintenance.insert({ id: 'task-1', propertyId: 'mine', createdAt: '', updatedAt: '' })
+    const demo = createDemoData(now)
+    await store.properties.insert({ ...demo.properties[0]!, id: 'mine', name: 'Mine' })
+    await store.spaces.insert({ ...demo.spaces[0]!, id: 'space-mine', propertyId: 'mine' })
+    await store.maintenance.insert({ id: 'task-1', propertyId: 'mine', spaceId: null, createdAt: '', updatedAt: '' })
+    await store.leases.insert({ id: 'lease-1', spaceId: 'space-mine', createdAt: '', updatedAt: '' })
 
     await resetDemoData(store, now)
 
-    expect(await store.properties.list()).toEqual(createDemoData(now).properties)
-    expect(await store.spaces.list()).toEqual([])
+    expect(await store.properties.list()).toEqual(demo.properties)
+    expect(await store.spaces.list()).toEqual(demo.spaces)
     expect(await store.maintenance.list()).toEqual([])
+    expect(await store.leases.list()).toEqual([])
   })
 })

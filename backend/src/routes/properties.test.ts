@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createApp } from '../app.ts'
 import type { Property } from '../domain/properties.ts'
+import type { Space } from '../domain/spaces.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
 import { serve } from '../test/serve.ts'
@@ -130,10 +131,20 @@ describe('properties API', () => {
 
   it('refuses to delete a property that still has spaces or maintenance tasks', async () => {
     const created = await create()
-    const reference = (id: string) => ({ id, propertyId: created.id, createdAt: '', updatedAt: '' })
-    await store.spaces.insert(reference('space-1'))
-    await store.spaces.insert(reference('space-2'))
-    await store.maintenance.insert(reference('task-1'))
+    const space = (id: string, name: string): Space => ({
+      id,
+      propertyId: created.id,
+      name,
+      type: 'office',
+      floor: 1,
+      areaM2: 50,
+      status: 'available',
+      createdAt: '',
+      updatedAt: '',
+    })
+    await store.spaces.insert(space('space-1', 'A 101'))
+    await store.spaces.insert(space('space-2', 'A 102'))
+    await store.maintenance.insert({ id: 'task-1', propertyId: created.id, spaceId: null, createdAt: '', updatedAt: '' })
 
     const response = await send('DELETE', `/properties/${created.id}`)
 
