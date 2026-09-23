@@ -1,4 +1,5 @@
 import type { Entity } from '../domain/common.ts'
+import type { Lease } from '../domain/leases.ts'
 import type { MaintenanceTask } from '../domain/maintenance.ts'
 import type { Property } from '../domain/properties.ts'
 import type { Space } from '../domain/spaces.ts'
@@ -20,16 +21,10 @@ export interface Collection<T extends Entity> {
   clear(): Promise<void>
 }
 
-/** The part of a lease that refers to a tenant and a space, until the lease endpoints are added. */
-export interface LeaseReference extends Entity {
-  tenantId: string
-  spaceId: string
-}
-
 export interface Store {
   properties: Collection<Property>
   spaces: Collection<Space>
   maintenance: Collection<MaintenanceTask>
   tenants: Collection<Tenant>
-  leases: Collection<LeaseReference>
+  leases: Collection<Lease>
 }

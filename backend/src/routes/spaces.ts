@@ -8,6 +8,7 @@ import {
   type Space,
   type SpaceInput,
 } from '../domain/spaces.ts'
+import { hasActiveLease, syncSpaceStatuses, toIsoDate } from '../domain/leases.ts'
 import { ApiError } from '../errors.ts'
 import type { Store } from '../store/store.ts'
 
@@ -38,10 +39,13 @@ export function spacesRouter(store: Store, now: () => Date = () => new Date()): 
   const router = Router()
 
   router.get('/units', async (_request, response) => {
+    // Leases start and end as days pass, so statuses are brought up to date first.
+    await syncSpaceStatuses(store, now())
     response.json(await store.spaces.list())
   })
 
   router.get('/units/:id', async (request, response) => {
+    await syncSpaceStatuses(store, now(), [request.params.id])
     const space = await store.spaces.get(request.params.id)
     if (!space) throw new ApiError(404, 'not_found')
     response.json(space)
@@ -66,15 +70,14 @@ export function spacesRouter(store: Store, now: () => Date = () => new Date()): 
     const existing = await store.spaces.get(request.params.id)
     if (!existing) throw new ApiError(404, 'not_found')
     const input = await readInput(store, request.body, existing)
-    // The status follows the leases, whatever the client sends. Until the
-    // lease endpoints exist, the stored status stands in for "has an active
-    // lease"; the demo data keeps them in step.
-    const hasActiveLease = existing.status === 'occupied'
+    // The status follows the leases, whatever the client sends.
+    const time = now()
+    const occupied = hasActiveLease(existing.id, await store.leases.list(), toIsoDate(time))
     const updated = await store.spaces.update({
       ...existing,
       ...input,
-      status: resolveSpaceStatus(input.status, hasActiveLease),
-      updatedAt: now().toISOString(),
+      status: resolveSpaceStatus(input.status, occupied),
+      updatedAt: time.toISOString(),
     })
     if (!updated) throw new ApiError(404, 'not_found')
     response.json(updated)

@@ -3,6 +3,7 @@ import { createApp } from '../app.ts'
 import type { Tenant } from '../domain/tenants.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
+import { lease } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const input = {
@@ -133,9 +134,8 @@ describe('tenants API', () => {
 
   it('refuses to delete a tenant that still has leases', async () => {
     const created = await create()
-    const lease = (id: string) => ({ id, tenantId: created.id, spaceId: 'space-1', createdAt: '', updatedAt: '' })
-    await store.leases.insert(lease('lease-1'))
-    await store.leases.insert(lease('lease-2'))
+    await store.leases.insert(lease({ id: 'lease-1', tenantId: created.id }))
+    await store.leases.insert(lease({ id: 'lease-2', tenantId: created.id, spaceId: 'space-2' }))
 
     const response = await send('DELETE', `/tenants/${created.id}`)
 
