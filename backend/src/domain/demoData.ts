@@ -1,4 +1,6 @@
 import type { Store } from '../store/store.ts'
+import { maintenanceSeeds } from './demoMaintenance.ts'
+import type { MaintenanceTask } from './maintenance.ts'
 import type { Property, PropertyInput } from './properties.ts'
 import type { Space, SpaceStatus, SpaceType } from './spaces.ts'
 
@@ -29,8 +31,7 @@ const pad = (value: number) => String(value).padStart(2, '0')
 // The same properties and spaces, ids and creation dates as the frontend seed
 // (frontend/src/data/seed/properties.ts and index.ts), so the data matches
 // once the frontend reads it from the API. The remaining spaces are occupied;
-// their leases, the tenants and the maintenance tasks are added here with
-// their endpoints.
+// their leases and the tenants are added here with their endpoints.
 const propertySeeds: PropertySeed[] = [
   {
     key: 'joensuu-center',
@@ -135,6 +136,7 @@ const propertySeeds: PropertySeed[] = [
 export interface DemoData {
   properties: Property[]
   spaces: Space[]
+  maintenance: MaintenanceTask[]
 }
 
 function createSpaces(seed: PropertySeed, propertyId: string, createdAt: string): Space[] {
@@ -167,17 +169,40 @@ function createSpaces(seed: PropertySeed, propertyId: string, createdAt: string)
   return spaces
 }
 
-/** Builds the demo dataset. Dates are relative to `now`, like in the frontend. */
+/**
+ * Builds the demo dataset. Dates are relative to `now`, like in the frontend;
+ * date-only values such as due dates use the UTC calendar day.
+ */
 export function createDemoData(now: Date = new Date()): DemoData {
-  const data: DemoData = { properties: [], spaces: [] }
+  const daysAgo = (days: number) => new Date(now.getTime() - days * DAY_MS).toISOString()
+  const dateIn = (days: number) => daysAgo(-days).slice(0, 10)
+
+  const data: DemoData = { properties: [], spaces: [], maintenance: [] }
   for (const seed of propertySeeds) {
     const { key, createdDaysAgo, spaces: _spaces, available: _available, maintenance: _maintenance, ...input } =
       seed
     const id = `property-${key}`
-    const createdAt = new Date(now.getTime() - createdDaysAgo * DAY_MS).toISOString()
+    const createdAt = daysAgo(createdDaysAgo)
     data.properties.push({ id, ...input, createdAt, updatedAt: createdAt })
     data.spaces.push(...createSpaces(seed, id, createdAt))
   }
+
+  data.maintenance = maintenanceSeeds.map((seed, index) => {
+    const { property, spaceIndex, createdDaysAgo, dueInDays, completedDaysAgo, ...fields } = seed
+    const createdAt = daysAgo(createdDaysAgo)
+    const completedAt =
+      seed.status === 'completed' && completedDaysAgo !== undefined ? daysAgo(completedDaysAgo) : null
+    return {
+      id: `maintenance-${index + 1}`,
+      propertyId: `property-${property}`,
+      spaceId: spaceIndex === null ? null : `space-${property}-${spaceIndex + 1}`,
+      ...fields,
+      dueDate: dueInDays === null ? null : dateIn(dueInDays),
+      completedAt,
+      createdAt,
+      updatedAt: completedAt ?? createdAt,
+    }
+  })
   return data
 }
 
@@ -192,4 +217,5 @@ export async function resetDemoData(store: Store, now: Date = new Date()): Promi
   const data = createDemoData(now)
   for (const property of data.properties) await store.properties.insert(property)
   for (const space of data.spaces) await store.spaces.insert(space)
+  for (const task of data.maintenance) await store.maintenance.insert(task)
 }

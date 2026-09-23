@@ -4,6 +4,7 @@ import type { Property } from '../domain/properties.ts'
 import type { Space } from '../domain/spaces.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
+import { maintenanceTask } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const property = (id: string): Property => ({
@@ -170,13 +171,7 @@ describe('spaces API', () => {
 
   it('does not move a space with maintenance tasks to another property', async () => {
     const created = await create()
-    await store.maintenance.insert({
-      id: 'task-1',
-      propertyId: 'property-1',
-      spaceId: created.id,
-      createdAt: '',
-      updatedAt: '',
-    })
+    await store.maintenance.insert(maintenanceTask({ id: 'task-1', spaceId: created.id }))
 
     const response = await send('PUT', `/units/${created.id}`, { ...input, propertyId: 'property-2' })
 
@@ -202,7 +197,7 @@ describe('spaces API', () => {
     const reference = { spaceId: created.id, createdAt: '', updatedAt: '' }
     await store.leases.insert({ id: 'lease-1', ...reference })
     await store.leases.insert({ id: 'lease-2', ...reference })
-    await store.maintenance.insert({ id: 'task-1', propertyId: 'property-1', ...reference })
+    await store.maintenance.insert(maintenanceTask({ id: 'task-1', spaceId: created.id }))
 
     const response = await send('DELETE', `/units/${created.id}`)
 
