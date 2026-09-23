@@ -1444,17 +1444,22 @@ Location and naming:
 ```text
 frontend/e2e/*.spec.ts          desktop Chromium
 frontend/e2e/*.mobile.spec.ts   mobile Chromium viewport
+frontend/e2e/*.api.spec.ts      the `api` data provider against the real API
 frontend/e2e/fixtures.ts        shared helpers
-frontend/playwright.config.ts
+frontend/playwright.config.ts       localStorage tests
+frontend/playwright.api.config.ts   API tests: starts backend/ and an `api` build
 ```
+
+API tests share one dataset on the API, so they run serially and reset it (`POST /api/demo/reset`) before each test. Keep them to a few critical flows; validation rules and edge cases belong in the localStorage suite and in unit tests.
 
 Tests run against the production build served by `vite preview`, the closest local match to the Vercel deployment.
 
 Commands (inside `frontend/`):
 
 ```bash
-npm run test:e2e        # run all E2E tests
+npm run test:e2e        # run all E2E tests (localStorage)
 npm run test:e2e:ui     # interactive UI mode
+npm run test:e2e:api    # API tests; needs `npm ci` in backend/
 npx playwright install chromium   # one-time browser install
 ```
 
@@ -1501,6 +1506,7 @@ npm run typecheck
 npm run test
 npm run build
 npm run test:e2e
+npm run test:e2e:api
 ```
 
 and for `backend/`:
@@ -2175,7 +2181,7 @@ npm run build
 npm run test:e2e
 ```
 
-in `frontend/`, and `npm run lint`, `npm run typecheck` and `npm test` in `backend/` when the backend changed.
+in `frontend/`, and `npm run lint`, `npm run typecheck` and `npm test` in `backend/` when the backend changed. Run `npm run test:e2e:api` in `frontend/` too when the API or the frontend data layer changed.
 
 Also run appropriate security/dependency checks.
 
@@ -2244,6 +2250,7 @@ typecheck
 test
 build
 e2e
+e2e-api
 security-audit
 docker-build
 backend-lint

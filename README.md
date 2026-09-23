@@ -196,6 +196,7 @@ Run these inside `frontend/`:
 | `npm run test`        | Run unit and component tests (Vitest)               |
 | `npm run test:e2e`    | Run end-to-end tests in a browser (Playwright)      |
 | `npm run test:e2e:ui` | Run end-to-end tests in Playwright's UI mode        |
+| `npm run test:e2e:api` | Run the end-to-end tests of the `api` data provider against the real API |
 | `npm run build`       | Type-check and create a production build in `dist/` |
 | `npm run preview`     | Serve the production build locally                  |
 
@@ -211,7 +212,18 @@ npx playwright install chromium
 npm run test:e2e
 ```
 
-The tests build the app and serve it with `vite preview` on port 4173. After a run, `npx playwright show-report` opens the HTML report.
+The tests build the app and serve it with `vite preview` on port 4173. After a run, `npx playwright show-report` opens the HTML report. They always use the `localStorage` data provider, whatever `.env.local` says.
+
+### Against the API
+
+Tests named `*.api.spec.ts` check the `api` data provider with the real API: the dashboard shows the API data, a new property is stored on the API and visible in another browser, a task is completed, a lease occupies its space, and Reset demo data restores the API data.
+
+```bash
+cd backend && npm ci && cd ../frontend
+npm run test:e2e:api
+```
+
+[`playwright.api.config.ts`](frontend/playwright.api.config.ts) starts the API with its demo data on port 3100 and serves an `api` build on port 4174. The API data is shared, so these tests run one at a time and reset it before each test. The report opens with `npx playwright show-report playwright-report-api`.
 
 ## Frontend architecture
 
@@ -270,6 +282,7 @@ Each check is a separate job:
 | `test`           | `npm run test`                            |
 | `build`          | `npm run build`                           |
 | `e2e`            | `npm run test:e2e` (report kept on failure) |
+| `e2e-api`        | `npm run test:e2e:api`: the `api` data provider against the real API (report kept on failure) |
 | `security-audit` | `npm audit --audit-level=high`            |
 | `docker-build`   | `docker build` of `frontend/Dockerfile`   |
 | `backend-lint`, `backend-typecheck`, `backend-test`, `backend-security-audit` | The same checks for `backend/` |

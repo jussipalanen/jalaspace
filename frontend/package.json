@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:api": "playwright test --config playwright.api.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
