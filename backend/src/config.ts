@@ -1,3 +1,4 @@
+import { parseDailyTime, type DailyTime } from './demoSchedule.ts'
 import { DEFAULT_RESET_RATE_LIMIT, DEFAULT_WRITE_RATE_LIMIT } from './limits.ts'
 
 /** Server settings read from environment variables. */
@@ -17,6 +18,8 @@ export interface Config {
   writeRateLimit: number
   /** Demo resets allowed per client and hour. */
   resetRateLimit: number
+  /** When the demo data is restored every day (UTC); `null` turns it off. Only used with the demo data. */
+  demoResetAt: DailyTime | null
 }
 
 export class ConfigError extends Error {
@@ -65,6 +68,16 @@ function parseLimit(name: string, value: string | undefined, fallback: number): 
   return limit
 }
 
+const DEFAULT_DEMO_RESET_AT: DailyTime = { hours: 3, minutes: 0 }
+
+function parseDemoResetAt(value: string | undefined): DailyTime | null {
+  if (value === undefined || value.trim() === '') return DEFAULT_DEMO_RESET_AT
+  if (value.trim().toLowerCase() === 'off') return null
+  const time = parseDailyTime(value)
+  if (!time) throw new ConfigError(`DEMO_RESET_AT must be a UTC time such as 03:00, or "off", got "${value}".`)
+  return time
+}
+
 function parseOrigins(value: string | undefined): string[] {
   const origins = (value ?? '')
     .split(',')
@@ -92,5 +105,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     trustProxy: parseTrustProxy(env.TRUST_PROXY),
     writeRateLimit: parseLimit('WRITE_RATE_LIMIT', env.WRITE_RATE_LIMIT, DEFAULT_WRITE_RATE_LIMIT),
     resetRateLimit: parseLimit('RESET_RATE_LIMIT', env.RESET_RATE_LIMIT, DEFAULT_RESET_RATE_LIMIT),
+    demoResetAt: parseDemoResetAt(env.DEMO_RESET_AT),
   }
 }

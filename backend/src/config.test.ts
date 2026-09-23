@@ -13,6 +13,7 @@ describe('configuration', () => {
       trustProxy: 0,
       writeRateLimit: 60,
       resetRateLimit: 10,
+      demoResetAt: { hours: 3, minutes: 0 },
     }
     expect(loadConfig({})).toEqual(defaults)
     expect(loadConfig({ PORT: ' ', HOST: '', GEMINI_API_KEY: ' ', CORS_ORIGINS: '' })).toEqual(defaults)
@@ -86,5 +87,16 @@ describe('configuration', () => {
       `WRITE_RATE_LIMIT must be a whole number from 1 to 1000000, got "${value}".`,
     )
     expect(() => loadConfig({ RESET_RATE_LIMIT: value })).toThrow(ConfigError)
+  })
+
+  it('reads the nightly demo reset time, or turns it off', () => {
+    expect(loadConfig({ DEMO_RESET_AT: '4:30' }).demoResetAt).toEqual({ hours: 4, minutes: 30 })
+    expect(loadConfig({ DEMO_RESET_AT: ' OFF ' }).demoResetAt).toBeNull()
+  })
+
+  it.each(['24:00', '3', '03:60', 'midnight', '3.00'])('rejects DEMO_RESET_AT=%j', (value) => {
+    expect(() => loadConfig({ DEMO_RESET_AT: value })).toThrow(
+      `DEMO_RESET_AT must be a UTC time such as 03:00, or "off", got "${value}".`,
+    )
   })
 })

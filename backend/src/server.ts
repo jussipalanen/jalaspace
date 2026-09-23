@@ -2,6 +2,7 @@ import { GeminiSuggester } from './ai/gemini.ts'
 import { createApp } from './app.ts'
 import { ConfigError, loadConfig } from './config.ts'
 import { createResetRateLimiter, createWriteRateLimiter } from './limits.ts'
+import { scheduleDaily } from './demoSchedule.ts'
 import { resetDemoData } from './domain/demoData.ts'
 import { createMemoryStore } from './store/memoryStore.ts'
 import { VERSION } from './version.ts'
@@ -19,6 +20,11 @@ try {
 
 const store = createMemoryStore()
 if (config.seedDemoData) await resetDemoData(store)
+// Keeps the shared demo tidy even when the server never restarts, e.g. when an
+// uptime monitor stops the free plan from sleeping.
+if (config.seedDemoData && config.demoResetAt) {
+  scheduleDaily({ at: config.demoResetAt, run: () => resetDemoData(store) })
+}
 
 const suggester = config.geminiApiKey
   ? new GeminiSuggester({ apiKey: config.geminiApiKey, model: config.geminiModel })
@@ -35,7 +41,11 @@ const app = createApp({
 })
 
 const server = app.listen(config.port, config.host, () => {
-  const demo = config.seedDemoData ? ' with demo data' : ''
+  const { demoResetAt } = config
+  const nightly = demoResetAt
+    ? `, restored daily at ${String(demoResetAt.hours).padStart(2, '0')}:${String(demoResetAt.minutes).padStart(2, '0')} UTC`
+    : ''
+  const demo = config.seedDemoData ? ` with demo data${nightly}` : ''
   console.log(`JalaSpace API ${VERSION} listening on http://${config.host}:${config.port}${demo}`)
   console.log(suggester ? `AI suggestions: Gemini (${config.geminiModel})` : 'AI suggestions: off')
 })

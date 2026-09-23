@@ -59,6 +59,7 @@ Environment variables (see [`.env.example`](.env.example)):
 | `TRUST_PROXY` | `0` | Number of proxies in front of the API (Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
 | `WRITE_RATE_LIMIT` | `60` | Writes (`POST`, `PUT`, `DELETE`) allowed per client and minute, see [Limits](#limits) |
 | `RESET_RATE_LIMIT` | `10` | Demo resets allowed per client and hour |
+| `DEMO_RESET_AT` | `03:00` | With `SEED_DEMO_DATA=true`: UTC time of the nightly demo reset (`HH:MM`), or `off` |
 
 `npm run dev` reads `backend/.env` when it exists: copy `.env.example` to `.env` and add your key there. `npm start` reads only the real environment, as on Render.
 
@@ -339,6 +340,8 @@ curl -X POST http://localhost:3000/api/demo/reset
 ```
 
 The reset endpoint exists only when `SEED_DEMO_DATA=true`, so it can never wipe non-demo data. Without the variable (as in the tests), the API starts empty.
+
+The API also restores the demo data **every night at `DEMO_RESET_AT`** (default 03:00 UTC). A server that never sleeps or restarts, e.g. when an uptime monitor keeps the free Render plan awake, would otherwise keep whatever visitors changed. Each reset is logged; a failed one is logged and the next one still runs.
 
 ## Structure
 
