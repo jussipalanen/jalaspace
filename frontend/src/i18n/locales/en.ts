@@ -127,6 +127,7 @@ export const en = {
     password: 'Password',
     submitting: 'Signing in…',
     demoAccount: 'Demo account',
+    demoHint: 'Demo data is stored only in this browser.',
     fillDemo: 'Fill in demo credentials',
     notice:
       'This is a demo. Sign-in is simulated in your browser and is not secure. Data is stored only in this browser.',
