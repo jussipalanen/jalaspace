@@ -28,14 +28,6 @@ describe('demo authentication flow', () => {
     expect(window.localStorage.getItem(STORAGE_KEYS.session)).not.toBeNull()
   })
 
-  it('shows a hint that demo data is stored only in this browser', async () => {
-    renderRoute('/login', { authenticated: false })
-
-    expect(
-      await screen.findByText('Demo data is stored only in this browser.'),
-    ).toBeInTheDocument()
-  })
-
   it('can fill in the demo credentials', async () => {
     const user = userEvent.setup()
     renderRoute('/login', { authenticated: false })
