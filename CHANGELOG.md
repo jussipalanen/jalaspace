@@ -5,6 +5,14 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.14.0](https://github.com/jussipalanen/jalaspace/compare/v0.13.0...v0.14.0) (2026-09-23)
+
+
+### Added
+
+* **app:** start waking the API as soon as the app opens ([#103](https://github.com/jussipalanen/jalaspace/issues/103)) ([697c39c](https://github.com/jussipalanen/jalaspace/commit/697c39cc14518857c58b809af590a91167915788))
+* **backend:** restore the demo data every night ([#101](https://github.com/jussipalanen/jalaspace/issues/101)) ([d66dace](https://github.com/jussipalanen/jalaspace/commit/d66dacee1921c2455a86baad835ce66777234c3c))
+
 ## [0.13.0](https://github.com/jussipalanen/jalaspace/compare/v0.12.0...v0.13.0) (2026-09-23)
 
 
