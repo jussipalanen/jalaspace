@@ -23,16 +23,19 @@ export interface Entity {
  * `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`
  * compare the input with the stored data, e.g. a space's property must exist.
  */
-export type FieldErrorCode =
-  | 'required'
-  | 'tooLong'
-  | 'invalid'
-  | 'notFound'
-  | 'duplicate'
-  | 'maintenanceLinked'
-  | 'overlap'
-  | 'maintenance'
-  | 'beforeStart'
+export const FIELD_ERROR_CODES = [
+  'required',
+  'tooLong',
+  'invalid',
+  'notFound',
+  'duplicate',
+  'maintenanceLinked',
+  'overlap',
+  'maintenance',
+  'beforeStart',
+] as const
+
+export type FieldErrorCode = (typeof FIELD_ERROR_CODES)[number]
 
 /** The result of checking a request body: the cleaned values, or an error code per field. */
 export type ParseResult<T> =

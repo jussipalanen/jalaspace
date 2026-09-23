@@ -39,7 +39,7 @@ npm ci
 npm run dev
 ```
 
-The API runs at http://localhost:3000 (try http://localhost:3000/api/health). See [backend/README.md](backend/README.md).
+The API runs at http://localhost:3000 (try http://localhost:3000/api/health). Its interactive documentation is at http://localhost:3000/docs. See [backend/README.md](backend/README.md).
 
 To try AI maintenance suggestions locally, copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY`, and set `VITE_API_URL=http://localhost:3000` in `frontend/.env.local` (Docker Compose already sets the frontend and CORS variables). Then restart both.
 
@@ -318,7 +318,7 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 ### Backend (API)
 
 The API is deployed to [Render](https://render.com) as a web service at https://jalaspace.onrender.com
-(health check: https://jalaspace.onrender.com/api/health).
+(health check: https://jalaspace.onrender.com/api/health, API documentation: https://jalaspace.onrender.com/docs).
 
 | Setting           | Value                                      |
 | ----------------- | ------------------------------------------ |

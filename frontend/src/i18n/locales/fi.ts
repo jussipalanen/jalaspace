@@ -33,6 +33,8 @@ export const fi: Messages = {
       leases: 'Vuokrasopimukset',
       settings: 'Asetukset',
     },
+    apiDocs: 'API-kuvaus',
+    opensInNewTab: '(avautuu uuteen välilehteen)',
   },
   header: {
     signOut: 'Kirjaudu ulos',

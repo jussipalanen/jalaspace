@@ -10,7 +10,7 @@ export type PropertyType = (typeof PROPERTY_TYPES)[number]
 export const PROPERTY_NAME_MAX_LENGTH = 100
 export const PROPERTY_DESCRIPTION_MAX_LENGTH = 1000
 
-const POSTAL_CODE_PATTERN = /^\d{5}$/
+export const POSTAL_CODE_PATTERN = /^\d{5}$/
 
 /** The fields a client may set; the server sets `id`, `createdAt` and `updatedAt`. */
 export interface PropertyInput {

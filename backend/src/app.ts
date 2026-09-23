@@ -12,7 +12,10 @@ import {
   writeRateLimit,
   type CollectionLimits,
 } from './limits.ts'
+import { buildOpenApiDocument } from './openapi/document.ts'
+import { listRoutes } from './openapi/routes.ts'
 import { demoRouter } from './routes/demo.ts'
+import { docsRouter } from './routes/docs.ts'
 import { featuresRouter } from './routes/features.ts'
 import { healthRouter } from './routes/health.ts'
 import { leasesRouter } from './routes/leases.ts'
@@ -89,6 +92,8 @@ export function createApp({
   if (demoData) api.use(demoRouter(store))
   for (const router of routers) api.use(router)
   app.use('/api', api)
+  // Generated from the routes above, so the docs list exactly what this server offers.
+  app.use(docsRouter(buildOpenApiDocument(listRoutes(api, '/api'), version, limits)))
 
   app.use(notFoundHandler)
   app.use(errorHandler(logError))

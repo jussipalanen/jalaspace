@@ -4,19 +4,22 @@ import type { ErrorRequestHandler, RequestHandler } from 'express'
  * Error codes returned by the API. Responses carry codes, not English
  * messages, so the frontend can show them in the user's language.
  */
-export type ErrorCode =
-  | 'not_found'
-  | 'invalid_json'
-  | 'payload_too_large'
-  | 'validation_failed'
-  | 'property_in_use'
-  | 'space_in_use'
-  | 'tenant_in_use'
-  | 'limit_reached'
-  | 'rate_limited'
-  | 'ai_unavailable'
-  | 'invalid_suggestion'
-  | 'internal_error'
+export const ERROR_CODES = [
+  'not_found',
+  'invalid_json',
+  'payload_too_large',
+  'validation_failed',
+  'property_in_use',
+  'space_in_use',
+  'tenant_in_use',
+  'limit_reached',
+  'rate_limited',
+  'ai_unavailable',
+  'invalid_suggestion',
+  'internal_error',
+] as const
+
+export type ErrorCode = (typeof ERROR_CODES)[number]
 
 /** Extra machine-readable facts about an error, e.g. the invalid fields. Never English text. */
 export type ErrorDetails = Record<string, unknown> & { code?: never }

@@ -30,7 +30,7 @@ describe('API', () => {
   it('answers unknown routes with a not_found code', async () => {
     const base = await serve(createApp())
 
-    for (const path of ['/api/missing', '/', '/api']) {
+    for (const path of ['/api/missing', '/missing', '/api', '/docs/missing']) {
       const response = await fetch(`${base}${path}`)
       expect(response.status).toBe(404)
       expect(await response.json()).toEqual({ error: { code: 'not_found' } })

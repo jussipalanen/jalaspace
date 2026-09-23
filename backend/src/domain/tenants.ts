@@ -14,8 +14,8 @@ export const TENANT_NOTES_MAX_LENGTH = 2000
 export const TENANT_PHONE_MIN_LENGTH = 5
 export const TENANT_PHONE_MAX_LENGTH = 20
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const PHONE_PATTERN = /^[\d\s()+-]+$/
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const PHONE_PATTERN = /^[\d\s()+-]+$/
 
 /** The fields a client may set; the server sets `id`, `createdAt` and `updatedAt`. */
 export interface TenantInput {
