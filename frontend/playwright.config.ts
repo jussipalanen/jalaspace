@@ -22,7 +22,8 @@ export default defineConfig({
     {
       name: 'desktop',
       use: { ...devices['Desktop Chrome'] },
-      testIgnore: /\.mobile\.spec\.ts$/,
+      // Mobile tests have their own project; API tests their own config (playwright.api.config.ts).
+      testIgnore: /\.(mobile|api)\.spec\.ts$/,
     },
     {
       name: 'mobile',
@@ -36,7 +37,8 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !isCI,
     timeout: 120_000,
-    // A placeholder API; tests that need it answer its requests with `page.route`.
-    env: { VITE_API_URL: E2E_API_URL },
+    // localStorage data, whatever .env.local says, and a placeholder API; tests
+    // that need the API answer its requests with `page.route`.
+    env: { VITE_DATA_PROVIDER: 'localStorage', VITE_API_URL: E2E_API_URL },
   },
 })

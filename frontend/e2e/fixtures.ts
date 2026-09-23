@@ -5,6 +5,8 @@ export const DEMO_PASSWORD = 'demo'
 export const SESSION_KEY = 'jalaspace_session'
 /** The placeholder API URL the E2E build uses (see playwright.config.ts). */
 export const API_URL = 'http://api.jalaspace.test'
+/** The real API that the `api` data provider tests use (see playwright.api.config.ts). */
+export const E2E_BACKEND_URL = 'http://localhost:3100'
 
 /**
  * Browser storage state with a signed-in demo session, for tests that
