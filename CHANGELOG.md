@@ -5,6 +5,16 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.10.0](https://github.com/jussipalanen/jalaspace/compare/v0.9.0...v0.10.0) (2026-09-23)
+
+
+### Added
+
+* **backend:** add the leases REST API ([#79](https://github.com/jussipalanen/jalaspace/issues/79)) ([a72bcfc](https://github.com/jussipalanen/jalaspace/commit/a72bcfc3c9a82265ecca0a005bb5b15cebcb31f5))
+* **backend:** add the maintenance REST API ([#75](https://github.com/jussipalanen/jalaspace/issues/75)) ([551c122](https://github.com/jussipalanen/jalaspace/commit/551c122e820051e4ccf7c72d64bf7ab86e0eaa01))
+* **backend:** add the spaces REST API ([#72](https://github.com/jussipalanen/jalaspace/issues/72)) ([22f7f20](https://github.com/jussipalanen/jalaspace/commit/22f7f20b2049e2f437293119c377e8ad88859d43))
+* **backend:** add the tenants REST API ([#77](https://github.com/jussipalanen/jalaspace/issues/77)) ([a8558cd](https://github.com/jussipalanen/jalaspace/commit/a8558cdcbc0fc497f522baf38d79e94926fd1df7))
+
 ## [0.9.0](https://github.com/jussipalanen/jalaspace/compare/v0.8.0...v0.9.0) (2026-09-22)
 
 
