@@ -128,10 +128,8 @@ export const en = {
     submitting: 'Signing in…',
     demoAccount: 'Demo account',
     fillDemo: 'Fill in demo credentials',
-    notice:
-      'This is a demo. Sign-in is simulated in your browser and is not secure. Data is stored only in this browser.',
-    noticeShared:
-      'This is a demo. Sign-in is simulated in your browser and is not secure. The data is shared by everyone who uses this demo, so do not enter personal information.',
+    notice: 'This is a demo using test credentials and sample data only.',
+    noticeShared: 'This is a demo using test credentials and sample data only.',
     invalidCredentials: 'Invalid email or password.',
     unavailable: 'Unable to sign in. Please try again.',
     validation: {

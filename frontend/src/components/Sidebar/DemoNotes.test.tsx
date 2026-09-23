@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createDataLayer } from '../../repositories'
 import { renderRoute } from '../../test/renderRoute'
 
-// The sidebar and the sign-in page say where the demo data is kept.
+// The sidebar says where the demo data is kept; the sign-in page shows a generic demo notice.
 describe('demo notes', () => {
   afterEach(() => {
     vi.unstubAllEnvs()
@@ -23,16 +23,18 @@ describe('demo notes', () => {
     ).toBeInTheDocument()
   })
 
-  it('on the sign-in page ask not to enter personal information when the data is shared', async () => {
+  it('on the sign-in page show the demo notice regardless of the data provider', async () => {
     vi.stubEnv('VITE_DATA_PROVIDER', 'api')
     renderRoute('/login', { authenticated: false, language: 'fi' })
     expect(
-      await screen.findByText(/Tiedot ovat yhteisiä kaikille demon käyttäjille, joten älä syötä henkilötietoja\./),
+      await screen.findByText('Tämä on demo, jossa käytetään testitunnuksia ja esimerkkidataa.'),
     ).toBeInTheDocument()
   })
 
-  it('on the sign-in page say the data stays in this browser with localStorage', async () => {
+  it('on the sign-in page show the demo notice with localStorage', async () => {
     renderRoute('/login', { authenticated: false })
-    expect(await screen.findByText(/Data is stored only in this browser\./)).toBeInTheDocument()
+    expect(
+      await screen.findByText('This is a demo using test credentials and sample data only.'),
+    ).toBeInTheDocument()
   })
 })

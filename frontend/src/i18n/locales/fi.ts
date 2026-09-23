@@ -127,10 +127,8 @@ export const fi: Messages = {
     submitting: 'Kirjaudutaan…',
     demoAccount: 'Demotili',
     fillDemo: 'Täytä demotunnukset',
-    notice:
-      'Tämä on demo. Kirjautuminen tapahtuu vain selaimessasi, eikä se ole turvallinen. Tiedot tallennetaan vain tähän selaimeen.',
-    noticeShared:
-      'Tämä on demo. Kirjautuminen tapahtuu vain selaimessasi, eikä se ole turvallinen. Tiedot ovat yhteisiä kaikille demon käyttäjille, joten älä syötä henkilötietoja.',
+    notice: 'Tämä on demo, jossa käytetään testitunnuksia ja esimerkkidataa.',
+    noticeShared: 'Tämä on demo, jossa käytetään testitunnuksia ja esimerkkidataa.',
     invalidCredentials: 'Virheellinen sähköposti tai salasana.',
     unavailable: 'Kirjautuminen ei onnistunut. Yritä uudelleen.',
     validation: {
