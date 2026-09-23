@@ -5,6 +5,14 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.13.0](https://github.com/jussipalanen/jalaspace/compare/v0.12.0...v0.13.0) (2026-09-23)
+
+
+### Added
+
+* **backend:** generate OpenAPI documentation at /docs and link to it from the app ([#98](https://github.com/jussipalanen/jalaspace/issues/98)) ([49328bf](https://github.com/jussipalanen/jalaspace/commit/49328bf9fbf5a7b2f46ce0e591a78723e1acd12c))
+* **backend:** protect the public API with write limits and record caps ([#96](https://github.com/jussipalanen/jalaspace/issues/96)) ([9e4ed7e](https://github.com/jussipalanen/jalaspace/commit/9e4ed7e85ecbc58ecdc8a3070136f8570400edbb))
+
 ## [0.12.0](https://github.com/jussipalanen/jalaspace/compare/v0.11.0...v0.12.0) (2026-09-23)
 
 
