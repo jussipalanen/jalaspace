@@ -25,6 +25,7 @@ import type { MaintenanceSuggestion as Suggestion } from '../../services/mainten
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
 import { MaintenanceSuggestion } from './MaintenanceSuggestion'
+import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof MaintenanceFormValues
 
@@ -39,7 +40,7 @@ const FIELD_ORDER: Field[] = [
   'dueDate',
 ]
 
-type SaveError = 'failed' | 'notFound'
+type SaveError = 'failed' | 'notFound' | ApiLimitCode
 
 interface MaintenanceFormProps {
   initialValues: MaintenanceFormValues
@@ -155,7 +156,7 @@ export function MaintenanceForm({
     } catch (error) {
       // The typed values stay in the form, so nothing is lost on failure.
       if (error instanceof MaintenanceValidationError) showValidation(error.errors)
-      else setSaveError(error instanceof EntityNotFoundError ? 'notFound' : 'failed')
+      else setSaveError(apiLimitCode(error) ?? (error instanceof EntityNotFoundError ? 'notFound' : 'failed'))
       setSaving(false)
     }
   }
@@ -173,7 +174,9 @@ export function MaintenanceForm({
         <div className="alert alert--error" role="alert">
           {saveError === 'notFound'
             ? t('maintenance.form.notFoundError')
-            : t('maintenance.form.saveError')}
+            : saveError === 'failed'
+              ? t('maintenance.form.saveError')
+              : t(`states.apiLimit.${saveError}`)}
         </div>
       )}
 

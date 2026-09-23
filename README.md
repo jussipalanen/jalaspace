@@ -337,6 +337,7 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
 - The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). A database comes later.
 - The public frontend (Vercel Production) reads and saves all data through this API, so every visitor shares one dataset. Sign-in is simulated in the browser, so anyone can change the data or reset it for everyone; it is demo data only.
+- The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits).
 - `CORS_ORIGINS` allows the production site, this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
 
 ## Versions and releases

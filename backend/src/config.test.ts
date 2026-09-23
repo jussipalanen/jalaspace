@@ -11,6 +11,8 @@ describe('configuration', () => {
       geminiModel: DEFAULT_GEMINI_MODEL,
       corsOrigins: [],
       trustProxy: 0,
+      writeRateLimit: 60,
+      resetRateLimit: 10,
     }
     expect(loadConfig({})).toEqual(defaults)
     expect(loadConfig({ PORT: ' ', HOST: '', GEMINI_API_KEY: ' ', CORS_ORIGINS: '' })).toEqual(defaults)
@@ -70,5 +72,19 @@ describe('configuration', () => {
     expect(() => loadConfig({ TRUST_PROXY: value })).toThrow(
       `TRUST_PROXY must be the number of proxies (0–10), got "${value}".`,
     )
+  })
+
+  it('reads the write and reset rate limits', () => {
+    expect(loadConfig({ WRITE_RATE_LIMIT: '120', RESET_RATE_LIMIT: ' 1000 ' })).toMatchObject({
+      writeRateLimit: 120,
+      resetRateLimit: 1000,
+    })
+  })
+
+  it.each(['0', '-5', '2.5', 'many', '1000001'])('rejects the rate limit %j', (value) => {
+    expect(() => loadConfig({ WRITE_RATE_LIMIT: value })).toThrow(
+      `WRITE_RATE_LIMIT must be a whole number from 1 to 1000000, got "${value}".`,
+    )
+    expect(() => loadConfig({ RESET_RATE_LIMIT: value })).toThrow(ConfigError)
   })
 })

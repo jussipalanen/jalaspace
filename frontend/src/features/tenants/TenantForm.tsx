@@ -16,12 +16,13 @@ import {
 } from '../../services/tenants'
 import type { Tenant } from '../../types/tenant'
 import { hasErrors } from '../../utils/validation'
+import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof TenantFormValues
 
 const FIELD_ORDER: Field[] = ['type', 'name', 'contactPerson', 'email', 'phone', 'notes']
 
-type SaveError = 'failed' | 'notFound'
+type SaveError = 'failed' | 'notFound' | ApiLimitCode
 
 interface TenantFormProps {
   initialValues: TenantFormValues
@@ -103,7 +104,7 @@ export function TenantForm({ initialValues, tenants, editingId, cancelTo, onSubm
     } catch (error) {
       // The typed values stay in the form, so nothing is lost on failure.
       if (error instanceof TenantValidationError) showValidation(error.errors)
-      else setSaveError(error instanceof EntityNotFoundError ? 'notFound' : 'failed')
+      else setSaveError(apiLimitCode(error) ?? (error instanceof EntityNotFoundError ? 'notFound' : 'failed'))
       setSaving(false)
     }
   }
@@ -144,7 +145,11 @@ export function TenantForm({ initialValues, tenants, editingId, cancelTo, onSubm
       )}
       {saveError && (
         <div className="alert alert--error" role="alert">
-          {saveError === 'notFound' ? t('tenants.form.notFoundError') : t('tenants.form.saveError')}
+          {saveError === 'notFound'
+            ? t('tenants.form.notFoundError')
+            : saveError === 'failed'
+              ? t('tenants.form.saveError')
+              : t(`states.apiLimit.${saveError}`)}
         </div>
       )}
 

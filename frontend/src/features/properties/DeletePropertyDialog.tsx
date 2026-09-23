@@ -7,6 +7,7 @@ import { useTranslation } from '../../i18n/useTranslation'
 import { deleteProperty, PropertyDeletionBlockedError } from '../../services/propertyService'
 import type { PropertyDeletionCheck } from '../../services/properties'
 import type { Property } from '../../types/property'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 interface DeletePropertyDialogProps {
   open: boolean
@@ -46,7 +47,7 @@ export function DeletePropertyDialog({
     } catch (caught) {
       setBusy(false)
       if (caught instanceof PropertyDeletionBlockedError) onBlocked()
-      else setError(t('properties.delete.error'))
+      else setError(saveErrorMessage(caught, t, t('properties.delete.error')))
     }
   }
 

@@ -35,7 +35,14 @@ export default defineConfig({
       reuseExistingServer: !isCI,
       timeout: 60_000,
       // No GEMINI_API_KEY: AI suggestions are off, so no test can reach Gemini.
-      env: { PORT: String(API_PORT), SEED_DEMO_DATA: 'true', CORS_ORIGINS: APP_URL },
+      // Every test resets the data, so the write and reset limits are raised.
+      env: {
+        PORT: String(API_PORT),
+        SEED_DEMO_DATA: 'true',
+        CORS_ORIGINS: APP_URL,
+        WRITE_RATE_LIMIT: '100000',
+        RESET_RATE_LIMIT: '100000',
+      },
     },
     {
       // Its own output folder, so it never mixes with the localStorage E2E build in dist/.
