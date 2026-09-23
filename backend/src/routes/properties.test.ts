@@ -4,6 +4,7 @@ import type { Property } from '../domain/properties.ts'
 import type { Space } from '../domain/spaces.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
+import { maintenanceTask } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const input = {
@@ -144,7 +145,7 @@ describe('properties API', () => {
     })
     await store.spaces.insert(space('space-1', 'A 101'))
     await store.spaces.insert(space('space-2', 'A 102'))
-    await store.maintenance.insert({ id: 'task-1', propertyId: created.id, spaceId: null, createdAt: '', updatedAt: '' })
+    await store.maintenance.insert(maintenanceTask({ id: 'task-1', propertyId: created.id }))
 
     const response = await send('DELETE', `/properties/${created.id}`)
 

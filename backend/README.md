@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, the properties and spaces endpoints and AI suggestions for maintenance tasks. The other domain endpoints (maintenance, tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, the properties, spaces and maintenance endpoints and AI suggestions for maintenance tasks. The other domain endpoints (tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -108,6 +108,11 @@ An invalid value stops the server at start with a clear message. Never commit re
 | POST   | `/api/units`          | `201` with the created space and a `Location` header           |
 | PUT    | `/api/units/:id`      | The updated space, or `404 not_found`                          |
 | DELETE | `/api/units/:id`      | `204`, `404 not_found`, or `409 space_in_use` with counts      |
+| GET    | `/api/maintenance`    | All maintenance tasks                                          |
+| GET    | `/api/maintenance/:id` | One task, or `404 not_found`                                  |
+| POST   | `/api/maintenance`    | `201` with the created task and a `Location` header            |
+| PUT    | `/api/maintenance/:id` | The updated task, or `404 not_found`                          |
+| DELETE | `/api/maintenance/:id` | `204`, or `404 not_found`                                     |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 
@@ -165,6 +170,30 @@ curl -X POST http://localhost:3000/api/units \
   { "error": { "code": "space_in_use", "leaseCount": 1, "maintenanceCount": 2 } }
   ```
 
+### Maintenance tasks
+
+Editable fields and rules (the same as in the app):
+
+| Field         | Rules                                                                  |
+| ------------- | ---------------------------------------------------------------------- |
+| `propertyId`  | Required; the property must exist (`notFound`)                         |
+| `spaceId`     | Optional; `null` for the whole property or a common area. A given space must belong to the property (`invalid`) |
+| `title`       | Required, at most 120 characters                                       |
+| `description` | Optional, at most 5000 characters                                      |
+| `category`    | Required: `plumbing`, `electrical`, `hvac`, `structural`, `cleaning` or `general` |
+| `priority`    | Required: `low`, `medium` or `high`                                    |
+| `status`      | Required: `open`, `in_progress` or `completed`                         |
+| `dueDate`     | Optional, a date-only ISO string such as `2026-09-30`; past dates are allowed |
+
+```bash
+curl -X POST http://localhost:3000/api/maintenance \
+  -H 'content-type: application/json' \
+  -d '{"propertyId":"property-joensuu-center","spaceId":null,"title":"Main door closer broken","category":"general","priority":"high","status":"open","dueDate":"2026-09-30"}'
+```
+
+- **Status changes are updates:** send the task with the new `status` in a `PUT`. The server sets `completedAt` when a task is completed, keeps it while the task stays completed, and clears it when the task is reopened. Clients cannot set it.
+- Nothing refers to a task, so it can always be deleted. A property or space with tasks cannot be deleted, and a space with tasks cannot move to another property.
+
 ### Maintenance suggestions
 
 `POST /api/maintenance/suggestions` suggests a title, a description, a category and a priority from the user's title, description or both. The description first states the problem with only the facts from the user's text (no added causes, places, times or other details, and no names or contact details), then a `To check:` list (`Tarkistettavaa:` in Finnish) of typical things for a maintenance worker to check, written as checks, not findings. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
@@ -197,7 +226,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties and their 68 spaces, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties, their 68 spaces and 14 maintenance tasks, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 

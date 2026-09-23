@@ -1,6 +1,16 @@
 /** ISO 8601 timestamp, e.g. `2026-09-22T10:30:00.000Z`. */
 export type IsoDateTime = string
 
+/** Calendar date without a time of day, e.g. `2026-09-22`. */
+export type IsoDate = string
+
+/** True for a real calendar date written as a date-only ISO string, e.g. `2026-09-30` but not `2026-02-30`. */
+export function isIsoDate(value: string): value is IsoDate {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const date = new Date(`${value}T00:00:00.000Z`)
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+}
+
 /** Fields shared by every stored domain entity; the server sets them. */
 export interface Entity {
   id: string

@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryStore } from '../store/memoryStore.ts'
+import { maintenanceTask } from '../test/fixtures.ts'
 import { createDemoData, resetDemoData } from './demoData.ts'
+import { checkMaintenanceReferences, parseMaintenanceInput } from './maintenance.ts'
 import { parsePropertyInput } from './properties.ts'
 import { checkSpaceReferences, parseSpaceInput } from './spaces.ts'
 
@@ -65,19 +67,62 @@ describe('demo data', () => {
     }
   })
 
+  it('has the 14 demo maintenance tasks of the frontend seed', () => {
+    const { maintenance } = createDemoData(now)
+    const count = (status: string) => maintenance.filter((task) => task.status === status).length
+
+    expect(maintenance.map(({ id }) => id)).toEqual(Array.from({ length: 14 }, (_, index) => `maintenance-${index + 1}`))
+    expect(count('open')).toBe(6)
+    expect(count('in_progress')).toBe(4)
+    expect(count('completed')).toBe(4)
+  })
+
+  it('dates the tasks relative to now and keeps completedAt in step with the status', () => {
+    const { maintenance } = createDemoData(now)
+
+    expect(maintenance[0]).toMatchObject({
+      propertyId: 'property-joensuu-center',
+      spaceId: 'space-joensuu-center-16',
+      title: 'Water damage in office ceiling',
+      status: 'in_progress',
+      dueDate: '2026-09-26',
+      completedAt: null,
+      createdAt: '2026-09-16T10:30:00.000Z',
+      updatedAt: '2026-09-16T10:30:00.000Z',
+    })
+    expect(maintenance[3]).toMatchObject({
+      spaceId: null,
+      status: 'completed',
+      dueDate: '2026-08-28',
+      completedAt: '2026-08-23T10:30:00.000Z',
+      updatedAt: '2026-08-23T10:30:00.000Z',
+    })
+    for (const task of maintenance) expect(task.completedAt !== null).toBe(task.status === 'completed')
+  })
+
+  it('has tasks that pass the same validation as data sent by clients', () => {
+    const { properties, spaces, maintenance } = createDemoData(now)
+    for (const task of maintenance) {
+      const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, completedAt: _completedAt, ...input } = task
+      expect(parseMaintenanceInput(input)).toEqual({ ok: true, values: input })
+      const propertyExists = properties.some(({ id }) => id === task.propertyId)
+      expect(checkMaintenanceReferences(input, { propertyExists, spaces })).toEqual({})
+    }
+  })
+
   it('replaces all data with the demo data on reset', async () => {
     const store = createMemoryStore()
     const demo = createDemoData(now)
     await store.properties.insert({ ...demo.properties[0]!, id: 'mine', name: 'Mine' })
     await store.spaces.insert({ ...demo.spaces[0]!, id: 'space-mine', propertyId: 'mine' })
-    await store.maintenance.insert({ id: 'task-1', propertyId: 'mine', spaceId: null, createdAt: '', updatedAt: '' })
+    await store.maintenance.insert(maintenanceTask({ id: 'task-mine', propertyId: 'mine' }))
     await store.leases.insert({ id: 'lease-1', spaceId: 'space-mine', createdAt: '', updatedAt: '' })
 
     await resetDemoData(store, now)
 
     expect(await store.properties.list()).toEqual(demo.properties)
     expect(await store.spaces.list()).toEqual(demo.spaces)
-    expect(await store.maintenance.list()).toEqual([])
+    expect(await store.maintenance.list()).toEqual(demo.maintenance)
     expect(await store.leases.list()).toEqual([])
   })
 })

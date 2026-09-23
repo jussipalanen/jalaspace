@@ -7,7 +7,8 @@ import { serve } from '../test/serve.ts'
 const propertyNames = async (base: string) =>
   ((await (await fetch(`${base}/api/properties`)).json()) as { name: string }[]).map(({ name }) => name)
 
-const spaceCount = async (base: string) => ((await (await fetch(`${base}/api/units`)).json()) as unknown[]).length
+const count = async (base: string, path: string) =>
+  ((await (await fetch(`${base}/api${path}`)).json()) as unknown[]).length
 
 const DEMO_NAMES = [
   'Joensuu Center',
@@ -22,8 +23,10 @@ describe('demo data API', () => {
     await resetDemoData(store)
     const base = await serve(createApp({ store, demoData: true }))
     expect(await propertyNames(base)).toEqual(DEMO_NAMES)
-    expect(await spaceCount(base)).toBe(68)
+    expect(await count(base, '/units')).toBe(68)
+    expect(await count(base, '/maintenance')).toBe(14)
 
+    await fetch(`${base}/api/maintenance/maintenance-2`, { method: 'DELETE' })
     await fetch(`${base}/api/units/space-joensuu-center-1`, { method: 'DELETE' })
     await fetch(`${base}/api/properties`, {
       method: 'POST',
@@ -37,13 +40,15 @@ describe('demo data API', () => {
       }),
     })
     expect(await propertyNames(base)).toEqual([...DEMO_NAMES, 'New'])
-    expect(await spaceCount(base)).toBe(67)
+    expect(await count(base, '/units')).toBe(67)
+    expect(await count(base, '/maintenance')).toBe(13)
 
     const response = await fetch(`${base}/api/demo/reset`, { method: 'POST' })
 
     expect(response.status).toBe(204)
     expect(await propertyNames(base)).toEqual(DEMO_NAMES)
-    expect(await spaceCount(base)).toBe(68)
+    expect(await count(base, '/units')).toBe(68)
+    expect(await count(base, '/maintenance')).toBe(14)
   })
 
   it('has no reset endpoint unless the demo data is enabled', async () => {
