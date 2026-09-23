@@ -10,7 +10,7 @@ It has a Node.js + TypeScript REST API in `backend/`.
 ```text
 frontend/            React + TypeScript + Vite single-page application
 backend/             Node.js + TypeScript REST API (Express), see backend/README.md
-.github/             CI, release workflows, Dependabot and Copilot agent profiles
+.github/             CI, release and developer agent workflows, Dependabot and Copilot agent profiles
 CHANGELOG.md         Release notes for every version
 docker-compose.yml   Local development with Docker
 AGENTS.md            Development workflow and conventions for humans and AI agents
@@ -358,6 +358,28 @@ After each merge to `main`, release-please keeps a **release PR** up to date wit
 
 All changes go through a feature branch and a pull request that a human reviews and approves.
 See [AGENTS.md](AGENTS.md) for details.
+
+### Developer agent
+
+Small, clearly defined issues can be implemented by an automated developer agent that runs in GitHub Actions ([`developer-agent.yml`](.github/workflows/developer-agent.yml)). It uses Claude Code through [`claude-code-action`](https://github.com/anthropics/claude-code-action) and acts as the `jalaspace-dev-agent[bot]` GitHub App.
+
+1. Read the issue first. Its text becomes the agent's task, so label only issues whose content you trust.
+2. Add the `ai-agent` label.
+3. The agent either opens a pull request that closes the issue, or comments on the issue explaining why the task needs a human and suggesting a plan.
+4. CI runs on the pull request, and you review and merge it as usual.
+
+To run it again, remove the label and add it back. The run log and a report are on the workflow run in the Actions tab.
+
+Its role and limits are in [`.github/developer-agent.md`](.github/developer-agent.md). The agent never merges: the ruleset on `main` requires a reviewed pull request, and the app has no permission to change workflows or repository settings. Only the listed git, `gh` and npm commands are allowed; it cannot install packages.
+
+Setup (already done for this repository):
+
+| Name | Kind | Value |
+| ---- | ---- | ----- |
+| `DEV_AGENT_APP_ID` | Actions variable | App ID of the `jalaspace-dev-agent` GitHub App (Contents, Issues and Pull requests: read and write) |
+| `DEV_AGENT_PRIVATE_KEY` | Actions secret | The app's private key |
+| `CLAUDE_CODE_OAUTH_TOKEN` | Actions secret | From `claude setup-token`; uses the maintainer's Claude subscription |
+| `ai-agent` | Issue label | Starts the agent |
 
 ### GitHub Copilot agents
 

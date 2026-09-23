@@ -422,8 +422,10 @@ jalaspace/
 │   ├── workflows/
 │   │   ├── ci.yml
 │   │   ├── dependency-check.yml
+│   │   ├── developer-agent.yml
 │   │   └── release.yml
-│   └── dependabot.yml
+│   ├── dependabot.yml
+│   └── developer-agent.md
 │
 ├── docker-compose.yml
 ├── .dockerignore
@@ -2131,6 +2133,8 @@ Add further AI features only when an issue asks for them.
 ---
 
 # Agent Task Workflow
+
+The developer agent in GitHub Actions (`.github/workflows/developer-agent.yml`) follows this workflow when a maintainer adds the `ai-agent` label to an issue. It runs as `jalaspace-dev-agent[bot]`, takes only small, clear tasks, and otherwise comments on the issue with a plan. Its role and limits are in `.github/developer-agent.md`.
 
 When an agent receives a GitHub Issue:
 
