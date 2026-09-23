@@ -5,6 +5,7 @@ import { createDemoData, resetDemoData } from './demoData.ts'
 import { checkMaintenanceReferences, parseMaintenanceInput } from './maintenance.ts'
 import { parsePropertyInput } from './properties.ts'
 import { checkSpaceReferences, parseSpaceInput } from './spaces.ts'
+import { checkTenantEmail, parseTenantInput } from './tenants.ts'
 
 const now = new Date('2026-09-22T10:30:00.000Z')
 
@@ -110,19 +111,54 @@ describe('demo data', () => {
     }
   })
 
+  it('has the 31 demo tenants of the frontend seed', () => {
+    const { tenants } = createDemoData(now)
+
+    expect(tenants).toHaveLength(31)
+    expect(tenants.filter((tenant) => tenant.type === 'company')).toHaveLength(16)
+    expect(tenants[0]).toEqual({
+      id: 'tenant-nordic-pixel',
+      type: 'company',
+      name: 'Nordic Pixel Oy',
+      contactPerson: 'Aleksi Rautio',
+      email: 'info@nordic-pixel.example',
+      phone: null,
+      notes: 'Software development company.',
+      createdAt: '2024-10-22T10:30:00.000Z',
+      updatedAt: '2024-10-22T10:30:00.000Z',
+    })
+    expect(tenants.find(({ id }) => id === 'tenant-laura-makinen')).toMatchObject({
+      type: 'person',
+      name: 'Laura Mäkinen',
+      contactPerson: null,
+      email: 'laura.makinen@example.com',
+    })
+  })
+
+  it('has tenants that pass the same validation as data sent by clients', () => {
+    const { tenants } = createDemoData(now)
+    for (const tenant of tenants) {
+      const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, ...input } = tenant
+      expect(parseTenantInput(input)).toEqual({ ok: true, values: input })
+      expect(checkTenantEmail(input.email, tenants, tenant.id)).toEqual({})
+    }
+  })
+
   it('replaces all data with the demo data on reset', async () => {
     const store = createMemoryStore()
     const demo = createDemoData(now)
     await store.properties.insert({ ...demo.properties[0]!, id: 'mine', name: 'Mine' })
     await store.spaces.insert({ ...demo.spaces[0]!, id: 'space-mine', propertyId: 'mine' })
     await store.maintenance.insert(maintenanceTask({ id: 'task-mine', propertyId: 'mine' }))
-    await store.leases.insert({ id: 'lease-1', spaceId: 'space-mine', createdAt: '', updatedAt: '' })
+    await store.leases.insert({ id: 'lease-1', tenantId: 'tenant-mine', spaceId: 'space-mine', createdAt: '', updatedAt: '' })
+    await store.tenants.insert({ ...demo.tenants[0]!, id: 'tenant-mine', email: 'mine@example.com' })
 
     await resetDemoData(store, now)
 
     expect(await store.properties.list()).toEqual(demo.properties)
     expect(await store.spaces.list()).toEqual(demo.spaces)
     expect(await store.maintenance.list()).toEqual(demo.maintenance)
+    expect(await store.tenants.list()).toEqual(demo.tenants)
     expect(await store.leases.list()).toEqual([])
   })
 })

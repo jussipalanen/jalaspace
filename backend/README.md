@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, the properties, spaces and maintenance endpoints and AI suggestions for maintenance tasks. The other domain endpoints (tenants, leases) and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, the properties, spaces, maintenance and tenants endpoints and AI suggestions for maintenance tasks. The lease endpoints and the frontend's `api` data provider come next. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -76,6 +76,7 @@ An invalid value stops the server at start with a clear message. Never commit re
   | 404    | `not_found`         | The route or resource does not exist  |
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
   | 409    | `space_in_use`      | The space still has leases or maintenance tasks |
+  | 409    | `tenant_in_use`     | The tenant still has leases |
   | 413    | `payload_too_large` | The request body is over the limit    |
   | 429    | `rate_limited`      | Too many AI suggestions from this client (with `Retry-After`) or the AI quota is used up |
   | 500    | `internal_error`    | An unexpected error; details are only logged on the server, never sent |
@@ -113,6 +114,11 @@ An invalid value stops the server at start with a clear message. Never commit re
 | POST   | `/api/maintenance`    | `201` with the created task and a `Location` header            |
 | PUT    | `/api/maintenance/:id` | The updated task, or `404 not_found`                          |
 | DELETE | `/api/maintenance/:id` | `204`, or `404 not_found`                                     |
+| GET    | `/api/tenants`        | All tenants                                                    |
+| GET    | `/api/tenants/:id`    | One tenant, or `404 not_found`                                 |
+| POST   | `/api/tenants`        | `201` with the created tenant and a `Location` header          |
+| PUT    | `/api/tenants/:id`    | The updated tenant, or `404 not_found`                         |
+| DELETE | `/api/tenants/:id`    | `204`, `404 not_found`, or `409 tenant_in_use` with the lease count |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 
@@ -194,6 +200,33 @@ curl -X POST http://localhost:3000/api/maintenance \
 - **Status changes are updates:** send the task with the new `status` in a `PUT`. The server sets `completedAt` when a task is completed, keeps it while the task stays completed, and clears it when the task is reopened. Clients cannot set it.
 - Nothing refers to a task, so it can always be deleted. A property or space with tasks cannot be deleted, and a space with tasks cannot move to another property.
 
+### Tenants
+
+Editable fields and rules (the same as in the app):
+
+| Field           | Rules                                                                 |
+| --------------- | --------------------------------------------------------------------- |
+| `type`          | Required: `company` or `person`                                       |
+| `name`          | Required, at most 100 characters                                      |
+| `contactPerson` | Optional, at most 100 characters. Only companies have one; for a person it is ignored and saved as `null` |
+| `email`         | Required, a valid address of at most 254 characters, unique ignoring case (`duplicate`) |
+| `phone`         | Optional (`null` when empty): 5–20 characters of digits, spaces, `+`, `-` and parentheses |
+| `notes`         | Optional, at most 2000 characters                                     |
+
+```bash
+curl -X POST http://localhost:3000/api/tenants \
+  -H 'content-type: application/json' \
+  -d '{"type":"company","name":"Lakeside Bakery Oy","contactPerson":"Maija Salo","email":"info@lakeside-bakery.example"}'
+```
+
+A tenant that still has leases (current, upcoming or past) cannot be deleted:
+
+```json
+{ "error": { "code": "tenant_in_use", "leaseCount": 2 } }
+```
+
+Assigning a tenant to a space and removing them from one are lease operations; they come with the lease endpoints.
+
 ### Maintenance suggestions
 
 `POST /api/maintenance/suggestions` suggests a title, a description, a category and a priority from the user's title, description or both. The description first states the problem with only the facts from the user's text (no added causes, places, times or other details, and no names or contact details), then a `To check:` list (`Tarkistettavaa:` in Finnish) of typical things for a maintenance worker to check, written as checks, not findings. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
@@ -226,7 +259,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties, their 68 spaces and 14 maintenance tasks, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; for now it has the 4 demo properties, their 68 spaces, 14 maintenance tasks and 31 tenants, and it grows as the other endpoints are added. Because the demo properties have spaces, they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 
