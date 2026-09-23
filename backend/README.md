@@ -62,6 +62,23 @@ Environment variables (see [`.env.example`](.env.example)):
 
 An invalid value stops the server at start with a clear message. Never commit real secrets; production values belong in the hosting platform.
 
+## API documentation
+
+Interactive docs: **http://localhost:3000/docs** (deployed: https://jalaspace.onrender.com/docs). The server root `/` redirects there.
+
+- `GET /docs` shows [Swagger UI](https://swagger.io/tools/swagger-ui/): every endpoint with its fields, rules, examples and error codes, and **Try it out** to send requests to this server. On the deployed API these requests change the shared demo data, like the app does.
+- `GET /docs/openapi.json` is the [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0) description, e.g. for Postman or client generators.
+
+The description is **generated from the running API** (`src/openapi/`):
+
+- paths and methods are read from the routes Express actually has, so the docs list exactly what this server offers (`POST /api/demo/reset` only with `SEED_DEMO_DATA=true`);
+- schemas are built from the same constants the validation uses (allowed values, lengths, ranges, patterns);
+- only summaries, descriptions and examples are written by hand, in `src/openapi/document.ts`.
+
+Tests fail when a route has no documentation, an error code is not shown, a schema reference is broken, or a request example is rejected by the API's own validation. So **when you add a route, document it in `OPERATIONS`**.
+
+Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity hashes, and the page has a strict Content Security Policy (no inline scripts). To update it, change the version in `src/routes/docs.ts` and recompute both hashes as described there.
+
 ## API conventions
 
 - All routes live under `/api` and send and receive JSON. Request bodies are limited to 100 kB.
@@ -128,6 +145,8 @@ An invalid value stops the server at start with a clear message. Never commit re
 | DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
+| GET    | `/docs`               | Interactive API documentation (Swagger UI); `/` redirects here |
+| GET    | `/docs/openapi.json`  | The OpenAPI 3.1 description                                    |
 
 The health version comes from `package.json`, which release-please keeps in step with the app version.
 
@@ -313,6 +332,7 @@ src/
 ├── cors.ts         Allows the configured origins to call the API from a browser
 ├── version.ts      App version from package.json
 ├── ai/             AI maintenance suggestions: provider interface, Gemini, rate limit
+├── openapi/        Generates the OpenAPI description from the routes and domain rules
 ├── domain/         Entity types and business rules, e.g. validation (no Express)
 ├── store/          The Store interface and its in-memory implementation
 ├── routes/         One router per area, e.g. properties.ts
