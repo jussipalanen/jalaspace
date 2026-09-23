@@ -11,7 +11,10 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
-      # The API for features that need it; AI suggestions also need GEMINI_API_KEY in backend/.env.
+      # Read and save the data through the API container, so the whole stack runs together.
+      # Remove it (or set localStorage) to keep the data in the browser instead.
+      VITE_DATA_PROVIDER: api
+      # The API; AI suggestions also need GEMINI_API_KEY in backend/.env.
       VITE_API_URL: http://localhost:3000
 
   backend:

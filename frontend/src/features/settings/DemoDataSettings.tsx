@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog'
+import { isSharedData } from '../../config/dataProvider'
 import { useDataLayer } from '../../hooks/useDataLayer'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { DataLayer } from '../../repositories'
@@ -87,7 +88,13 @@ export function DemoDataSettings() {
         }}
         error={error}
       >
-        <p>{t('settings.demoData.confirm.description')}</p>
+        <p>
+          {t(
+            isSharedData()
+              ? 'settings.demoData.confirm.descriptionShared'
+              : 'settings.demoData.confirm.description',
+          )}
+        </p>
       </ConfirmDialog>
     </>
   )

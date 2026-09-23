@@ -1,4 +1,7 @@
+import { getApiUrl } from '../config/api'
 import { getDataProvider, type DataProvider } from '../config/dataProvider'
+import { ApiDemoDataStore } from './api/ApiDemoDataStore'
+import { ApiRepository } from './api/ApiRepository'
 import type { DemoDataStore } from './DemoDataStore'
 import { STORAGE_KEYS } from './localStorage/keys'
 import { LocalStorageDemoDataStore } from './localStorage/LocalStorageDemoDataStore'
@@ -37,10 +40,21 @@ export function createDataLayer(provider: DataProvider): DataLayer {
         maintenance: new LocalStorageRepository(STORAGE_KEYS.maintenance),
         demoData: new LocalStorageDemoDataStore(),
       }
-    case 'api':
-      throw new Error(
-        'The "api" data provider is not implemented yet. Set VITE_DATA_PROVIDER=localStorage.',
-      )
+    case 'api': {
+      const apiUrl = getApiUrl()
+      if (!apiUrl) {
+        throw new Error('The "api" data provider needs VITE_API_URL, e.g. http://localhost:3000.')
+      }
+      return {
+        properties: new ApiRepository(apiUrl, '/properties'),
+        // The API serves spaces under the app route's name.
+        spaces: new ApiRepository(apiUrl, '/units'),
+        tenants: new ApiRepository(apiUrl, '/tenants'),
+        leases: new ApiRepository(apiUrl, '/leases'),
+        maintenance: new ApiRepository(apiUrl, '/maintenance'),
+        demoData: new ApiDemoDataStore(apiUrl),
+      }
+    }
   }
 }
 

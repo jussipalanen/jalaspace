@@ -22,3 +22,16 @@ export function parseDataProvider(value: string | undefined): DataProvider {
 export function getDataProvider(): DataProvider {
   return parseDataProvider(import.meta.env.VITE_DATA_PROVIDER)
 }
+
+/**
+ * True when the data lives on the API and is shared by everyone who uses it.
+ * Never throws, so the UI can use it while rendering; a misconfigured
+ * provider shows its error where data is loaded.
+ */
+export function isSharedData(): boolean {
+  try {
+    return getDataProvider() === 'api'
+  } catch {
+    return false
+  }
+}

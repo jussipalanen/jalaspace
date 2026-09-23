@@ -1,6 +1,6 @@
 import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDataLayer, type DataLayer } from '../../repositories'
 import { STORAGE_KEYS } from '../../repositories/localStorage/keys'
 import { LocalStorageDemoDataStore } from '../../repositories/localStorage/LocalStorageDemoDataStore'
@@ -27,6 +27,10 @@ describe('settings: language', () => {
 describe('settings: demo data reset', () => {
   beforeEach(async () => {
     await initializeDemoData(new LocalStorageDemoDataStore())
+  })
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
   })
 
   it('does nothing when the confirmation is cancelled', async () => {
@@ -99,6 +103,26 @@ describe('settings: demo data reset', () => {
       'Unable to reset the demo data. Please try again.',
     )
     expect(within(dialog).getByRole('button', { name: 'Reset demo data' })).toBeEnabled()
+  })
+
+  it('explains that a reset affects everyone when the data is on the API', async () => {
+    vi.stubEnv('VITE_DATA_PROVIDER', 'api')
+    const user = userEvent.setup()
+    // The page reads the provider from the environment; the data layer stays local here.
+    renderRoute('/settings', { dataLayer: createDataLayer('localStorage') })
+
+    const section = await screen.findByRole('region', { name: 'Demo data' })
+    expect(
+      within(section).getByText(
+        'JalaSpace stores the demo data on the API server, shared by everyone who uses it.',
+      ),
+    ).toBeInTheDocument()
+    await user.click(within(section).getByRole('button', { name: 'Reset demo data' }))
+    expect(
+      within(screen.getByRole('dialog', { name: 'Reset demo data?' })).getByText(
+        /The demo data is reset for everyone who uses this API/,
+      ),
+    ).toBeInTheDocument()
   })
 
   it('explains when the data provider cannot reset demo data', async () => {

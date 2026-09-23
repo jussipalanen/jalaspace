@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) and AI suggestions for maintenance tasks. The frontend's `api` data provider comes next. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) and AI suggestions for maintenance tasks. The frontend uses them with `VITE_DATA_PROVIDER=api`, e.g. in Docker Compose. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 

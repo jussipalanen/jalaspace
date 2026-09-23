@@ -439,7 +439,7 @@ jalaspace/
 
 The `backend/` directory holds the Node.js + TypeScript API (Express). It runs the TypeScript sources directly on Node.js 24 (type stripping), so there is no build step. Its conventions are described in `backend/README.md`: routes under `/api`, errors as codes (`{ "error": { "code": "not_found" } }`), never stack traces.
 
-Add backend endpoints only when an issue asks for them. The frontend keeps using localStorage until the `api` data provider is implemented.
+Add backend endpoints only when an issue asks for them. The frontend's `api` data provider (`VITE_DATA_PROVIDER=api`) reads and writes all entities through these endpoints; `localStorage` stays the default and is used by the public demo.
 
 ---
 
