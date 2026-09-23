@@ -376,7 +376,7 @@ Setup (already done for this repository):
 
 | Name | Kind | Value |
 | ---- | ---- | ----- |
-| `DEV_AGENT_APP_ID` | Actions variable | App ID of the `jalaspace-dev-agent` GitHub App (Contents, Issues and Pull requests: read and write) |
+| `DEV_AGENT_CLIENT_ID` | Actions variable | Client ID of the `jalaspace-dev-agent` GitHub App (Contents, Issues and Pull requests: read and write) |
 | `DEV_AGENT_PRIVATE_KEY` | Actions secret | The app's private key |
 | `CLAUDE_CODE_OAUTH_TOKEN` | Actions secret | From `claude setup-token`; uses the maintainer's Claude subscription |
 | `ai-agent` | Issue label | Starts the agent |

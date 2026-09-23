@@ -9,7 +9,7 @@ name: Developer agent
 # ruleset on main requires a reviewed pull request, so the agent cannot change
 # CI, repository settings or main.
 #
-# Setup: vars.DEV_AGENT_APP_ID, secrets.DEV_AGENT_PRIVATE_KEY and
+# Setup: vars.DEV_AGENT_CLIENT_ID, secrets.DEV_AGENT_PRIVATE_KEY and
 # secrets.CLAUDE_CODE_OAUTH_TOKEN (see README.md → Developer agent).
 on:
   issues:
@@ -33,7 +33,7 @@ jobs:
         id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app-id: ${{ vars.DEV_AGENT_APP_ID }}
+          client-id: ${{ vars.DEV_AGENT_CLIENT_ID }}
           private-key: ${{ secrets.DEV_AGENT_PRIVATE_KEY }}
           permission-contents: write
           permission-issues: write
