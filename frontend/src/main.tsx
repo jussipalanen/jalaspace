@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client'
 import { App } from './App'
 import { getDataProvider } from './config/dataProvider'
 import { getDataLayer } from './repositories'
+import { startWakingApi } from './services/apiWakeUp'
 import { initializeDemoData } from './services/demoDataService'
 import { syncAllSpaceStatuses } from './services/leaseService'
 
@@ -28,6 +29,7 @@ if (!rootElement) {
   throw new Error('Root element #root not found')
 }
 
+startWakingApi()
 await prepareDemoData()
 
 createRoot(rootElement).render(
