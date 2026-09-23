@@ -12,6 +12,8 @@ const values: SpaceFormValues = {
   type: 'office',
   floor: '5',
   area: '62,5',
+  rooms: '3',
+  features: ['parking', 'kitchen'],
   status: 'maintenance',
 }
 

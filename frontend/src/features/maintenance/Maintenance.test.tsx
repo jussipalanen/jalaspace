@@ -288,6 +288,8 @@ describe('maintenance', () => {
       type: 'retail',
       floor: 1,
       areaM2: 20,
+      rooms: null,
+      features: [],
       status: 'available',
       createdAt: '2026-09-22T10:30:00.000Z',
       updatedAt: '2026-09-22T10:30:00.000Z',

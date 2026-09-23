@@ -28,6 +28,8 @@ test.describe('spaces', () => {
     await page.getByLabel('Name').fill('B 401')
     await page.getByLabel('Floor').fill('4')
     await page.getByLabel('Area (m²)').fill('48,5')
+    await page.getByLabel('Rooms').fill('2')
+    await page.getByRole('checkbox', { name: 'Sauna' }).check()
     await page.getByRole('button', { name: 'Save space' }).click()
 
     await expect(page.getByText('Space B 401 was added.')).toBeVisible()
@@ -38,6 +40,19 @@ test.describe('spaces', () => {
     const row = page.getByRole('row').filter({ hasText: 'B 401' })
     await expect(row).toContainText('48.5 m²')
     await expect(row).toContainText('Available')
+
+    // The new space is found by its rooms and features.
+    await page.getByLabel('Rooms').selectOption('2')
+    // The filter follows the URL, which the router updates asynchronously, so
+    // click and wait for the state instead of using check(), which reads it at once.
+    const sauna = page.getByRole('checkbox', { name: 'Sauna' })
+    await sauna.click()
+    await expect(sauna).toBeChecked()
+    await expect(page).toHaveURL('/units?property=property-kuopio-harbour&rooms=2&features=sauna')
+    await expect(count(page)).toHaveText('1 space')
+    await page.reload()
+    await expect(page.getByRole('row').filter({ hasText: 'B 401' })).toContainText('Sauna')
+    await expect(page.getByLabel('Rooms')).toHaveValue('2')
 
     await page.goto('/properties/property-kuopio-harbour')
     await expect(page.getByRole('link', { name: 'Edit B 401' })).toBeVisible()

@@ -17,6 +17,8 @@ import type {
   TenantRepository,
 } from './Repository'
 import type { SessionRepository } from './SessionRepository'
+import type { Entity } from '../types/common'
+import type { Space } from '../types/space'
 
 export interface DataLayer {
   properties: PropertyRepository
@@ -26,6 +28,12 @@ export interface DataLayer {
   maintenance: MaintenanceRepository
   /** Seeding and reset support; `null` for providers that manage their own data. */
   demoData: DemoDataStore | null
+}
+
+/** Spaces from an API version before rooms and features were added have none. */
+function withSpaceDefaults(entity: Entity): Space {
+  const space = entity as Space
+  return { ...space, rooms: space.rooms ?? null, features: Array.isArray(space.features) ? space.features : [] }
 }
 
 /** Single place that maps a data provider to its repository implementations. */
@@ -48,7 +56,7 @@ export function createDataLayer(provider: DataProvider): DataLayer {
       return {
         properties: new ApiRepository(apiUrl, '/properties'),
         // The API serves spaces under the app route's name.
-        spaces: new ApiRepository(apiUrl, '/units'),
+        spaces: new ApiRepository(apiUrl, '/units', withSpaceDefaults),
         tenants: new ApiRepository(apiUrl, '/tenants'),
         leases: new ApiRepository(apiUrl, '/leases'),
         maintenance: new ApiRepository(apiUrl, '/maintenance'),

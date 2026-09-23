@@ -16,9 +16,12 @@ import {
 } from '../domain/properties.ts'
 import {
   SPACE_AREA_MAX,
+  SPACE_FEATURES,
   SPACE_FLOOR_MAX,
   SPACE_FLOOR_MIN,
   SPACE_NAME_MAX_LENGTH,
+  SPACE_ROOMS_MAX,
+  SPACE_ROOMS_MIN,
   SPACE_STATUSES,
   SPACE_TYPES,
 } from '../domain/spaces.ts'
@@ -115,6 +118,20 @@ const spaceInput = object(
       multipleOf: 0.01,
       description: 'Area in square metres, at most two decimals.',
       example: 62.5,
+    },
+    rooms: {
+      type: ['integer', 'null'],
+      minimum: SPACE_ROOMS_MIN,
+      maximum: SPACE_ROOMS_MAX,
+      description: 'Optional number of rooms; `null` when missing.',
+      example: 3,
+    },
+    features: {
+      type: 'array',
+      items: oneOf(SPACE_FEATURES),
+      uniqueItems: true,
+      description: 'Optional; empty when missing. Duplicates are removed and the features are stored in the listed order.',
+      example: ['sauna', 'balcony'],
     },
     status: oneOf(
       SPACE_STATUSES,

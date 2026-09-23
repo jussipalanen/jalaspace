@@ -1,6 +1,6 @@
 .space-filters {
   display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 1.5fr);
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.7fr) minmax(0, 1.5fr);
   gap: var(--space-3);
   margin-bottom: var(--space-3);
 }
@@ -11,6 +11,10 @@
 
 .space-filters__search .search-field {
   max-width: none;
+}
+
+.space-filters__features {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 719.98px) {

@@ -13,7 +13,7 @@ import { tenantSeeds } from './tenants'
  * Bump when the seed data or its shape changes. Browsers with an older
  * version are re-seeded on their next visit.
  */
-export const SEED_VERSION = 1
+export const SEED_VERSION = 2
 
 // Seed entities use stable, readable ids; entities created in the app use UUIDs.
 const propertyId = (key: string) => `property-${key}`
@@ -88,6 +88,8 @@ export function createSeedData(now: Date = new Date()): DemoData {
             type: group.type,
             floor,
             areaM2: group.area(floor, index),
+            rooms: group.rooms?.(floor, index) ?? null,
+            features: group.features?.(floor, index) ?? [],
             status,
             createdAt,
             updatedAt: createdAt,

@@ -171,7 +171,7 @@ textarea.field__input {
   }
 }
 
-/* A small set of radio options shown side by side, e.g. the tenant type. */
+/* A small set of radio or checkbox options shown side by side, e.g. the tenant type. */
 .choice-group {
   display: flex;
   flex-direction: column;

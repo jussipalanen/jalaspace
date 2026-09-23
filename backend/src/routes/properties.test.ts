@@ -139,6 +139,8 @@ describe('properties API', () => {
       type: 'office',
       floor: 1,
       areaM2: 50,
+      rooms: null,
+      features: [],
       status: 'available',
       createdAt: '',
       updatedAt: '',

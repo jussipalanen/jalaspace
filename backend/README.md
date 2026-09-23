@@ -190,12 +190,14 @@ Spaces are served under `/api/units`, like the app route; the entity is called a
 | `type`       | Required: `office`, `retail`, `industrial`, `storage` or `apartment`     |
 | `floor`      | Required, a whole number from −10 to 200                                 |
 | `areaM2`     | Required, a number over 0 and at most 100 000 with at most two decimals  |
+| `rooms`      | Optional, a whole number from 1 to 50; missing or `null` is stored as `null` |
+| `features`   | Optional list of `sauna`, `balcony`, `furnished`, `parking`, `accessible`, `loading_dock`, `kitchen`; missing is stored as `[]`, duplicates are removed and the order is fixed |
 | `status`     | Required: `available`, `occupied` or `maintenance`, see below            |
 
 ```bash
 curl -X POST http://localhost:3000/api/units \
   -H 'content-type: application/json' \
-  -d '{"propertyId":"property-joensuu-center","name":"A 501","type":"office","floor":5,"areaM2":62.5,"status":"available"}'
+  -d '{"propertyId":"property-joensuu-center","name":"A 501","type":"office","floor":5,"areaM2":62.5,"rooms":3,"features":["kitchen","parking"],"status":"available"}'
 ```
 
 - **Status follows the leases:** a space is occupied exactly when it has an active lease (see Leases). A new space has no leases, so `occupied` is saved as `available`; a space with an active lease stays occupied whatever the client sends, and one without cannot be made occupied. Clients choose between `available` and `maintenance`.

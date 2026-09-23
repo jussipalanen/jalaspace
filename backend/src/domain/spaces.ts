@@ -5,14 +5,27 @@ import { isRecord, readText, type Entity, type FieldErrorCode, type ParseResult 
 
 export const SPACE_TYPES = ['office', 'retail', 'industrial', 'storage', 'apartment'] as const
 export const SPACE_STATUSES = ['available', 'occupied', 'maintenance'] as const
+/** What a space offers; stored in this order, without duplicates. */
+export const SPACE_FEATURES = [
+  'sauna',
+  'balcony',
+  'furnished',
+  'parking',
+  'accessible',
+  'loading_dock',
+  'kitchen',
+] as const
 
 export type SpaceType = (typeof SPACE_TYPES)[number]
 export type SpaceStatus = (typeof SPACE_STATUSES)[number]
+export type SpaceFeature = (typeof SPACE_FEATURES)[number]
 
 export const SPACE_NAME_MAX_LENGTH = 50
 export const SPACE_FLOOR_MIN = -10
 export const SPACE_FLOOR_MAX = 200
 export const SPACE_AREA_MAX = 100_000
+export const SPACE_ROOMS_MIN = 1
+export const SPACE_ROOMS_MAX = 50
 
 /** The fields a client may set; the server sets `id`, `createdAt` and `updatedAt`. */
 export interface SpaceInput {
@@ -21,6 +34,9 @@ export interface SpaceInput {
   type: SpaceType
   floor: number
   areaM2: number
+  /** Number of rooms, or `null` when not recorded. */
+  rooms: number | null
+  features: SpaceFeature[]
   status: SpaceStatus
 }
 
@@ -34,6 +50,10 @@ function isSpaceType(value: unknown): value is SpaceType {
 
 function isSpaceStatus(value: unknown): value is SpaceStatus {
   return (SPACE_STATUSES as readonly unknown[]).includes(value)
+}
+
+function isSpaceFeature(value: unknown): value is SpaceFeature {
+  return (SPACE_FEATURES as readonly unknown[]).includes(value)
 }
 
 const isMissing = (value: unknown) => value === undefined || value === null || value === ''
@@ -67,7 +87,7 @@ export function parseSpaceInput(body: unknown): ParseResult<SpaceInput> {
   else if (!name) errors.name = 'required'
   else if (name.length > SPACE_NAME_MAX_LENGTH) errors.name = 'tooLong'
 
-  const { type, floor, areaM2, status } = source
+  const { type, floor, areaM2, rooms, features, status } = source
   if (isMissing(type)) errors.type = 'required'
   else if (!isSpaceType(type)) errors.type = 'invalid'
 
@@ -84,6 +104,21 @@ export function parseSpaceInput(body: unknown): ParseResult<SpaceInput> {
   if (isMissing(areaM2)) errors.areaM2 = 'required'
   else if (typeof areaM2 !== 'number' || !isValidArea(areaM2)) errors.areaM2 = 'invalid'
 
+  // Rooms and features are optional, so clients that do not send them keep working.
+  if (
+    !isMissing(rooms) &&
+    (typeof rooms !== 'number' ||
+      !Number.isInteger(rooms) ||
+      rooms < SPACE_ROOMS_MIN ||
+      rooms > SPACE_ROOMS_MAX)
+  ) {
+    errors.rooms = 'invalid'
+  }
+
+  if (features !== undefined && features !== null && (!Array.isArray(features) || !features.every(isSpaceFeature))) {
+    errors.features = 'invalid'
+  }
+
   if (isMissing(status)) errors.status = 'required'
   else if (!isSpaceStatus(status)) errors.status = 'invalid'
 
@@ -97,9 +132,16 @@ export function parseSpaceInput(body: unknown): ParseResult<SpaceInput> {
       type: type as SpaceType,
       floor: floor as number,
       areaM2: areaM2 as number,
+      rooms: isMissing(rooms) ? null : (rooms as number),
+      features: normalizeFeatures(Array.isArray(features) ? (features as SpaceFeature[]) : []),
       status: status as SpaceStatus,
     },
   }
+}
+
+/** Removes duplicates and puts the features in the order of `SPACE_FEATURES`. */
+export function normalizeFeatures(features: readonly SpaceFeature[]): SpaceFeature[] {
+  return SPACE_FEATURES.filter((feature) => features.includes(feature))
 }
 
 export interface SpaceReferenceData {

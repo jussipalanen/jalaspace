@@ -75,6 +75,8 @@ export const EXAMPLES = {
     type: 'office',
     floor: 5,
     areaM2: 62.5,
+    rooms: 3,
+    features: ['kitchen', 'parking'],
     status: 'available',
   },
   MaintenanceTaskInput: {

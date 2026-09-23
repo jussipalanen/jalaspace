@@ -6,9 +6,9 @@ function isEntityLike(value: unknown): value is Entity {
   return typeof value === 'object' && value !== null && typeof (value as { id?: unknown }).id === 'string'
 }
 
-function asEntity<T extends Entity>(value: unknown): T {
+function asEntity(value: unknown): Entity {
   if (!isEntityLike(value)) throw new ApiRequestError(null, 'unexpected_response')
-  return value as T
+  return value
 }
 
 const isNotFound = (error: unknown) => error instanceof ApiRequestError && error.status === 404
@@ -21,22 +21,28 @@ const isNotFound = (error: unknown) => error instanceof ApiRequestError && error
 export class ApiRepository<T extends Entity> implements Repository<T> {
   private readonly baseUrl: string
   private readonly path: string
+  private readonly normalize: (entity: Entity) => T
 
-  /** `path` is the collection under `/api`, e.g. `/units`. */
-  constructor(baseUrl: string, path: string) {
+  /**
+   * `path` is the collection under `/api`, e.g. `/units`. `normalize` fills in
+   * fields an older API version does not return yet, e.g. while a deployment
+   * of the frontend is live before the API's.
+   */
+  constructor(baseUrl: string, path: string, normalize: (entity: Entity) => T = (entity) => entity as T) {
     this.baseUrl = baseUrl
     this.path = path
+    this.normalize = normalize
   }
 
   async getAll(): Promise<T[]> {
     const body = await apiRequest(this.baseUrl, 'GET', this.path)
     if (!Array.isArray(body)) throw new ApiRequestError(null, 'unexpected_response')
-    return body.filter(isEntityLike) as T[]
+    return body.filter(isEntityLike).map(this.normalize)
   }
 
   async getById(id: string): Promise<T | null> {
     try {
-      return asEntity<T>(await apiRequest(this.baseUrl, 'GET', this.itemPath(id)))
+      return this.normalize(asEntity(await apiRequest(this.baseUrl, 'GET', this.itemPath(id))))
     } catch (error) {
       if (isNotFound(error)) return null
       throw error
@@ -45,12 +51,12 @@ export class ApiRepository<T extends Entity> implements Repository<T> {
 
   /** The API ignores the client's id and timestamps; the returned entity has the stored ones. */
   async create(entity: T): Promise<T> {
-    return asEntity<T>(await apiRequest(this.baseUrl, 'POST', this.path, entity))
+    return this.normalize(asEntity(await apiRequest(this.baseUrl, 'POST', this.path, entity)))
   }
 
   async update(entity: T): Promise<T> {
     try {
-      return asEntity<T>(await apiRequest(this.baseUrl, 'PUT', this.itemPath(entity.id), entity))
+      return this.normalize(asEntity(await apiRequest(this.baseUrl, 'PUT', this.itemPath(entity.id), entity)))
     } catch (error) {
       if (isNotFound(error)) throw new EntityNotFoundError(entity.id)
       throw error

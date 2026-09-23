@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createSeedData } from '../data/seed'
+import type { SpaceFeature } from '../types/space'
 import { toIsoDate } from '../utils/date'
 import {
   applySpaceChanges,
@@ -10,7 +11,10 @@ import {
   filterSpaceRows,
   findActiveLease,
   parseArea,
+  parseFeaturesFilter,
   parseFloor,
+  parseRooms,
+  parseRoomsFilter,
   reconcileSpaceStatuses,
   resolveSpaceStatus,
   toSpaceForm,
@@ -27,6 +31,8 @@ const valid: SpaceFormValues = {
   type: 'office',
   floor: '5',
   area: '62,5',
+  rooms: '',
+  features: [],
   status: 'available',
 }
 
@@ -93,6 +99,21 @@ describe('validateSpaceForm', () => {
       validateSpaceForm({ ...valid, floor: '2.5', area: '0', name: 'x'.repeat(51) }, seed.spaces),
     ).toEqual({ floor: 'invalid', area: 'invalid', name: 'tooLong' })
   })
+
+  it('accepts empty rooms and a whole number from 1 to 50', () => {
+    for (const rooms of ['', ' ', '1', ' 3 ', '50']) {
+      expect(validateSpaceForm({ ...valid, rooms }, seed.spaces)).toEqual({})
+    }
+    for (const rooms of ['0', '51', '2.5', '2,5', '-1', 'three']) {
+      expect(validateSpaceForm({ ...valid, rooms }, seed.spaces)).toEqual({ rooms: 'invalid' })
+    }
+  })
+
+  it('parses rooms', () => {
+    expect(parseRooms(' 3 ')).toBe(3)
+    expect(parseRooms('')).toBeNull()
+    expect(parseRooms('51')).toBeNull()
+  })
 })
 
 describe('status rule', () => {
@@ -122,6 +143,24 @@ describe('building spaces', () => {
       createdAt: now.toISOString(),
     })
     expect(space.id).toMatch(/^[0-9a-f-]{36}$/)
+  })
+
+  it('stores rooms as a number and features without duplicates in a fixed order', () => {
+    const space = buildNewSpace(
+      { ...valid, rooms: ' 3 ', features: ['kitchen', 'sauna', 'kitchen'] },
+      now.toISOString(),
+    )
+    expect(space).toMatchObject({ rooms: 3, features: ['sauna', 'kitchen'] })
+    expect(buildNewSpace(valid, now.toISOString())).toMatchObject({ rooms: null, features: [] })
+  })
+
+  it('shows rooms and features in the form', () => {
+    const apartment = seed.spaces.find((space) => space.id === 'space-helsinki-kallio-11')!
+    expect(toSpaceForm(apartment, 'en-GB')).toMatchObject({
+      rooms: '3',
+      features: ['sauna', 'balcony', 'kitchen'],
+    })
+    expect(toSpaceForm(seed.spaces[0]!, 'en-GB').rooms).toBe('')
   })
 
   it('keeps an occupied space occupied when edited', () => {
@@ -158,7 +197,7 @@ describe('space rows and filters', () => {
 
   it('filters by property, status and search', () => {
     const filter = (propertyId = '', status: '' | 'available' = '', query = '') =>
-      filterSpaceRows(rows, { propertyId, status, query }, 'en-GB')
+      filterSpaceRows(rows, { propertyId, status, rooms: null, features: [], query }, 'en-GB')
 
     expect(filter()).toHaveLength(68)
     expect(filter('', 'available')).toHaveLength(7)
@@ -172,6 +211,36 @@ describe('space rows and filters', () => {
       'A 206',
     ])
     expect(filter('', '', 'NORDIC')).toHaveLength(6)
+  })
+
+  it('filters by rooms and by features the space must all have', () => {
+    const filter = (rooms: number | null, features: SpaceFeature[], status: '' | 'available' = '') =>
+      filterSpaceRows(rows, { propertyId: '', status, rooms, features, query: '' }, 'en-GB').map(
+        (row) => row.space.name,
+      )
+
+    expect(filter(3, ['sauna'])).toEqual(['A 4', 'A 8', 'A 11', 'A 12', 'A 15', 'A 16'])
+    expect(filter(3, ['sauna'], 'available')).toEqual(['A 11'])
+    expect(filter(null, ['sauna', 'parking'])).toEqual(['A 4', 'A 8', 'B 306'])
+    expect(filter(4, [])).toHaveLength(6)
+    expect(filter(null, ['loading_dock'])).toHaveLength(8)
+  })
+
+  it('treats the last rooms option as that many or more', () => {
+    const large = { ...rows[0]!, space: { ...rows[0]!.space, rooms: 7 } }
+    const rooms = (value: number) =>
+      filterSpaceRows([large, ...rows], { propertyId: '', status: '', rooms: value, features: [], query: '' }, 'en-GB')
+    expect(rooms(5)).toEqual([large])
+    // Spaces without recorded rooms never match a rooms filter.
+    expect(rooms(1).every((row) => row.space.rooms === 1)).toBe(true)
+  })
+
+  it('reads the rooms and features filters from the URL', () => {
+    expect(parseRoomsFilter('3')).toBe(3)
+    expect(parseRoomsFilter('5')).toBe(5)
+    for (const value of [null, '', '0', '6', '2.5', 'x']) expect(parseRoomsFilter(value)).toBeNull()
+    expect(parseFeaturesFilter('parking,sauna,pool,sauna')).toEqual(['sauna', 'parking'])
+    expect(parseFeaturesFilter(null)).toEqual([])
   })
 })
 

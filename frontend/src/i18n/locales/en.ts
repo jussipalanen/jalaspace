@@ -261,6 +261,7 @@ export const en = {
         type: 'Type',
         floor: 'Floor',
         area: 'Area',
+        rooms: 'Rooms',
         status: 'Status',
         tenant: 'Tenant',
       },
@@ -392,6 +393,9 @@ export const en = {
       allProperties: 'All properties',
       status: 'Status',
       allStatuses: 'All statuses',
+      rooms: 'Rooms',
+      anyRooms: 'Any',
+      features: 'Features',
       search: 'Search spaces',
       searchPlaceholder: 'Space or tenant name',
       clear: 'Clear filters',
@@ -403,6 +407,7 @@ export const en = {
       type: 'Type',
       floor: 'Floor',
       area: 'Area',
+      rooms: 'Rooms',
       status: 'Status',
       tenant: 'Tenant',
     },
@@ -418,7 +423,7 @@ export const en = {
     },
     noResults: {
       title: 'No spaces match the filters',
-      description: 'Try another property, status or search term.',
+      description: 'Try another property, status, number of rooms, feature or search term.',
     },
     form: {
       createTitle: 'Add space',
@@ -432,12 +437,15 @@ export const en = {
         type: 'Type',
         floor: 'Floor',
         area: 'Area (m²)',
+        rooms: 'Rooms',
+        features: 'Features',
         status: 'Status',
       },
       hints: {
         name: 'Unique within the property, e.g. A 101',
         floor: 'A whole number, e.g. 2, or −1 for a basement',
         area: 'For example 62.5',
+        rooms: 'Optional, e.g. 3 for a three-room apartment',
         status: 'Occupied is set automatically while a lease is active.',
       },
       selectProperty: 'Choose a property',
@@ -469,6 +477,9 @@ export const en = {
         area: {
           required: 'Area is required.',
           invalid: 'Enter an area above 0 and at most {max} m², with up to 2 decimals.',
+        },
+        rooms: {
+          invalid: 'Enter a whole number from {min} to {max}, or leave the field empty.',
         },
       },
     },
@@ -955,6 +966,17 @@ export const en = {
       storage: 'Storage',
       apartment: 'Apartment',
     },
+    feature: {
+      sauna: 'Sauna',
+      balcony: 'Balcony',
+      furnished: 'Furnished',
+      parking: 'Parking',
+      accessible: 'Accessible',
+      loading_dock: 'Loading dock',
+      kitchen: 'Kitchen',
+    },
+    rooms: { one: '{count} room', other: '{count} rooms' },
+    roomsAtLeast: '{count}+ rooms',
   },
 }
 

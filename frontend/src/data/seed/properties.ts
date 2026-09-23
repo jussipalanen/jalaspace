@@ -1,5 +1,6 @@
 import type { PropertyType } from '../../types/property'
-import type { SpaceType } from '../../types/space'
+import { SPACE_FEATURES } from '../../services/spaces'
+import type { SpaceFeature, SpaceType } from '../../types/space'
 
 export interface SpaceGroupSeed {
   type: SpaceType
@@ -8,6 +9,9 @@ export interface SpaceGroupSeed {
   /** `index` is the 0-based position within the floor; `ordinal` counts within the group. */
   name: (floor: number, index: number, ordinal: number) => string
   area: (floor: number, index: number) => number
+  /** Missing: rooms are not recorded. */
+  rooms?: (floor: number, index: number) => number
+  features?: (floor: number, index: number) => SpaceFeature[]
 }
 
 export interface PropertySeed {
@@ -32,6 +36,10 @@ const repeat = (key: string, count: number): string[] => Array<string>(count).fi
 
 const pad = (value: number) => String(value).padStart(2, '0')
 
+/** The features that are on, in the stored order. */
+const has = (flags: Partial<Record<SpaceFeature, boolean>>): SpaceFeature[] =>
+  SPACE_FEATURES.filter((feature) => flags[feature])
+
 // Addresses are illustrative; the properties and their details are fictional.
 export const propertySeeds: PropertySeed[] = [
   {
@@ -50,6 +58,7 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 4,
         name: (_floor, _index, ordinal) => `Retail ${ordinal}`,
         area: (_floor, index) => 140 + ((index * 53) % 110),
+        features: () => has({ accessible: true }),
       },
       {
         type: 'office',
@@ -57,6 +66,8 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 6,
         name: (floor, index) => `A ${floor}${pad(index + 1)}`,
         area: (floor, index) => 45 + ((index * 17 + floor * 11) % 40),
+        rooms: (floor, index) => 2 + ((index + floor) % 3),
+        features: (_floor, index) => has({ accessible: true, kitchen: index % 3 === 0 }),
       },
     ],
     available: [4, 11],
@@ -89,6 +100,14 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 6,
         name: (floor, index) => `B ${floor}${pad(index + 1)}`,
         area: (floor, index) => 60 + ((index * 23 + floor * 7) % 55),
+        features: (floor, index) =>
+          has({
+            sauna: floor === 3 && index === 5,
+            furnished: index < 2,
+            parking: true,
+            accessible: true,
+            kitchen: index % 2 === 1,
+          }),
       },
     ],
     available: [2, 9, 16],
@@ -117,6 +136,7 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 6,
         name: (_floor, _index, ordinal) => `Hall ${ordinal}`,
         area: (_floor, index) => 400 + ((index * 97) % 350),
+        features: () => has({ parking: true, accessible: true, loading_dock: true }),
       },
       {
         type: 'storage',
@@ -124,6 +144,7 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 6,
         name: (_floor, _index, ordinal) => `Storage ${ordinal}`,
         area: (_floor, index) => 20 + ((index * 7) % 25),
+        features: (_floor, index) => has({ accessible: true, loading_dock: index < 2 }),
       },
     ],
     available: [7],
@@ -152,6 +173,17 @@ export const propertySeeds: PropertySeed[] = [
         perFloor: 4,
         name: (_floor, _index, ordinal) => `A ${ordinal}`,
         area: (floor, index) => 32 + (((floor - 1) * 4 + index) * 13) % 50,
+        rooms: (_floor, index) => Math.min(index + 1, 3),
+        features: (floor, index) =>
+          has({
+            // The larger apartments have their own sauna.
+            sauna: index === 3 || (index === 2 && floor >= 3),
+            balcony: floor >= 2,
+            furnished: index === 0,
+            parking: index >= 2 && floor <= 2,
+            accessible: floor === 1,
+            kitchen: true,
+          }),
       },
     ],
     available: [10],

@@ -61,6 +61,18 @@ describe('ApiRepository', () => {
     expect(request(0).url).toBe(`${API_URL}/api/properties/property-1`)
   })
 
+  it('fills in fields an older API does not return with the normalizer', async () => {
+    const withDefaults = new ApiRepository(API_URL, '/properties', (entity) => ({
+      ...(entity as Property),
+      description: (entity as Property).description ?? 'none',
+    }))
+    const { description: _description, ...older } = property
+    fetchMock.mockResolvedValueOnce(json([older])).mockResolvedValueOnce(json(older, 201))
+
+    expect(await withDefaults.getAll()).toEqual([{ ...property, description: 'none' }])
+    expect(await withDefaults.create(property)).toEqual({ ...property, description: 'none' })
+  })
+
   it('encodes ids in the URL', async () => {
     fetchMock.mockResolvedValue(apiError(404, 'not_found'))
     await repository.getById('a/b?c')
