@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.11.0](https://github.com/jussipalanen/jalaspace/compare/v0.10.0...v0.11.0) (2026-09-23)
+
+
+### Added
+
+* **data:** read and save the data through the API with VITE_DATA_PROVIDER=api ([#81](https://github.com/jussipalanen/jalaspace/issues/81)) ([5062dbb](https://github.com/jussipalanen/jalaspace/commit/5062dbb17282bb18c8552f680163e2dea1f8f4f5))
+
 ## [0.10.0](https://github.com/jussipalanen/jalaspace/compare/v0.9.0...v0.10.0) (2026-09-23)
 
 
