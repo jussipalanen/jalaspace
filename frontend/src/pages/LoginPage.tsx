@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router'
 import { LogoMark } from '../components/icons'
+import { isSharedData } from '../config/dataProvider'
 import { LanguageSwitcher } from '../components/LanguageSwitcher/LanguageSwitcher'
 import { LoginForm } from '../features/auth/LoginForm'
 import type { LoginLocationState } from '../features/auth/RequireAuth'
@@ -45,7 +46,9 @@ export function LoginPage() {
           <LoginForm />
         </div>
 
-        <p className="login-page__notice">{t('auth.notice')}</p>
+        <p className="login-page__notice">
+          {t(isSharedData() ? 'auth.noticeShared' : 'auth.notice')}
+        </p>
       </div>
     </main>
   )

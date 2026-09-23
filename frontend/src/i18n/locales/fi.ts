@@ -17,6 +17,7 @@ export const fi: Messages = {
     open: 'Avaa valikko',
     close: 'Sulje valikko',
     demoNote: 'Demoympäristö. Tiedot tallennetaan vain tähän selaimeen.',
+    demoNoteShared: 'Demoympäristö. Tiedot ovat yhteisiä kaikille demon käyttäjille.',
     sections: {
       overview: 'Yleistä',
       portfolio: 'Kiinteistösalkku',
@@ -126,6 +127,8 @@ export const fi: Messages = {
     fillDemo: 'Täytä demotunnukset',
     notice:
       'Tämä on demo. Kirjautuminen tapahtuu vain selaimessasi, eikä se ole turvallinen. Tiedot tallennetaan vain tähän selaimeen.',
+    noticeShared:
+      'Tämä on demo. Kirjautuminen tapahtuu vain selaimessasi, eikä se ole turvallinen. Tiedot ovat yhteisiä kaikille demon käyttäjille, joten älä syötä henkilötietoja.',
     invalidCredentials: 'Virheellinen sähköposti tai salasana.',
     unavailable: 'Kirjautuminen ei onnistunut. Yritä uudelleen.',
     validation: {
