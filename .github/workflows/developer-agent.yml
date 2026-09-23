@@ -1,0 +1,101 @@
+name: Developer agent
+
+# Implements an issue when a maintainer adds the `ai-agent` label, and stops at
+# a pull request for human review. Instructions: .github/developer-agent.md
+#
+# The agent acts as the JalaSpace developer agent GitHub App, so its commits,
+# pushes and comments appear as jalaspace-dev-agent[bot] and its pull requests
+# trigger CI. The app has no Workflows or Administration permission, and the
+# ruleset on main requires a reviewed pull request, so the agent cannot change
+# CI, repository settings or main.
+#
+# Setup: vars.DEV_AGENT_APP_ID, secrets.DEV_AGENT_PRIVATE_KEY and
+# secrets.CLAUDE_CODE_OAUTH_TOKEN (see README.md → Developer agent).
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: developer-agent-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+jobs:
+  implement:
+    name: implement
+    if: ${{ github.event.label.name == 'ai-agent' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Create app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ vars.DEV_AGENT_APP_ID }}
+          private-key: ${{ secrets.DEV_AGENT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      # Install dependencies up front: the agent may run checks but not install packages.
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Install backend dependencies
+        working-directory: backend
+        run: npm ci
+      - name: Install Playwright Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Run developer agent
+        uses: anthropics/claude-code-action@cfc3eb22bfed5c26ef66e3223c982af27e4524de # v1.0.231
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          github_token: ${{ steps.app-token.outputs.token }}
+          bot_name: jalaspace-dev-agent[bot]
+          bot_id: '332939746'
+          # A prompt runs the action in automation mode: no progress comment
+          # and no claude/ branch; the agent names its own branch.
+          prompt: |
+            You are the JalaSpace developer agent, running in GitHub Actions.
+
+            Repository: ${{ github.repository }}
+            Issue: #${{ github.event.issue.number }}
+            Repository owner: ${{ github.repository_owner }}
+
+            Read .github/developer-agent.md and follow it. It builds on AGENTS.md.
+            Start by reading the issue with: gh issue view ${{ github.event.issue.number }} --comments
+          # No commit trailer, pull request footer or session link naming the tool.
+          settings: |
+            {
+              "attribution": { "commit": "", "pr": "", "sessionUrl": false }
+            }
+          claude_args: |
+            --max-turns 100
+            # Files
+            --allowedTools "Read" "Edit" "Write" "Glob" "Grep"
+            # Git: work on a feature branch and push it (the ruleset protects main)
+            --allowedTools "Bash(git status *)" "Bash(git diff *)" "Bash(git log *)" "Bash(git show *)"
+            --allowedTools "Bash(git branch *)" "Bash(git switch *)" "Bash(git checkout *)" "Bash(git restore *)"
+            --allowedTools "Bash(git add *)" "Bash(git rm *)" "Bash(git mv *)" "Bash(git commit *)" "Bash(git push *)"
+            # GitHub: read the issue, comment on it and open the pull request
+            --allowedTools "Bash(gh issue view *)" "Bash(gh issue comment *)"
+            --allowedTools "Bash(gh pr create *)" "Bash(gh pr view *)" "Bash(gh pr list *)"
+            # Checks (no npm install: new dependencies need a human)
+            --allowedTools "Bash(npm ci *)" "Bash(npm run *)" "Bash(npm test *)" "Bash(npm audit *)"
+            --allowedTools "Bash(npx playwright *)"
