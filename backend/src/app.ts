@@ -3,6 +3,15 @@ import type { RateLimiter } from './ai/rateLimit.ts'
 import type { MaintenanceSuggester } from './ai/suggestions.ts'
 import { cors } from './cors.ts'
 import { errorHandler, notFoundHandler } from './errors.ts'
+import {
+  collectionLimits,
+  createResetRateLimiter,
+  createWriteRateLimiter,
+  DEFAULT_COLLECTION_LIMITS,
+  resetRateLimit,
+  writeRateLimit,
+  type CollectionLimits,
+} from './limits.ts'
 import { demoRouter } from './routes/demo.ts'
 import { featuresRouter } from './routes/features.ts'
 import { healthRouter } from './routes/health.ts'
@@ -26,6 +35,12 @@ export interface AppOptions {
   suggester?: MaintenanceSuggester | null
   /** Limits suggestion requests per client (default: 10 per 10 minutes). */
   suggestionRateLimiter?: RateLimiter
+  /** Limits writes per client (default: 60 per minute). */
+  writeRateLimiter?: RateLimiter
+  /** Limits demo resets per client (default: 10 per hour). */
+  resetRateLimiter?: RateLimiter
+  /** Maximum records per collection (default: DEFAULT_COLLECTION_LIMITS). */
+  collectionLimits?: CollectionLimits
   /** Origins allowed to call the API from a browser (default: none). */
   corsOrigins?: readonly string[]
   /** Number of proxies in front of the API, e.g. 1 on Render (default: 0). */
@@ -43,6 +58,9 @@ export function createApp({
   demoData = false,
   suggester = null,
   suggestionRateLimiter,
+  writeRateLimiter = createWriteRateLimiter(),
+  resetRateLimiter = createResetRateLimiter(),
+  collectionLimits: limits = DEFAULT_COLLECTION_LIMITS,
   corsOrigins = [],
   trustProxy = 0,
   routers = [],
@@ -56,6 +74,10 @@ export function createApp({
   app.use(express.json({ limit: '100kb' }))
 
   const api = express.Router()
+  // Limits come first, so refused requests change nothing.
+  api.use(writeRateLimit(writeRateLimiter))
+  if (demoData) api.use(resetRateLimit(resetRateLimiter))
+  api.use(collectionLimits(store, limits))
   api.use(healthRouter(version))
   api.use(featuresRouter({ maintenanceSuggestions: suggester !== null }))
   api.use(propertiesRouter(store))

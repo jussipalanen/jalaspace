@@ -7,6 +7,7 @@ import { useTranslation } from '../../i18n/useTranslation'
 import { deleteSpace, SpaceDeletionBlockedError } from '../../services/spaceService'
 import type { SpaceDeletionCheck } from '../../services/spaces'
 import type { Space } from '../../types/space'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 interface DeleteSpaceDialogProps {
   open: boolean
@@ -40,7 +41,7 @@ export function DeleteSpaceDialog({ open, space, deletion, onClose, onBlocked }:
     } catch (caught) {
       setBusy(false)
       if (caught instanceof SpaceDeletionBlockedError) onBlocked()
-      else setError(t('spaces.delete.error'))
+      else setError(saveErrorMessage(caught, t, t('spaces.delete.error')))
     }
   }
 

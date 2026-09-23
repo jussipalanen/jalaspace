@@ -146,6 +146,11 @@ export const fi: Messages = {
     wakingUp: 'Demopalvelinta herätellään. Hiljaisen jakson jälkeen tämä voi kestää minuutin.',
     retryHint: 'Yritä hetken kuluttua uudelleen.',
     retry: 'Yritä uudelleen',
+    apiLimit: {
+      rateLimited: 'Liian monta muutosta lyhyessä ajassa. Odota hetki ja yritä uudelleen.',
+      limitReached:
+        'Yhteinen demo on täynnä, joten uutta ei voi lisätä. Poista ensin jotain tai palauta demotiedot asetuksista.',
+    },
   },
   dashboard: {
     loading: 'Ladataan yleiskatsausta…',

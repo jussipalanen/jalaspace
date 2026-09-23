@@ -7,6 +7,7 @@ import type { DataLayer } from '../../repositories'
 import type { DemoDataStore } from '../../repositories/DemoDataStore'
 import { resetDemoData } from '../../services/demoDataService'
 import { useProfile } from '../profile/useProfile'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 /** The provider's demo data support, or `null` when it cannot be reset (or is misconfigured). */
 function demoDataStore(getDataLayer: () => DataLayer): DemoDataStore | null {
@@ -46,7 +47,7 @@ export function DemoDataSettings() {
       setDone(true)
     } catch (caught) {
       if (import.meta.env.DEV) console.error('Resetting demo data failed', caught)
-      setError(t('settings.demoData.error'))
+      setError(saveErrorMessage(caught, t, t('settings.demoData.error')))
     } finally {
       setBusy(false)
     }

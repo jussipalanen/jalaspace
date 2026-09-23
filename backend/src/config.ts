@@ -1,3 +1,5 @@
+import { DEFAULT_RESET_RATE_LIMIT, DEFAULT_WRITE_RATE_LIMIT } from './limits.ts'
+
 /** Server settings read from environment variables. */
 export interface Config {
   port: number
@@ -11,6 +13,10 @@ export interface Config {
   corsOrigins: string[]
   /** Number of proxies in front of the API (Render: 1), so the client IP is read correctly. */
   trustProxy: number
+  /** Writes (POST, PUT, DELETE) allowed per client and minute. */
+  writeRateLimit: number
+  /** Demo resets allowed per client and hour. */
+  resetRateLimit: number
 }
 
 export class ConfigError extends Error {
@@ -50,6 +56,15 @@ function parseTrustProxy(value: string | undefined): number {
   return hops
 }
 
+function parseLimit(name: string, value: string | undefined, fallback: number): number {
+  if (value === undefined || value.trim() === '') return fallback
+  const limit = Number(value)
+  if (!Number.isInteger(limit) || limit < 1 || limit > 1_000_000) {
+    throw new ConfigError(`${name} must be a whole number from 1 to 1000000, got "${value}".`)
+  }
+  return limit
+}
+
 function parseOrigins(value: string | undefined): string[] {
   const origins = (value ?? '')
     .split(',')
@@ -75,5 +90,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     geminiModel: env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL,
     corsOrigins: parseOrigins(env.CORS_ORIGINS),
     trustProxy: parseTrustProxy(env.TRUST_PROXY),
+    writeRateLimit: parseLimit('WRITE_RATE_LIMIT', env.WRITE_RATE_LIMIT, DEFAULT_WRITE_RATE_LIMIT),
+    resetRateLimit: parseLimit('RESET_RATE_LIMIT', env.RESET_RATE_LIMIT, DEFAULT_RESET_RATE_LIMIT),
   }
 }

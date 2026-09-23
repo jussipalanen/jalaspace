@@ -7,6 +7,7 @@ import { planRemoval, type TenantLease } from '../../services/tenants'
 import type { Tenant } from '../../types/tenant'
 import { toIsoDate } from '../../utils/date'
 import { formatDate } from '../../utils/format'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 interface RemoveFromSpaceDialogProps {
   tenant: Tenant
@@ -44,9 +45,9 @@ export function RemoveFromSpaceDialog({ tenant, entry, onClose, onRemoved }: Rem
           ? t('tenants.flash.cancelled', { space })
           : t('tenants.flash.removed', { name: tenant.name, space }),
       )
-    } catch {
+    } catch (caught) {
       setBusy(false)
-      setError(t('tenants.remove.error'))
+      setError(saveErrorMessage(caught, t, t('tenants.remove.error')))
     }
   }
 

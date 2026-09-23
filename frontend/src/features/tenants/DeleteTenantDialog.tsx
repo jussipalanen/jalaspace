@@ -7,6 +7,7 @@ import { useTranslation } from '../../i18n/useTranslation'
 import { deleteTenant, TenantDeletionBlockedError } from '../../services/tenantService'
 import type { TenantDeletionCheck } from '../../services/tenants'
 import type { Tenant } from '../../types/tenant'
+import { saveErrorMessage } from '../../utils/apiLimits'
 
 interface DeleteTenantDialogProps {
   open: boolean
@@ -40,7 +41,7 @@ export function DeleteTenantDialog({ open, tenant, deletion, onClose, onBlocked 
     } catch (caught) {
       setBusy(false)
       if (caught instanceof TenantDeletionBlockedError) onBlocked()
-      else setError(t('tenants.delete.error'))
+      else setError(saveErrorMessage(caught, t, t('tenants.delete.error')))
     }
   }
 

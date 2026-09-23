@@ -1,6 +1,7 @@
 import { GeminiSuggester } from './ai/gemini.ts'
 import { createApp } from './app.ts'
 import { ConfigError, loadConfig } from './config.ts'
+import { createResetRateLimiter, createWriteRateLimiter } from './limits.ts'
 import { resetDemoData } from './domain/demoData.ts'
 import { createMemoryStore } from './store/memoryStore.ts'
 import { VERSION } from './version.ts'
@@ -29,6 +30,8 @@ const app = createApp({
   suggester,
   corsOrigins: config.corsOrigins,
   trustProxy: config.trustProxy,
+  writeRateLimiter: createWriteRateLimiter(config.writeRateLimit),
+  resetRateLimiter: createResetRateLimiter(config.resetRateLimit),
 })
 
 const server = app.listen(config.port, config.host, () => {

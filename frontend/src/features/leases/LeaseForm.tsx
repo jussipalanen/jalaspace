@@ -21,12 +21,13 @@ import { parseDisplayDate } from '../../utils/date'
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
 import './LeaseForm.css'
+import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof LeaseFormValues
 
 const FIELD_ORDER: Field[] = ['tenantId', 'propertyId', 'spaceId', 'startDate', 'endDate', 'monthlyRent']
 
-type SaveError = 'failed' | 'notFound'
+type SaveError = 'failed' | 'notFound' | ApiLimitCode
 
 interface LeaseFormProps {
   initialValues: LeaseFormValues
@@ -141,7 +142,7 @@ export function LeaseForm({
     } catch (error) {
       // The typed values stay in the form, so nothing is lost on failure.
       if (error instanceof LeaseValidationError) showValidation(error.errors)
-      else setSaveError(error instanceof EntityNotFoundError ? 'notFound' : 'failed')
+      else setSaveError(apiLimitCode(error) ?? (error instanceof EntityNotFoundError ? 'notFound' : 'failed'))
       setSaving(false)
     }
   }
@@ -188,7 +189,11 @@ export function LeaseForm({
       )}
       {saveError && (
         <div className="alert alert--error" role="alert">
-          {saveError === 'notFound' ? t('leases.form.notFoundError') : t('leases.form.saveError')}
+          {saveError === 'notFound'
+            ? t('leases.form.notFoundError')
+            : saveError === 'failed'
+              ? t('leases.form.saveError')
+              : t(`states.apiLimit.${saveError}`)}
         </div>
       )}
 

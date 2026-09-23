@@ -12,6 +12,7 @@ import {
   type PropertyFormValues,
 } from '../../services/properties'
 import { hasErrors } from '../../utils/validation'
+import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof PropertyFormValues
 
@@ -31,7 +32,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
   const [values, setValues] = useState(initialValues)
   const [errors, setErrors] = useState<PropertyFormErrors>({})
   const [showSummary, setShowSummary] = useState(false)
-  const [saveError, setSaveError] = useState(false)
+  const [saveError, setSaveError] = useState<'failed' | ApiLimitCode | null>(null)
   const [saving, setSaving] = useState(false)
 
   const fieldId = (field: Field) => `${idPrefix}-${field}`
@@ -39,7 +40,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
   const update = <F extends Field>(field: F, value: PropertyFormValues[F]) => {
     setValues((current) => ({ ...current, [field]: value }))
     setErrors((current) => ({ ...current, [field]: undefined }))
-    setSaveError(false)
+    setSaveError(null)
   }
 
   const messages: Partial<Record<Field, string>> = {
@@ -72,12 +73,12 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
     }
 
     setShowSummary(false)
-    setSaveError(false)
+    setSaveError(null)
     setSaving(true)
     try {
       await onSubmit(values)
-    } catch {
-      setSaveError(true)
+    } catch (error) {
+      setSaveError(apiLimitCode(error) ?? 'failed')
       setSaving(false)
     }
   }
@@ -93,7 +94,9 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
       )}
       {saveError && (
         <div className="alert alert--error" role="alert">
-          {t('properties.form.saveError')}
+          {saveError === 'failed'
+            ? t('properties.form.saveError')
+            : t(`states.apiLimit.${saveError}`)}
         </div>
       )}
 

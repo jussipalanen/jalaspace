@@ -57,6 +57,8 @@ Environment variables (see [`.env.example`](.env.example)):
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model for the suggestions |
 | `CORS_ORIGINS` | none | Origins allowed to call the API from a browser, comma-separated. `*` matches part of one host label, e.g. `https://jalaspace-*-team.vercel.app` |
 | `TRUST_PROXY` | `0` | Number of proxies in front of the API (Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
+| `WRITE_RATE_LIMIT` | `60` | Writes (`POST`, `PUT`, `DELETE`) allowed per client and minute, see [Limits](#limits) |
+| `RESET_RATE_LIMIT` | `10` | Demo resets allowed per client and hour |
 
 `npm run dev` reads `backend/.env` when it exists: copy `.env.example` to `.env` and add your key there. `npm start` reads only the real environment, as on Render.
 
@@ -79,8 +81,9 @@ An invalid value stops the server at start with a clear message. Never commit re
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
   | 409    | `space_in_use`      | The space still has leases or maintenance tasks |
   | 409    | `tenant_in_use`     | The tenant still has leases |
+  | 409    | `limit_reached`     | The collection is full, so nothing more can be created (with `limit`) |
   | 413    | `payload_too_large` | The request body is over the limit    |
-  | 429    | `rate_limited`      | Too many AI suggestions from this client (with `Retry-After`) or the AI quota is used up |
+  | 429    | `rate_limited`      | Too many writes, demo resets or AI suggestions from this client (with `Retry-After`), or the AI quota is used up |
   | 500    | `internal_error`    | An unexpected error; details are only logged on the server, never sent |
   | 502    | `invalid_suggestion` | The AI answered, but not with a usable suggestion |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
@@ -285,6 +288,22 @@ curl -X POST http://localhost:3000/api/maintenance/suggestions \
 - The provider is behind the `MaintenanceSuggester` interface (`src/ai/suggestions.ts`), so another provider can be added without changing the route. Tests use fakes and never call Gemini.
 
 Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Render, set it as a secret environment variable.
+
+## Limits
+
+The API is public and keeps its data in memory, so it limits how fast one client can change data and how much can be stored:
+
+| Limit | Default | Answer when exceeded |
+| --- | --- | --- |
+| Writes (`POST`, `PUT`, `DELETE`) per client | 60 per minute (`WRITE_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
+| Demo resets per client, on top of the write limit | 10 per hour (`RESET_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
+| AI suggestions per client | 10 per 10 minutes | `429 rate_limited` with `Retry-After` |
+| Stored records | properties 50, spaces 500, maintenance tasks 500, tenants 300, leases 1000 | `409 limit_reached` with the limit |
+
+- Reads are not limited. AI suggestions count only against their own limit.
+- A full collection can still be updated and cleaned up: only creating is refused.
+- Clients are told apart by IP address, so set `TRUST_PROXY` behind a proxy. Otherwise every visitor shares the proxy's limits.
+- The counts are kept in memory and reset when the server restarts. The record limits (`src/limits.ts`) are far above the demo data.
 
 ## Storage
 
