@@ -16,6 +16,7 @@ export const ERROR_CODES = [
   'rate_limited',
   'ai_unavailable',
   'invalid_suggestion',
+  'invalid_answer',
   'internal_error',
 ] as const
 

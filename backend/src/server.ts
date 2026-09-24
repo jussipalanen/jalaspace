@@ -1,4 +1,5 @@
 import { GeminiSuggester } from './ai/gemini.ts'
+import { GeminiAskInterpreter } from './ai/geminiAsk.ts'
 import { createApp } from './app.ts'
 import { ConfigError, loadConfig } from './config.ts'
 import { createResetRateLimiter, createWriteRateLimiter } from './limits.ts'
@@ -26,14 +27,15 @@ if (config.seedDemoData && config.demoResetAt) {
   scheduleDaily({ at: config.demoResetAt, run: () => resetDemoData(store) })
 }
 
-const suggester = config.geminiApiKey
-  ? new GeminiSuggester({ apiKey: config.geminiApiKey, model: config.geminiModel })
-  : null
+const gemini = config.geminiApiKey ? { apiKey: config.geminiApiKey, model: config.geminiModel } : null
+const suggester = gemini ? new GeminiSuggester(gemini) : null
+const interpreter = gemini ? new GeminiAskInterpreter(gemini) : null
 
 const app = createApp({
   store,
   demoData: config.seedDemoData,
   suggester,
+  interpreter,
   corsOrigins: config.corsOrigins,
   trustProxy: config.trustProxy,
   writeRateLimiter: createWriteRateLimiter(config.writeRateLimit),
@@ -47,7 +49,7 @@ const server = app.listen(config.port, config.host, () => {
     : ''
   const demo = config.seedDemoData ? ` with demo data${nightly}` : ''
   console.log(`JalaSpace API ${VERSION} listening on http://${config.host}:${config.port}${demo}`)
-  console.log(suggester ? `AI suggestions: Gemini (${config.geminiModel})` : 'AI suggestions: off')
+  console.log(gemini ? `AI suggestions and questions: Gemini (${config.geminiModel})` : 'AI features: off')
 })
 
 // Stop accepting connections and let open requests finish, e.g. when Docker stops the container.
