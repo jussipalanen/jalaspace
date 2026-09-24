@@ -1,5 +1,6 @@
 import { ErrorState, LoadingState } from '../components/DataState/DataState'
 import { PageHeader } from '../components/PageHeader/PageHeader'
+import { AskPanel } from '../features/dashboard/AskPanel'
 import { AvailableSpaces } from '../features/dashboard/AvailableSpaces'
 import { DashboardStats } from '../features/dashboard/DashboardStats'
 import { RecentActivity } from '../features/dashboard/RecentActivity'
@@ -10,7 +11,7 @@ import './DashboardPage.css'
 
 export function DashboardPage() {
   const { t } = useTranslation()
-  const { status, summary, reload } = useDashboard()
+  const { status, data, summary, reload } = useDashboard()
 
   return (
     <>
@@ -19,6 +20,8 @@ export function DashboardPage() {
       {status === 'loading' && <LoadingState label={t('dashboard.loading')} />}
 
       {status === 'error' && <ErrorState message={t('dashboard.loadError')} onRetry={reload} />}
+
+      {data && <AskPanel data={data} />}
 
       {summary && (
         <>

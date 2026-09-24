@@ -68,8 +68,8 @@ describe('maintenance suggestions API', () => {
   it('reports the feature in /api/features', async () => {
     const on = await start({ suggester: fakeSuggester() })
     const off = await start({})
-    expect(await (await fetch(`${on.base}/api/features`)).json()).toEqual({ maintenanceSuggestions: true })
-    expect(await (await fetch(`${off.base}/api/features`)).json()).toEqual({ maintenanceSuggestions: false })
+    expect(await (await fetch(`${on.base}/api/features`)).json()).toEqual({ maintenanceSuggestions: true, ask: false })
+    expect(await (await fetch(`${off.base}/api/features`)).json()).toEqual({ maintenanceSuggestions: false, ask: false })
   })
 
   it('answers ai_unavailable when no AI provider is configured', async () => {

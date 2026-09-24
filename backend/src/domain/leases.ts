@@ -17,6 +17,8 @@ import { resolveSpaceStatus, type Space } from './spaces.ts'
 /** Derived from the lease period, never stored; see `getLeaseStatus`. */
 export type LeaseStatus = 'upcoming' | 'active' | 'ended'
 
+export const LEASE_STATUSES: readonly LeaseStatus[] = ['upcoming', 'active', 'ended']
+
 /** Upper limit for a monthly rent: 1 000 000 € in cents. */
 export const MONTHLY_RENT_MAX_CENTS = 100_000_000
 

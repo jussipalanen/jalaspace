@@ -1,5 +1,6 @@
 import express, { type Express, type Router } from 'express'
-import type { RateLimiter } from './ai/rateLimit.ts'
+import type { AskInterpreter } from './ai/ask.ts'
+import { createAiRateLimiter, type RateLimiter } from './ai/rateLimit.ts'
 import type { MaintenanceSuggester } from './ai/suggestions.ts'
 import { cors } from './cors.ts'
 import { errorHandler, notFoundHandler } from './errors.ts'
@@ -14,6 +15,7 @@ import {
 } from './limits.ts'
 import { buildOpenApiDocument } from './openapi/document.ts'
 import { listRoutes } from './openapi/routes.ts'
+import { askRouter } from './routes/ask.ts'
 import { demoRouter } from './routes/demo.ts'
 import { docsRouter } from './routes/docs.ts'
 import { featuresRouter } from './routes/features.ts'
@@ -36,7 +38,9 @@ export interface AppOptions {
   demoData?: boolean
   /** Makes AI maintenance suggestions (default: none, so the feature is off). */
   suggester?: MaintenanceSuggester | null
-  /** Limits suggestion requests per client (default: 10 per 10 minutes). */
+  /** Answers questions for "Ask JalaSpace" (default: none, so the feature is off). */
+  interpreter?: AskInterpreter | null
+  /** Limits AI requests per client, suggestions and questions together (default: 10 per 10 minutes). */
   suggestionRateLimiter?: RateLimiter
   /** Limits writes per client (default: 60 per minute). */
   writeRateLimiter?: RateLimiter
@@ -60,7 +64,8 @@ export function createApp({
   store = createMemoryStore(),
   demoData = false,
   suggester = null,
-  suggestionRateLimiter,
+  interpreter = null,
+  suggestionRateLimiter = createAiRateLimiter(),
   writeRateLimiter = createWriteRateLimiter(),
   resetRateLimiter = createResetRateLimiter(),
   collectionLimits: limits = DEFAULT_COLLECTION_LIMITS,
@@ -82,13 +87,14 @@ export function createApp({
   if (demoData) api.use(resetRateLimit(resetRateLimiter))
   api.use(collectionLimits(store, limits))
   api.use(healthRouter(version))
-  api.use(featuresRouter({ maintenanceSuggestions: suggester !== null }))
+  api.use(featuresRouter({ maintenanceSuggestions: suggester !== null, ask: interpreter !== null }))
   api.use(propertiesRouter(store))
   api.use(spacesRouter(store))
   api.use(maintenanceRouter(store))
   api.use(tenantsRouter(store))
   api.use(leasesRouter(store))
   api.use(suggestionsRouter({ suggester, rateLimiter: suggestionRateLimiter, logError }))
+  api.use(askRouter({ interpreter, rateLimiter: suggestionRateLimiter, logError }))
   if (demoData) api.use(demoRouter(store))
   for (const router of routers) api.use(router)
   app.use('/api', api)

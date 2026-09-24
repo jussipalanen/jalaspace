@@ -105,6 +105,7 @@ export const EXAMPLES = {
     monthlyRentCents: 125050,
   },
   SuggestionRequest: { title: 'kitchen sink leak', description: '', language: 'en' },
+  AskRequest: { question: 'available three-room apartment with a sauna', today: '2026-09-24' },
 } as const
 
 interface Collection {
@@ -305,6 +306,25 @@ export function operations(limits: CollectionLimits = DEFAULT_COLLECTION_LIMITS)
         500: internalError,
       },
     },
+    'post /api/ask': {
+      tags: ['Ask'],
+      summary: 'Ask JalaSpace a question with AI',
+      description:
+        'Turns a question in English or Finnish into a place in the app or a search filter. The AI never sees the data: the client searches its own data with the filter. Nothing is stored. Shares the AI limit with maintenance suggestions: 10 requests per client per 10 minutes.',
+      operationId: 'ask',
+      requestBody: { required: true, content: json(ref('AskRequest'), EXAMPLES.AskRequest) },
+      responses: {
+        200: ok('Where to go, what to search, or that the question is out of scope', ref('AskAnswer')),
+        400: validationError,
+        429: {
+          ...error('Too many AI requests from this client, or the AI quota is used up.', ['rate_limited']),
+          headers: retryAfter,
+        },
+        502: error('The AI answered, but not with a usable answer.', ['invalid_answer']),
+        503: error('No AI provider is configured, or it failed or timed out.', ['ai_unavailable']),
+        500: internalError,
+      },
+    },
     'post /api/demo/reset': {
       tags: ['Demo data'],
       summary: 'Restore the demo data',
@@ -334,6 +354,7 @@ const TAGS = [
   { name: 'Properties', description: 'Buildings and sites.' },
   { name: 'Spaces', description: 'Units within properties, served under `/api/units`.' },
   { name: 'Maintenance', description: 'Maintenance tasks and AI suggestions for them.' },
+  { name: 'Ask', description: 'Questions about the app and its data, answered with AI.' },
   { name: 'Tenants', description: 'Companies and people who rent spaces.' },
   { name: 'Leases', description: 'Tenants renting spaces for a period.' },
   { name: 'Demo data', description: 'Restoring the demo dataset.' },

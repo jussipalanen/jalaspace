@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) and AI suggestions for maintenance tasks. The frontend uses them with `VITE_DATA_PROVIDER=api`, e.g. in Docker Compose. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) AI suggestions for maintenance tasks, and AI answers for Ask JalaSpace. The frontend uses them with `VITE_DATA_PROVIDER=api`, e.g. in Docker Compose. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -53,8 +53,8 @@ Environment variables (see [`.env.example`](.env.example)):
 | `PORT`   | `3000`    | Port to listen on (1–65535)         |
 | `HOST`   | `0.0.0.0` | Network interface to listen on      |
 | `SEED_DEMO_DATA` | `false` | `true` starts the API with the demo data and enables `POST /api/demo/reset` |
-| `GEMINI_API_KEY` | none | Gemini API key for AI maintenance suggestions. A secret. Without it the feature is off |
-| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model for the suggestions |
+| `GEMINI_API_KEY` | none | Gemini API key for the AI features (maintenance suggestions and questions). A secret. Without it they are off |
+| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model for the AI features |
 | `CORS_ORIGINS` | none | Origins allowed to call the API from a browser, comma-separated. `*` matches part of one host label, e.g. `https://jalaspace-*-team.vercel.app` |
 | `TRUST_PROXY` | `0` | Number of proxies in front of the API (Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
 | `WRITE_RATE_LIMIT` | `60` | Writes (`POST`, `PUT`, `DELETE`) allowed per client and minute, see [Limits](#limits) |
@@ -101,9 +101,10 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 409    | `tenant_in_use`     | The tenant still has leases |
   | 409    | `limit_reached`     | The collection is full, so nothing more can be created (with `limit`) |
   | 413    | `payload_too_large` | The request body is over the limit    |
-  | 429    | `rate_limited`      | Too many writes, demo resets or AI suggestions from this client (with `Retry-After`), or the AI quota is used up |
+  | 429    | `rate_limited`      | Too many writes, demo resets or AI requests from this client (with `Retry-After`), or the AI quota is used up |
   | 500    | `internal_error`    | An unexpected error; details are only logged on the server, never sent |
   | 502    | `invalid_suggestion` | The AI answered, but not with a usable suggestion |
+  | 502    | `invalid_answer`    | The AI answered, but not with a usable answer to a question |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
 - An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
@@ -149,6 +150,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
 | DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
+| POST   | `/api/ask`            | Turns a question into a place in the app or a search filter, see below |
 | GET    | `/docs`               | Interactive API documentation (Swagger UI); `/` redirects here |
 | GET    | `/docs/openapi.json`  | The OpenAPI 3.1 description                                    |
 
@@ -311,6 +313,34 @@ curl -X POST http://localhost:3000/api/maintenance/suggestions \
 
 Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Render, set it as a secret environment variable.
 
+### Questions (Ask JalaSpace)
+
+`POST /api/ask` turns a question in English or Finnish into one of three answers. **The model never sees the data**: the client searches its own data with the filter, so every result is a real record.
+
+```bash
+curl -X POST http://localhost:3000/api/ask \
+  -H 'content-type: application/json' \
+  -d '{"question":"available three-room apartment with a sauna","today":"2026-09-24"}'
+# {"kind":"search","area":"spaces","filter":{"types":["apartment"],"statuses":["available"],"rooms":{"min":3,"max":3},"features":["sauna"]},"ignored":[]}
+```
+
+| Answer | Meaning |
+| --- | --- |
+| `{"kind":"navigate","place":"settings.profile"}` | Where to go in the app: a page, a Settings section or `apiDocs` |
+| `{"kind":"search","area":"spaces","filter":{…},"sort":{…},"ignored":[…]}` | A filter for `properties`, `spaces`, `tenants`, `leases` or `maintenance` |
+| `{"kind":"none"}` | The question is about something the app cannot help with |
+
+| Field      | Rules |
+| ---------- | ----- |
+| `question` | Required, at most 300 characters |
+| `today`    | Required, the user's date as `YYYY-MM-DD`, for relative dates such as "next month" |
+
+- Every field of each area can be filtered: text (contains, ignoring case), lists of allowed values, number ranges, date ranges and yes/no values, including derived ones such as occupancy, overdue tasks or a space's current rent. The fields are defined once in `src/ai/ask.ts`, which also builds the model's instructions and the OpenAPI schema `AskFilters`. The frontend has the same list in `frontend/src/services/ask.ts`.
+- The answer is never trusted: an unknown place, area, field or value, a number out of range or an invalid date rejects the whole answer with `502 invalid_answer`, rather than searching with part of the question. `ignored` lists words of the question the model could not use, such as "cheap", and only words that appear in the question.
+- The instructions describe the answer format instead of passing Gemini a response schema: with a schema this large, the model left out most of the conditions.
+- The question is data, not instructions, and it is not logged. It shares the AI limit with suggestions.
+- The provider is behind the `AskInterpreter` interface (`src/ai/ask.ts`). Tests use fakes and never call Gemini.
+
 ## Limits
 
 The API is public and keeps its data in memory, so it limits how fast one client can change data and how much can be stored:
@@ -319,10 +349,10 @@ The API is public and keeps its data in memory, so it limits how fast one client
 | --- | --- | --- |
 | Writes (`POST`, `PUT`, `DELETE`) per client | 60 per minute (`WRITE_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
 | Demo resets per client, on top of the write limit | 10 per hour (`RESET_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
-| AI suggestions per client | 10 per 10 minutes | `429 rate_limited` with `Retry-After` |
+| AI requests (suggestions and questions together) per client | 10 per 10 minutes | `429 rate_limited` with `Retry-After` |
 | Stored records | properties 50, spaces 500, maintenance tasks 500, tenants 300, leases 1000 | `409 limit_reached` with the limit |
 
-- Reads are not limited. AI suggestions count only against their own limit.
+- Reads are not limited. AI requests count only against their own limit.
 - A full collection can still be updated and cleaned up: only creating is refused.
 - Clients are told apart by IP address, so set `TRUST_PROXY` behind a proxy. Otherwise every visitor shares the proxy's limits.
 - The counts are kept in memory and reset when the server restarts. The record limits (`src/limits.ts`) are far above the demo data.
@@ -355,7 +385,7 @@ src/
 ├── errors.ts       ApiError, error codes, 404 and error handlers
 ├── cors.ts         Allows the configured origins to call the API from a browser
 ├── version.ts      App version from package.json
-├── ai/             AI maintenance suggestions: provider interface, Gemini, rate limit
+├── ai/             AI suggestions and questions: provider interfaces, Gemini, rate limit
 ├── openapi/        Generates the OpenAPI description from the routes and domain rules
 ├── domain/         Entity types and business rules, e.g. validation (no Express)
 ├── store/          The Store interface and its in-memory implementation
