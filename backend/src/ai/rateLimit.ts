@@ -5,6 +5,14 @@ export interface RateLimitOptions {
   now?: () => number
 }
 
+/** AI requests per client: suggestions and questions together, 10 per 10 minutes. */
+export const AI_RATE_LIMIT = 10
+export const AI_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000
+
+export function createAiRateLimiter(): RateLimiter {
+  return new RateLimiter({ limit: AI_RATE_LIMIT, windowMs: AI_RATE_LIMIT_WINDOW_MS })
+}
+
 export type RateLimitResult = { allowed: true } | { allowed: false; retryAfterSeconds: number }
 
 /**

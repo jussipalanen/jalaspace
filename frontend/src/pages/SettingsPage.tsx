@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router'
+import { useEffect } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import { LoadingState } from '../components/DataState/DataState'
 import { flashState } from '../components/FlashMessage/flash'
 import { PageHeader } from '../components/PageHeader/PageHeader'
@@ -15,6 +16,12 @@ export function SettingsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { profile, loaded, email, saveProfile } = useProfile()
+  const { hash } = useLocation()
+
+  // Links such as /settings#language open the section, also from within the app.
+  useEffect(() => {
+    if (hash) document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView()
+  }, [hash])
 
   const save = async (values: ProfileFormValues) => {
     await saveProfile(values)

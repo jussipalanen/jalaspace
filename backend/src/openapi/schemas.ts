@@ -1,3 +1,14 @@
+import {
+  AREA_FIELDS,
+  AREA_SORTS,
+  AREAS,
+  ASK_IGNORED_MAX,
+  ASK_QUESTION_MAX_LENGTH,
+  ASK_TEXT_MAX_LENGTH,
+  PLACE_IDS,
+  SORT_DIRECTIONS,
+  type FieldSpec,
+} from '../ai/ask.ts'
 import { LANGUAGES, SUGGESTION_DESCRIPTION_MAX_LENGTH } from '../ai/suggestions.ts'
 import { FIELD_ERROR_CODES } from '../domain/common.ts'
 import { MONTHLY_RENT_MAX_CENTS } from '../domain/leases.ts'
@@ -216,6 +227,103 @@ const suggestionRequest = object(
   'A title, a description or both are required.',
 )
 
+const askRequest = object(
+  {
+    question: requiredText(ASK_QUESTION_MAX_LENGTH, { example: 'available three-room apartment with a sauna' }),
+    today: date("The user's calendar date, for relative dates such as \"next month\".", '2026-09-24'),
+  },
+  ['question', 'today'],
+)
+
+/** A filter field as JSON Schema, from the same definitions that check the model's answer. */
+function askField(spec: FieldSpec): Schema {
+  const description = spec.description
+  switch (spec.kind) {
+    case 'text':
+      return text(ASK_TEXT_MAX_LENGTH, { description: `${description}. Contains, ignoring case.` })
+    case 'enum':
+      return {
+        type: 'array',
+        items: oneOf(spec.values),
+        uniqueItems: true,
+        description: `${description}. ${spec.all ? 'Every one must match.' : 'Any one matches.'}`,
+      }
+    case 'range': {
+      const bound = { type: spec.integer ? 'integer' : 'number', minimum: spec.min, maximum: spec.max }
+      return { type: 'object', properties: { min: bound, max: bound }, description: `${description}. Inclusive.` }
+    }
+    case 'dates':
+      return {
+        type: 'object',
+        properties: { from: { type: 'string', format: 'date' }, to: { type: 'string', format: 'date' } },
+        description: `${description}. Inclusive.`,
+      }
+    case 'boolean':
+      return { type: 'boolean', description }
+  }
+}
+
+const askFilters = object(
+  Object.fromEntries(
+    AREAS.map((area) => [
+      area,
+      {
+        type: 'object',
+        properties: Object.fromEntries(Object.entries(AREA_FIELDS[area]).map(([field, spec]) => [field, askField(spec)])),
+        additionalProperties: false,
+      },
+    ]),
+  ),
+  [],
+  'The fields a search filter can have, per area. An answer has only the fields the question uses.',
+)
+
+const askAnswer: Schema = {
+  oneOf: [
+    object(
+      { kind: { type: 'string', const: 'navigate' }, place: oneOf(PLACE_IDS, 'Where in the app to go.') },
+      ['kind', 'place'],
+      'The question asks where something is in the app.',
+    ),
+    object(
+      {
+        kind: { type: 'string', const: 'search' },
+        area: oneOf(AREAS),
+        filter: {
+          type: 'object',
+          additionalProperties: true,
+          description: "The area's fields the question uses, see `AskFilters`. Empty lists everything in the area.",
+          example: { types: ['apartment'], statuses: ['available'], rooms: { min: 3, max: 3 }, features: ['sauna'] },
+        },
+        sort: object(
+          {
+            by: {
+              type: 'string',
+              enum: [...new Set(Object.values(AREA_SORTS).flat())],
+              description: "One of the area's sort fields.",
+            },
+            direction: oneOf(SORT_DIRECTIONS),
+          },
+          ['by', 'direction'],
+        ),
+        ignored: {
+          type: 'array',
+          items: { type: 'string' },
+          maxItems: ASK_IGNORED_MAX,
+          description: 'Words of the question that could not be used, e.g. "cheap"; always copied from the question.',
+        },
+      },
+      ['kind', 'area', 'filter', 'ignored'],
+      'The question looks for data; the client searches its own data with the filter.',
+    ),
+    object(
+      { kind: { type: 'string', const: 'none' } },
+      ['kind'],
+      'The question is about something the app cannot help with.',
+    ),
+  ],
+}
+
 export const SCHEMAS: Record<string, Schema> = {
   Health: object(
     { status: { type: 'string', const: 'ok' }, version: { type: 'string', example: '0.12.0' } },
@@ -227,8 +335,12 @@ export const SCHEMAS: Record<string, Schema> = {
         type: 'boolean',
         description: 'Whether AI maintenance suggestions are available (an AI provider is configured).',
       },
+      ask: {
+        type: 'boolean',
+        description: 'Whether `POST /api/ask` is available (an AI provider is configured).',
+      },
     },
-    ['maintenanceSuggestions'],
+    ['maintenanceSuggestions', 'ask'],
   ),
   PropertyInput: propertyInput,
   Property: entity(propertyInput),
@@ -248,6 +360,9 @@ export const SCHEMAS: Record<string, Schema> = {
   LeaseInput: leaseInput,
   Lease: entity(leaseInput),
   SuggestionRequest: suggestionRequest,
+  AskRequest: askRequest,
+  AskAnswer: askAnswer,
+  AskFilters: askFilters,
   MaintenanceSuggestion: object(
     {
       title: requiredText(MAINTENANCE_TITLE_MAX_LENGTH),

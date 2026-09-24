@@ -851,6 +851,7 @@ Include:
 * recent maintenance
 * available spaces
 * recent activity
+* Ask JalaSpace, when the API offers it (see AI-Assisted Search)
 
 Do not hardcode statistics when they can be derived from actual repository data.
 
@@ -2142,6 +2143,48 @@ Rules:
 * tests never call Gemini: backend tests use fakes, and E2E tests mock the API with `page.route`
 
 Add further AI features only when an issue asks for them.
+
+---
+
+# AI-Assisted Search (Ask JalaSpace)
+
+The Dashboard has an **Ask JalaSpace** card: the user asks in English or Finnish, and the app shows where to go or which records match.
+
+```text
+"where can I find the API documentation?"       → link to the API docs
+"an available three-room apartment with a sauna" → the matching spaces
+"overdue high-priority plumbing tasks"           → the matching maintenance tasks
+```
+
+Architecture:
+
+```text
+AskPanel (Dashboard) → services/ask.ts
+        ↓
+POST /api/ask { question, today }
+        ↓
+AskInterpreter interface (backend/src/ai/ask.ts)
+        ↓
+GeminiAskInterpreter (JSON answer format described in the instructions)
+        ↓
+{ kind: navigate, place } | { kind: search, area, filter, sort, ignored } | { kind: none }
+        ↓
+services/askSearch.ts searches the app's own data with the filter
+```
+
+Rules:
+
+* the AI never sees the data: only the question and the user's date are sent, and the app searches its own data, so every result is a real record
+* places, areas, filter fields and their allowed values are fixed lists, defined in `backend/src/ai/ask.ts` and `frontend/src/services/ask.ts`; change them together
+* never trust model output: the backend rejects the whole answer on any unknown place, area, field or value, and the frontend checks it again
+* derived values (occupancy, overdue, current tenant and rent, lease status) use the same rules as the pages
+* the answer text is written by the app from translations, never by the model; `ignored` may only contain words from the question
+* the card shows how the question was understood as removable conditions, and links to the list page with the same filters when the page supports them
+* the UI tells users that the question is sent to Google Gemini and must not contain personal information; do not log the question
+* errors are codes (`validation_failed`, `rate_limited`, `ai_unavailable`, `invalid_answer`), translated in the frontend
+* suggestions and questions share one per-IP AI rate limit
+* the card is shown only when `VITE_API_URL` is set and `GET /api/features` reports `ask: true`
+* tests never call Gemini: backend tests use fakes, and E2E tests mock the API with `page.route`
 
 ---
 

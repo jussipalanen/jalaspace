@@ -46,18 +46,6 @@ function withTimeout(signal?: AbortSignal): AbortSignal {
   return signal ? AbortSignal.any([signal, timeout]) : timeout
 }
 
-/** Asks the API whether it can make maintenance suggestions (an AI provider is configured). */
-export async function fetchSuggestionsAvailable(apiUrl: string, signal?: AbortSignal): Promise<boolean> {
-  const response = await fetch(`${apiUrl}/api/features`, { signal: withTimeout(signal) })
-  if (!response.ok) return false
-  const features: unknown = await response.json()
-  return (
-    typeof features === 'object' &&
-    features !== null &&
-    (features as { maintenanceSuggestions?: unknown }).maintenanceSuggestions === true
-  )
-}
-
 /** Maps the API's error codes to the codes the UI translates. */
 function errorCodeFor(status: number, body: unknown): SuggestionErrorCode {
   const error = (

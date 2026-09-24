@@ -1,3 +1,4 @@
+import { parseAskRequest } from '../ai/ask.ts'
 import { Router } from 'express'
 import { describe, expect, it } from 'vitest'
 import { parseSuggestionRequest } from '../ai/suggestions.ts'
@@ -112,6 +113,7 @@ describe('OpenAPI description', () => {
       TenantInput: parseTenantInput,
       LeaseInput: parseLeaseInput,
       SuggestionRequest: parseSuggestionRequest,
+      AskRequest: parseAskRequest,
     }
     for (const [name, parse] of Object.entries(parsers)) {
       expect(parse(EXAMPLES[name as keyof typeof EXAMPLES]), name).toMatchObject({ ok: true })

@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { RateLimiter } from '../ai/rateLimit.ts'
+import { createAiRateLimiter, type RateLimiter } from '../ai/rateLimit.ts'
 import {
   parseSuggestionRequest,
   SuggestionError,
@@ -23,7 +23,7 @@ export interface SuggestionsRouterOptions {
  */
 export function suggestionsRouter({
   suggester,
-  rateLimiter = new RateLimiter({ limit: 10, windowMs: 10 * 60 * 1000 }),
+  rateLimiter = createAiRateLimiter(),
   logError = console.error,
 }: SuggestionsRouterOptions): Router {
   const router = Router()

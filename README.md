@@ -31,7 +31,7 @@ npm run dev
 
 The development server runs at http://localhost:5173.
 
-The API is a separate project in `backend/`. The demo runs without it, because by default the frontend stores its data in the browser; only AI maintenance suggestions and the `api` data provider (see [Data layer](#data-layer)) need it:
+The API is a separate project in `backend/`. The demo runs without it, because by default the frontend stores its data in the browser; only the AI features (maintenance suggestions and Ask JalaSpace) and the `api` data provider (see [Data layer](#data-layer)) need it:
 
 ```bash
 cd backend
@@ -41,7 +41,7 @@ npm run dev
 
 The API runs at http://localhost:3000 (try http://localhost:3000/api/health). Its interactive documentation is at http://localhost:3000/docs. See [backend/README.md](backend/README.md).
 
-To try AI maintenance suggestions locally, copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY`, and set `VITE_API_URL=http://localhost:3000` in `frontend/.env.local` (Docker Compose already sets the frontend and CORS variables). Then restart both.
+To try the AI features locally, copy `backend/.env.example` to `backend/.env` and set `GEMINI_API_KEY`, and set `VITE_API_URL=http://localhost:3000` in `frontend/.env.local` (Docker Compose already sets the frontend and CORS variables). Then restart both.
 
 ### With Docker
 
@@ -87,6 +87,22 @@ Click your name in the header to edit your profile (first name, last name and bi
 
 > **This sign-in is simulated and not secure.** Credentials are checked in the browser and are
 > public. The session is kept in `localStorage` (`jalaspace_session`) and exists only in your browser.
+
+## Ask JalaSpace
+
+The Dashboard has an **Ask JalaSpace** card: ask in English or Finnish, and it shows where to go in the app or which records match.
+
+- *"where can I find the API documentation?"* links to the API docs, and *"missä vaihdan kielen?"* links to Settings › Language.
+- *"an available three-room apartment with a sauna"* or *"kolmio saunalla Helsingissä"* lists the matching spaces. So do questions about properties, tenants, leases and maintenance, e.g. *"overdue high-priority plumbing tasks"* or *"leases ending in the next 3 months"*.
+
+How it works:
+
+- The question goes to the API, which asks Google Gemini to turn it into a place in the app or a search filter. **The AI never sees the data**: the app searches its own data with the filter, so every result is a real record.
+- The card shows how the question was understood as conditions, e.g. *Rooms: 3* and *Features: Sauna*. Remove one to widen the search. Words it could not use, such as *cheap*, are listed as not used.
+- Each result links to its page. **Open in Spaces** (or the other list pages) opens the list with the same filters when the list page supports them.
+- The card tells users not to include personal information, because the question leaves the browser. It is shown only when `VITE_API_URL` is set and the API has a Gemini key.
+
+Screenshots: [desktop](docs/screenshots/ask-desktop.png) · [mobile, in Finnish](docs/screenshots/ask-mobile.png).
 
 ## Languages
 
