@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.17.0](https://github.com/jussipalanen/jalaspace/compare/v0.16.0...v0.17.0) (2026-09-24)
+
+
+### Added
+
+* **dashboard:** ask JalaSpace questions with AI ([#121](https://github.com/jussipalanen/jalaspace/issues/121)) ([dbdcefb](https://github.com/jussipalanen/jalaspace/commit/dbdcefb3da4fcbecab621d3b136f94c6679c05b1))
+
 ## [0.16.0](https://github.com/jussipalanen/jalaspace/compare/v0.15.1...v0.16.0) (2026-09-24)
 
 
