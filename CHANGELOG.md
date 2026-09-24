@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.18.0](https://github.com/jussipalanen/jalaspace/compare/v0.17.0...v0.18.0) (2026-09-24)
+
+
+### Added
+
+* **branding:** add logo and app icons ([#123](https://github.com/jussipalanen/jalaspace/issues/123)) ([1a92047](https://github.com/jussipalanen/jalaspace/commit/1a920472f73db48438e13b2447eeef4fb65ba267))
+
 ## [0.17.0](https://github.com/jussipalanen/jalaspace/compare/v0.16.0...v0.17.0) (2026-09-24)
 
 
