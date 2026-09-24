@@ -8,9 +8,12 @@ import {
   isSpaceType,
   MANUAL_SPACE_STATUSES,
   SPACE_AREA_MAX,
+  SPACE_FEATURES,
   SPACE_FLOOR_MAX,
   SPACE_FLOOR_MIN,
   SPACE_NAME_MAX_LENGTH,
+  SPACE_ROOMS_MAX,
+  SPACE_ROOMS_MIN,
   SPACE_TYPES,
   validateSpaceForm,
   type SpaceFormErrors,
@@ -18,7 +21,7 @@ import {
 } from '../../services/spaces'
 import type { Property } from '../../types/property'
 import type { IsoDate } from '../../types/common'
-import type { Space } from '../../types/space'
+import type { Space, SpaceFeature } from '../../types/space'
 import type { Tenant } from '../../types/tenant'
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
@@ -26,7 +29,7 @@ import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
 
 type Field = keyof SpaceFormValues
 
-const FIELD_ORDER: Field[] = ['propertyId', 'name', 'type', 'floor', 'area', 'status']
+const FIELD_ORDER: Field[] = ['propertyId', 'name', 'type', 'floor', 'area', 'rooms', 'features', 'status']
 
 interface SpaceFormProps {
   initialValues: SpaceFormValues
@@ -85,7 +88,19 @@ export function SpaceForm({
     area: errors.area
       ? t(`spaces.form.validation.area.${errors.area}`, { max: SPACE_AREA_MAX })
       : undefined,
+    rooms: errors.rooms
+      ? t(`spaces.form.validation.rooms.${errors.rooms}`, {
+          min: SPACE_ROOMS_MIN,
+          max: SPACE_ROOMS_MAX,
+        })
+      : undefined,
   }
+
+  const toggleFeature = (feature: SpaceFeature, checked: boolean) =>
+    update(
+      'features',
+      checked ? [...values.features, feature] : values.features.filter((item) => item !== feature),
+    )
 
   const showValidation = (validation: SpaceFormErrors) => {
     setErrors(validation)
@@ -228,6 +243,42 @@ export function SpaceForm({
           )}
         </FormField>
       </div>
+
+      <div className="entity-form__row">
+        <FormField
+          id={fieldId('rooms')}
+          label={t('spaces.form.fields.rooms')}
+          hint={t('spaces.form.hints.rooms')}
+          error={messages.rooms}
+        >
+          {(control) => (
+            <input
+              {...control}
+              className="field__input"
+              inputMode="numeric"
+              value={values.rooms}
+              onChange={(event) => update('rooms', event.target.value)}
+            />
+          )}
+        </FormField>
+      </div>
+
+      <fieldset className="choice-group">
+        <legend className="field__label">{t('spaces.form.fields.features')}</legend>
+        <div className="choice-group__options">
+          {SPACE_FEATURES.map((feature, index) => (
+            <label key={feature} className="choice-group__option">
+              <input
+                type="checkbox"
+                id={index === 0 ? fieldId('features') : undefined}
+                checked={values.features.includes(feature)}
+                onChange={(event) => toggleFeature(feature, event.target.checked)}
+              />
+              {t(`space.feature.${feature}`)}
+            </label>
+          ))}
+        </div>
+      </fieldset>
 
       {lockedStatus ? (
         <div className="field">

@@ -13,6 +13,8 @@ const valid: SpaceInput = {
   type: 'office',
   floor: 1,
   areaM2: 62.5,
+  rooms: 3,
+  features: ['sauna', 'parking'],
   status: 'available',
 }
 
@@ -78,6 +80,32 @@ describe('space input', () => {
 
   it.each([0, -5, 100_000.01, 12.345, '62', Number.POSITIVE_INFINITY])('rejects area %j', (areaM2) => {
     expect(invalidField('areaM2', areaM2)).toEqual({ ok: false, errors: { areaM2: 'invalid' } })
+  })
+
+  it('stores missing rooms and features as none, so older clients keep working', () => {
+    const { rooms: _rooms, features: _features, ...withoutNew } = valid
+    expect(parseSpaceInput(withoutNew)).toEqual({ ok: true, values: { ...valid, rooms: null, features: [] } })
+    expect(parseSpaceInput({ ...valid, rooms: null, features: null })).toEqual({
+      ok: true,
+      values: { ...valid, rooms: null, features: [] },
+    })
+  })
+
+  it.each([1, 3, 50])('accepts %d rooms', (rooms) => {
+    expect(invalidField('rooms', rooms).ok).toBe(true)
+  })
+
+  it.each([0, 51, 2.5, -1, '3', true])('rejects rooms %j', (rooms) => {
+    expect(invalidField('rooms', rooms)).toEqual({ ok: false, errors: { rooms: 'invalid' } })
+  })
+
+  it('removes duplicate features and stores them in a fixed order', () => {
+    const result = parseSpaceInput({ ...valid, features: ['kitchen', 'sauna', 'kitchen', 'balcony'] })
+    expect(result.ok && result.values.features).toEqual(['sauna', 'balcony', 'kitchen'])
+  })
+
+  it.each([['pool'], 'sauna', [1], {}])('rejects features %j', (features) => {
+    expect(invalidField('features', features)).toEqual({ ok: false, errors: { features: 'invalid' } })
   })
 })
 

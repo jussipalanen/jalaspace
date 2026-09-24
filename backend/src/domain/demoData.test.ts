@@ -59,6 +59,29 @@ describe('demo data', () => {
     expect(byId('space-helsinki-kallio-1')?.createdAt).toBe(properties[3]!.createdAt)
   })
 
+  it('gives the spaces the rooms and features of the frontend seed', () => {
+    const { spaces } = createDemoData(now)
+    const byId = (id: string) => spaces.find((space) => space.id === id)
+
+    expect(byId('space-joensuu-center-1')).toMatchObject({ rooms: null, features: ['accessible'] })
+    expect(byId('space-joensuu-center-5')).toMatchObject({ rooms: 4, features: ['accessible', 'kitchen'] })
+    expect(byId('space-kuopio-harbour-18')).toMatchObject({
+      rooms: null,
+      features: ['sauna', 'parking', 'accessible', 'kitchen'],
+    })
+    expect(byId('space-tampere-hervanta-1')).toMatchObject({ features: ['parking', 'accessible', 'loading_dock'] })
+    expect(byId('space-helsinki-kallio-4')).toMatchObject({
+      rooms: 3,
+      features: ['sauna', 'parking', 'accessible', 'kitchen'],
+    })
+    expect(byId('space-helsinki-kallio-11')).toMatchObject({
+      name: 'A 11',
+      rooms: 3,
+      features: ['sauna', 'balcony', 'kitchen'],
+      status: 'available',
+    })
+  })
+
   it('has spaces that pass the same validation as data sent by clients', () => {
     const { properties, spaces } = createDemoData(now)
     for (const space of spaces) {

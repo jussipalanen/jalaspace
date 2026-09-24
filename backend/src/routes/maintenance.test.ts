@@ -28,6 +28,8 @@ const space = (id: string, propertyId: string): Space => ({
   type: 'office',
   floor: 1,
   areaM2: 50,
+  rooms: null,
+  features: [],
   status: 'available',
   createdAt: CREATED,
   updatedAt: CREATED,

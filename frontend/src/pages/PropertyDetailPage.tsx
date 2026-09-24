@@ -223,6 +223,7 @@ function SpaceTable({
     type: t('properties.detail.spaceColumns.type'),
     floor: t('properties.detail.spaceColumns.floor'),
     area: t('properties.detail.spaceColumns.area'),
+    rooms: t('properties.detail.spaceColumns.rooms'),
     status: t('properties.detail.spaceColumns.status'),
     tenant: t('properties.detail.spaceColumns.tenant'),
   }
@@ -239,6 +240,9 @@ function SpaceTable({
             </th>
             <th scope="col" className="is-numeric">
               {columns.area}
+            </th>
+            <th scope="col" className="is-numeric">
+              {columns.rooms}
             </th>
             <th scope="col">{columns.status}</th>
             <th scope="col">{columns.tenant}</th>
@@ -257,6 +261,11 @@ function SpaceTable({
                   >
                     {space.name}
                   </Link>
+                  {space.features.length > 0 && (
+                    <span className="data-table__secondary">
+                      {space.features.map((feature) => t(`space.feature.${feature}`)).join(' · ')}
+                    </span>
+                  )}
                 </td>
                 <td data-label={columns.type}>{t(`space.type.${space.type}`)}</td>
                 <td data-label={columns.floor} className="is-numeric">
@@ -264,6 +273,9 @@ function SpaceTable({
                 </td>
                 <td data-label={columns.area} className="is-numeric">
                   {formatArea(space.areaM2, locale)}
+                </td>
+                <td data-label={columns.rooms} className="is-numeric">
+                  {space.rooms ?? '—'}
                 </td>
                 <td data-label={columns.status}>
                   <StatusBadge tone={spaceStatusTones[space.status]}>

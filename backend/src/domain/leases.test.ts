@@ -155,6 +155,8 @@ describe('space statuses', () => {
     type: 'office',
     floor: 1,
     areaM2: 50,
+    rooms: null,
+    features: [],
     status,
     createdAt: '',
     updatedAt: '',

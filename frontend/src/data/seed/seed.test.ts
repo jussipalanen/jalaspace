@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getLeaseStatus } from '../../services/leases'
+import { normalizeFeatures, toSpaceForm, validateSpaceForm } from '../../services/spaces'
 import { toIsoDate } from '../../utils/date'
 import { createSeedData } from '.'
 
@@ -24,6 +25,16 @@ describe('seed data', () => {
     expect(count('occupied')).toBe(58)
     expect(count('available')).toBe(7)
     expect(count('maintenance')).toBe(3)
+  })
+
+  it('records rooms and features that the space form accepts', () => {
+    for (const space of data.spaces) {
+      expect(space.rooms === null || validateSpaceForm(toSpaceForm(space, 'en-GB'), []).rooms === undefined).toBe(true)
+      expect(space.features).toEqual(normalizeFeatures(space.features))
+    }
+    const apartments = data.spaces.filter((space) => space.type === 'apartment')
+    expect(apartments.every((space) => space.rooms !== null)).toBe(true)
+    expect(apartments.filter((space) => space.features.includes('sauna'))).toHaveLength(6)
   })
 
   it('has a mix of lease and maintenance statuses', () => {

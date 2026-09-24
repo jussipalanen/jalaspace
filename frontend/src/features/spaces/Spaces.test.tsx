@@ -49,6 +49,39 @@ describe('spaces', () => {
     expect(rows()).toHaveLength(68)
   })
 
+  it('finds spaces by number of rooms and features', async () => {
+    const user = userEvent.setup()
+    const { router } = renderRoute('/units')
+
+    await user.selectOptions(await screen.findByLabelText('Rooms'), '3 rooms')
+    const features = screen.getByRole('group', { name: 'Features' })
+    await user.click(within(features).getByRole('checkbox', { name: 'Sauna' }))
+
+    expect(rows().map((row) => within(row).getAllByRole('cell')[0]!.textContent)).toEqual([
+      'A 4Sauna · Parking · Accessible · Kitchen',
+      'A 8Sauna · Balcony · Parking · Kitchen',
+      'A 11Sauna · Balcony · Kitchen',
+      'A 12Sauna · Balcony · Kitchen',
+      'A 15Sauna · Balcony · Kitchen',
+      'A 16Sauna · Balcony · Kitchen',
+    ])
+    expect(router.state.location.search).toBe('?rooms=3&features=sauna')
+
+    await user.click(within(features).getByRole('checkbox', { name: 'Parking' }))
+    expect(rows()).toHaveLength(2)
+    expect(router.state.location.search).toBe('?rooms=3&features=sauna%2Cparking')
+  })
+
+  it('opens the rooms and features filters from the URL', async () => {
+    renderRoute('/units?rooms=3&features=parking,sauna&status=available')
+
+    expect(await screen.findByText('0 spaces')).toBeInTheDocument()
+    expect(screen.getByLabelText('Rooms')).toHaveValue('3')
+    expect(screen.getByRole('checkbox', { name: 'Sauna' })).toBeChecked()
+    expect(screen.getByRole('checkbox', { name: 'Parking' })).toBeChecked()
+    expect(screen.getByText('No spaces match the filters')).toBeInTheDocument()
+  })
+
   it('does not save a duplicate name or invalid numbers', async () => {
     const user = userEvent.setup()
     renderRoute('/units/new?property=property-joensuu-center')
@@ -74,6 +107,9 @@ describe('spaces', () => {
     await user.clear(screen.getByLabelText(/^Floor/))
     await user.type(screen.getByLabelText(/^Floor/), '5')
     await user.type(screen.getByLabelText(/^Area/), '62,5')
+    await user.type(screen.getByLabelText(/^Rooms/), '3')
+    await user.click(screen.getByRole('checkbox', { name: 'Kitchen' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Balcony' }))
     await user.selectOptions(screen.getByLabelText(/^Status/), 'Maintenance')
     await user.click(screen.getByRole('button', { name: 'Save space' }))
 
@@ -82,7 +118,23 @@ describe('spaces', () => {
     await screen.findByRole('table')
     const row = rows().find((r) => r.textContent?.includes('A 501'))!
     expect(row).toHaveTextContent('62.5 m²')
+    expect(row).toHaveTextContent('Balcony · Kitchen')
+    expect(within(row).getByRole('cell', { name: '3' })).toBeInTheDocument()
     expect(row).toHaveTextContent('Maintenance')
+  })
+
+  it('does not save an invalid number of rooms', async () => {
+    const user = userEvent.setup()
+    renderRoute('/units/new?property=property-joensuu-center')
+
+    await user.type(await screen.findByLabelText(/^Name/), 'A 501')
+    await user.type(screen.getByLabelText(/^Area/), '40')
+    await user.type(screen.getByLabelText(/^Rooms/), '2.5')
+    await user.click(screen.getByRole('button', { name: 'Save space' }))
+
+    expect(screen.getByText('Enter a whole number from 1 to 50, or leave the field empty.')).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Rooms/)).toHaveFocus()
+    expect(await createDataLayer('localStorage').spaces.getAll()).toHaveLength(68)
   })
 
   it('locks the status of a space with an active lease and links to its tenant', async () => {
@@ -139,6 +191,8 @@ describe('spaces', () => {
       type: 'office',
       floor: 4,
       areaM2: 40,
+      rooms: null,
+      features: [],
       status: 'available',
       createdAt: '2026-09-22T10:30:00.000Z',
       updatedAt: '2026-09-22T10:30:00.000Z',

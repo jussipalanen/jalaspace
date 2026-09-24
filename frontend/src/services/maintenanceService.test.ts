@@ -76,6 +76,8 @@ describe('maintenance service', () => {
       type: 'industrial',
       floor: 1,
       areaM2: 500,
+      rooms: null,
+      features: [],
       status: 'available',
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),

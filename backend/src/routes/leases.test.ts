@@ -31,6 +31,8 @@ const space = (id: string, status: Space['status'] = 'available'): Space => ({
   type: 'office',
   floor: 1,
   areaM2: 50,
+  rooms: null,
+  features: [],
   status,
   createdAt: CREATED,
   updatedAt: CREATED,

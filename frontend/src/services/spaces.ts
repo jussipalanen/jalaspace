@@ -2,7 +2,7 @@ import type { IsoDate, IsoDateTime } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { MaintenanceTask } from '../types/maintenance'
 import type { Property } from '../types/property'
-import type { Space, SpaceStatus, SpaceType } from '../types/space'
+import type { Space, SpaceFeature, SpaceStatus, SpaceType } from '../types/space'
 import type { Tenant } from '../types/tenant'
 import { generateId } from '../utils/id'
 import { getLeaseStatus } from './leases'
@@ -15,6 +15,16 @@ export const SPACE_TYPES: readonly SpaceType[] = [
   'apartment',
 ]
 export const SPACE_STATUSES: readonly SpaceStatus[] = ['available', 'occupied', 'maintenance']
+/** What a space offers; stored in this order, without duplicates. */
+export const SPACE_FEATURES: readonly SpaceFeature[] = [
+  'sauna',
+  'balcony',
+  'furnished',
+  'parking',
+  'accessible',
+  'loading_dock',
+  'kitchen',
+]
 /** Statuses a user can choose; "occupied" follows from an active lease. */
 export const MANUAL_SPACE_STATUSES: readonly SpaceStatus[] = ['available', 'maintenance']
 
@@ -22,6 +32,10 @@ export const SPACE_NAME_MAX_LENGTH = 50
 export const SPACE_FLOOR_MIN = -10
 export const SPACE_FLOOR_MAX = 200
 export const SPACE_AREA_MAX = 100_000
+export const SPACE_ROOMS_MIN = 1
+export const SPACE_ROOMS_MAX = 50
+/** The Spaces page filters 1–4 rooms exactly and this many or more. */
+export const SPACE_ROOMS_FILTER_MAX = 5
 
 export function isSpaceType(value: string): value is SpaceType {
   return (SPACE_TYPES as readonly string[]).includes(value)
@@ -31,13 +45,24 @@ export function isSpaceStatus(value: string): value is SpaceStatus {
   return (SPACE_STATUSES as readonly string[]).includes(value)
 }
 
-/** Form values; floor and area are the raw text the user typed. */
+export function isSpaceFeature(value: string): value is SpaceFeature {
+  return (SPACE_FEATURES as readonly string[]).includes(value)
+}
+
+/** Removes duplicates and puts the features in the order of `SPACE_FEATURES`. */
+export function normalizeFeatures(features: readonly SpaceFeature[]): SpaceFeature[] {
+  return SPACE_FEATURES.filter((feature) => features.includes(feature))
+}
+
+/** Form values; floor, area and rooms are the raw text the user typed. */
 export interface SpaceFormValues {
   propertyId: string
   name: string
   type: SpaceType
   floor: string
   area: string
+  rooms: string
+  features: SpaceFeature[]
   status: SpaceStatus
 }
 
@@ -47,10 +72,20 @@ export interface SpaceFormErrors {
   name?: 'required' | 'tooLong' | 'duplicate'
   floor?: 'required' | 'invalid'
   area?: 'required' | 'invalid'
+  rooms?: 'invalid'
 }
 
 export function emptySpaceForm(propertyId = ''): SpaceFormValues {
-  return { propertyId, name: '', type: 'office', floor: '1', area: '', status: 'available' }
+  return {
+    propertyId,
+    name: '',
+    type: 'office',
+    floor: '1',
+    area: '',
+    rooms: '',
+    features: [],
+    status: 'available',
+  }
 }
 
 export function toSpaceForm(space: Space, locale: string): SpaceFormValues {
@@ -62,6 +97,8 @@ export function toSpaceForm(space: Space, locale: string): SpaceFormValues {
     area: new Intl.NumberFormat(locale, { useGrouping: false, maximumFractionDigits: 2 }).format(
       space.areaM2,
     ),
+    rooms: space.rooms === null ? '' : String(space.rooms),
+    features: space.features,
     status: space.status,
   }
 }
@@ -80,6 +117,14 @@ export function parseArea(value: string): number | null {
   if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null
   const area = Number(normalized)
   return area > 0 && area <= SPACE_AREA_MAX ? area : null
+}
+
+/** Parses a whole number of rooms, or `null` if invalid or out of range. */
+export function parseRooms(value: string): number | null {
+  const trimmed = value.trim()
+  if (!/^\d+$/.test(trimmed)) return null
+  const rooms = Number(trimmed)
+  return rooms >= SPACE_ROOMS_MIN && rooms <= SPACE_ROOMS_MAX ? rooms : null
 }
 
 /**
@@ -115,6 +160,9 @@ export function validateSpaceForm(
   if (!values.area.trim()) errors.area = 'required'
   else if (parseArea(values.area) === null) errors.area = 'invalid'
 
+  // Rooms are optional.
+  if (values.rooms.trim() && parseRooms(values.rooms) === null) errors.rooms = 'invalid'
+
   return errors
 }
 
@@ -142,6 +190,8 @@ function normalize(values: SpaceFormValues): Omit<Space, 'id' | 'createdAt' | 'u
     type: values.type,
     floor: parseFloor(values.floor) ?? 0,
     areaM2: parseArea(values.area) ?? 0,
+    rooms: parseRooms(values.rooms),
+    features: normalizeFeatures(values.features),
   }
 }
 
@@ -183,7 +233,29 @@ export interface SpaceRow {
 export interface SpaceFilters {
   propertyId: string
   status: SpaceStatus | ''
+  /** 1 to `SPACE_ROOMS_FILTER_MAX - 1` exactly, `SPACE_ROOMS_FILTER_MAX` or more, or `null` for any. */
+  rooms: number | null
+  /** The space must have every one of these. */
+  features: SpaceFeature[]
   query: string
+}
+
+/** Reads the rooms filter from the URL, e.g. `3`; anything else means any number of rooms. */
+export function parseRoomsFilter(value: string | null): number | null {
+  if (!value || !/^\d+$/.test(value)) return null
+  const rooms = Number(value)
+  return rooms >= 1 && rooms <= SPACE_ROOMS_FILTER_MAX ? rooms : null
+}
+
+/** Reads the features filter from the URL, e.g. `sauna,parking`; unknown features are ignored. */
+export function parseFeaturesFilter(value: string | null): SpaceFeature[] {
+  return normalizeFeatures((value ?? '').split(',').filter(isSpaceFeature))
+}
+
+function matchesRooms(rooms: number | null, filter: number | null): boolean {
+  if (filter === null) return true
+  if (rooms === null) return false
+  return filter === SPACE_ROOMS_FILTER_MAX ? rooms >= filter : rooms === filter
 }
 
 /** Joins spaces with their property and current tenant, sorted by property and space name. */
@@ -221,6 +293,8 @@ export function filterSpaceRows(rows: SpaceRow[], filters: SpaceFilters, locale:
     ({ space, tenant }) =>
       (!filters.propertyId || space.propertyId === filters.propertyId) &&
       (!filters.status || space.status === filters.status) &&
+      matchesRooms(space.rooms, filters.rooms) &&
+      filters.features.every((feature) => space.features.includes(feature)) &&
       (!query ||
         space.name.toLocaleLowerCase(locale).includes(query) ||
         (tenant?.name.toLocaleLowerCase(locale).includes(query) ?? false)),

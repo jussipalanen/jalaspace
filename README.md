@@ -101,13 +101,16 @@ Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). 
 
 ## Spaces
 
-Open **Spaces** (`/units`) to search by space or current tenant and filter by property or status.
+Open **Spaces** (`/units`) to search by space or current tenant and filter by property, status,
+number of rooms (1–4 or 5+) and features (a space must have every chosen feature).
 Filters stay in the URL and survive a reload. Use **Add space** on a property's details page
 to create a space with that property already selected, or select a space to edit it.
 
 - Names must be unique within a property (ignoring case), with at most 50 characters.
 - Floors are whole numbers from −10 to 200; areas are positive, at most 100 000 m²,
   with up to two decimals. A decimal comma is accepted.
+- Rooms are optional, a whole number from 1 to 50.
+- Features are chosen from a fixed list: sauna, balcony, furnished, parking, accessible, loading dock and kitchen.
 - An active lease locks the status to Occupied; otherwise choose Available or Maintenance.
 - Deleting requires confirmation and is blocked while any lease or maintenance task refers to the space.
 - A space with maintenance tasks cannot move to another property until those tasks are removed or reassigned.
