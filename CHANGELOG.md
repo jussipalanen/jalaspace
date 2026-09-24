@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.16.0](https://github.com/jussipalanen/jalaspace/compare/v0.15.1...v0.16.0) (2026-09-24)
+
+
+### Added
+
+* **spaces:** record rooms and features for spaces ([#118](https://github.com/jussipalanen/jalaspace/issues/118)) ([8466f86](https://github.com/jussipalanen/jalaspace/commit/8466f868a1f105c2ec6ad8fd5cbd505b533e8074))
+
 ## [0.15.1](https://github.com/jussipalanen/jalaspace/compare/v0.15.0...v0.15.1) (2026-09-23)
 
 
