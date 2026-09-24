@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo/jalaspace-logo-dark.svg">
+    <img src="docs/logo/jalaspace-logo.svg" alt="JalaSpace – Property &amp; Space Management" width="499">
+  </picture>
+</p>
+
 # JalaSpace
 
 A property and space management demo application built with React and TypeScript.
