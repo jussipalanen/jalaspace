@@ -12,7 +12,8 @@ It has a Node.js + TypeScript REST API in `backend/`.
 
 > This is a portfolio/demo project with fictional data. The public demo shares one dataset through the demo API, which anyone can change and which returns to the demo data whenever the API restarts. Don't enter real personal data.
 
-## Repository structure
+<details>
+<summary><h2>Repository structure</h2></summary>
 
 ```text
 frontend/            React + TypeScript + Vite single-page application
@@ -24,7 +25,10 @@ AGENTS.md            Development workflow and conventions for humans and AI agen
 CLAUDE.md            Imports AGENTS.md for Claude Code
 ```
 
-## Getting started
+</details>
+
+<details>
+<summary><h2>Getting started</h2></summary>
 
 ### With Node.js
 
@@ -82,7 +86,10 @@ The `./dev` script in the repository root shortens the common commands. Without 
 `-V` recreates the container's `node_modules` volume, so newly installed dependencies are picked up.
 `./dev lint`, `typecheck`, `test` and `check` use the running container, or a temporary one when the containers are stopped. `./dev help` lists all commands. End-to-end tests run on the host (`cd frontend && npm run test:e2e`).
 
-## Demo sign-in
+</details>
+
+<details>
+<summary><h2>Demo sign-in</h2></summary>
 
 Sign in with the demo account:
 
@@ -95,7 +102,10 @@ Click your name in the header to edit your profile (first name, last name and bi
 > **This sign-in is simulated and not secure.** Credentials are checked in the browser and are
 > public. The session is kept in `localStorage` (`jalaspace_session`) and exists only in your browser.
 
-## Ask JalaSpace
+</details>
+
+<details>
+<summary><h2>Ask JalaSpace</h2></summary>
 
 The Dashboard has an **Ask JalaSpace** card: ask in English or Finnish, and it shows where to go in the app or which records match.
 
@@ -111,7 +121,10 @@ How it works:
 
 Screenshots: [desktop](docs/screenshots/ask-desktop.png) · [mobile, in Finnish](docs/screenshots/ask-mobile.png).
 
-## Languages
+</details>
+
+<details>
+<summary><h2>Languages</h2></summary>
 
 JalaSpace is available in **English** and **Finnish**. Switch the language from the selector in the header, on the sign-in page or in **Settings**. The page updates immediately.
 
@@ -122,7 +135,10 @@ JalaSpace is available in **English** and **Finnish**. Switch the language from 
 
 Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). English (`en.ts`) defines the keys; the Finnish dictionary is type-checked against it, so a missing translation fails the build. See the Internationalization section in [AGENTS.md](AGENTS.md).
 
-## Spaces
+</details>
+
+<details>
+<summary><h2>Spaces</h2></summary>
 
 Open **Spaces** (`/units`) to search by space or current tenant and filter by property, status,
 number of rooms (1–4 or 5+) and features (a space must have every chosen feature).
@@ -141,7 +157,10 @@ to create a space with that property already selected, or select a space to edit
 
 Screenshots: [desktop list](docs/screenshots/spaces-desktop.png) · [mobile form](docs/screenshots/spaces-mobile.png).
 
-## Maintenance
+</details>
+
+<details>
+<summary><h2>Maintenance</h2></summary>
 
 Open **Maintenance** (`/maintenance`) to see every task, newest first. Search titles and descriptions,
 and filter by property, space, priority or status. **Due by** shows tasks due on or before a date
@@ -173,7 +192,10 @@ Changing the property clears the space filter.
 
 Screenshots: [desktop list](docs/screenshots/maintenance-desktop.png) · [mobile task details](docs/screenshots/maintenance-mobile.png).
 
-## Tenants
+</details>
+
+<details>
+<summary><h2>Tenants</h2></summary>
 
 Open **Tenants** (`/tenants`) to see companies and people, sorted by name, with their contact details and current spaces.
 Search by name, contact person or email, and filter by type. Filters stay in the URL.
@@ -190,7 +212,10 @@ Search by name, contact person or email, and filter by type. Filters stay in the
 
 Screenshots: [desktop list](docs/screenshots/tenants-desktop.png) · [mobile tenant details](docs/screenshots/tenants-mobile.png).
 
-## Leases
+</details>
+
+<details>
+<summary><h2>Leases</h2></summary>
 
 Open **Leases** (`/leases`) to see every lease with its tenant, space, period, monthly rent and status.
 The status follows the dates: Upcoming, Active or Ended, counting both the start and the end day.
@@ -210,7 +235,10 @@ Filter by status and property, or search by tenant or space name. Filters stay i
 
 Screenshots: [desktop list](docs/screenshots/leases-desktop.png) · [mobile lease form](docs/screenshots/leases-mobile.png).
 
-## Frontend scripts
+</details>
+
+<details>
+<summary><h2>Frontend scripts</h2></summary>
 
 Run these inside `frontend/`:
 
@@ -226,7 +254,10 @@ Run these inside `frontend/`:
 | `npm run build`       | Type-check and create a production build in `dist/` |
 | `npm run preview`     | Serve the production build locally                  |
 
-## End-to-end tests
+</details>
+
+<details>
+<summary><h2>End-to-end tests</h2></summary>
 
 [Playwright](https://playwright.dev) tests in [`frontend/e2e/`](frontend/e2e) run the production build in Chromium, on a desktop and a mobile viewport. They cover sign-in and sign-out, navigation, direct links and the mobile navigation drawer.
 
@@ -251,7 +282,10 @@ npm run test:e2e:api
 
 [`playwright.api.config.ts`](frontend/playwright.api.config.ts) starts the API with its demo data on port 3100 and serves an `api` build on port 4174. The API data is shared, so these tests run one at a time and reset it before each test. The report opens with `npx playwright show-report playwright-report-api`.
 
-## Frontend architecture
+</details>
+
+<details>
+<summary><h2>Frontend architecture</h2></summary>
 
 ```text
 frontend/src/
@@ -296,7 +330,10 @@ React UI → custom hook → Repository interface → LocalStorageRepository   (
   - Rent is stored in euro cents.
   - A lease's status (upcoming, active or ended) is derived from its dates, not stored.
 
-## Continuous integration
+</details>
+
+<details>
+<summary><h2>Continuous integration</h2></summary>
 
 GitHub Actions runs [`ci.yml`](.github/workflows/ci.yml) on every pull request and on pushes to `main`.
 Each check is a separate job:
@@ -323,7 +360,10 @@ Dependencies are also monitored between pull requests:
 - [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly for both `frontend/` and `backend/` and writes an `npm outdated` report to the job summary. It can also be started manually.
 - [Dependabot](.github/dependabot.yml) opens weekly update PRs for npm packages and GitHub Actions. Minor and patch updates are grouped; major updates arrive as separate PRs. These PRs go through the same CI and human review as any other change.
 
-## Deployment
+</details>
+
+<details>
+<summary><h2>Deployment</h2></summary>
 
 The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.vercel.app.
 
@@ -368,7 +408,10 @@ The API is deployed to [Render](https://render.com) as a web service at https://
 - The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits).
 - `CORS_ORIGINS` allows the production site, this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
 
-## Versions and releases
+</details>
+
+<details>
+<summary><h2>Versions and releases</h2></summary>
 
 JalaSpace follows [Semantic Versioning](https://semver.org/). Every version is tagged (`v0.1.0`, `v0.1.1`, `v0.2.0` …), published as a [GitHub Release](https://github.com/jussipalanen/jalaspace/releases), and listed in [CHANGELOG.md](CHANGELOG.md).
 
@@ -382,7 +425,10 @@ Pull requests are merged with a **merge commit** titled with the PR title, so ea
 
 After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [AGENTS.md](AGENTS.md).
 
-## Development workflow
+</details>
+
+<details>
+<summary><h2>Development workflow</h2></summary>
 
 All changes go through a feature branch and a pull request that a human reviews and approves.
 See [AGENTS.md](AGENTS.md) for details.
@@ -428,3 +474,5 @@ Example tasks:
 - **Quality Reviewer:** “Review PR #<number> against its linked issue and main. Check domain relationships, validation, accessibility, and regression coverage. Report findings with file/line references; do not edit source.”
 
 Use the engineer for implementation, then start a reviewer session on the resulting changes. These profiles do not automatically run on every PR or replace human approval. A human still reviews and merges changes; releases use the existing release workflow.
+
+</details>
