@@ -215,7 +215,7 @@ The AI agent must not merge the Pull Request.
 
 Every Pull Request must be reviewed by a human.
 
-Pull Requests are squash-merged; the PR title must follow Conventional Commits because it becomes the commit on `main` and the changelog line (see Versioning and Releases).
+Pull Requests are merged with a merge commit; the commits on the branch must follow Conventional Commits because they become the changelog lines (see Versioning and Releases).
 
 A Pull Request should include:
 
@@ -1832,18 +1832,24 @@ v0.1.0   v0.1.1   v0.2.0   …   v1.0.0
 
 The first release is `v0.1.0`.
 
-## Squash merging
+## Merge commits
 
-Pull requests are merged with **squash merge only** (repository setting).
-The squash commit on `main` is titled with the PR title and has no body, so:
+Pull requests are merged with **a merge commit only** (repository setting), so the history shows each branch joining `main`.
+The merge commit uses GitHub's default title (`Merge pull request #12 from …`) and an empty body (repository setting), so:
 
-* **the PR title becomes the changelog line** and decides the version bump
-* each PR produces exactly one changelog entry, never duplicates
-* commits inside a feature branch are not listed in the changelog
+* **every Conventional Commit on the branch becomes a changelog line**, and the commits together decide the version bump
+* the merge commit itself is not a Conventional Commit, so release-please ignores it and nothing is listed twice
+* the PR title is not used in the changelog
 
-Merge commits are disabled because GitHub always copies the PR title into them, which release-please counts as a second change.
+Do not set the merge commit body to the PR title or description: release-please reads Conventional Commit lines in a commit body as extra changes, which would list the PR twice.
 
-If a PR contains a feature and an unrelated fix, split it into two PRs so both appear in the changelog.
+Keep the branch history clean before merging, because each `feat` and `fix` commit is a line in the release notes:
+
+* give steps that users do not notice a hidden type (`test`, `docs`, `chore`, `refactor` only when behavior is unchanged)
+* fold follow-up corrections into the commit they fix (`git commit --fixup`, then `git rebase --autosquash` on the feature branch) instead of adding `fix: typo` commits
+
+Squash and rebase merging are disabled, and merged branches are deleted automatically.
+Squash-merged PRs from before this change appear on `main` as single commits without a merge line.
 
 ## Conventional Commits
 
@@ -1874,12 +1880,14 @@ BREAKING CHANGE: existing demo data must be reset.
 
 Useful scopes: `app`, `auth`, `data`, `dashboard`, `properties`, `spaces`, `maintenance`, `tenants`, `leases`, `settings`, `i18n`, `a11y`, `deploy`, `deps`.
 
-Write the PR title for the reader of the release notes:
+Write `feat` and `fix` commit messages for the reader of the release notes:
 
 ```text
 Good:  fix(dashboard): detail lines overflowed their panel on narrow screens
 Avoid: fix: css
 ```
+
+Give the PR a Conventional Commits title too, e.g. the main change of the branch, so the PR list stays readable.
 
 Dependabot uses `fix(deps)` for runtime dependencies (a patch release) and `chore(deps-dev)` for development tools (no release).
 
@@ -2254,7 +2262,7 @@ Also run appropriate security/dependency checks.
 ## 7. Commit Changes
 
 Use Conventional Commits (see Versioning and Releases).
-Pull requests are squash-merged, so the PR title becomes the changelog line; commit messages still document the steps for reviewers.
+Pull requests are merged with a merge commit, so each `feat` and `fix` commit on the branch becomes a changelog line; use hidden types such as `test` or `docs` for the other steps.
 
 Examples:
 
@@ -2299,8 +2307,8 @@ Before creating a PR verify:
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
 [ ] New UI text is translated in all supported languages
-[ ] PR title follows Conventional Commits and reads well as a release note
-[ ] Commit messages follow Conventional Commits
+[ ] PR title follows Conventional Commits
+[ ] Commit messages follow Conventional Commits, and feat/fix commits read well as release notes
 [ ] UI changes have been manually sanity checked
 ```
 

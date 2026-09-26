@@ -56,7 +56,7 @@ Never claim that a check passed unless you ran it and it passed.
 
 ## 5. Commit and open the pull request
 
-* Use Conventional Commits for commit messages and the PR title (see Versioning and Releases in AGENTS.md). The PR title becomes the changelog line.
+* Use Conventional Commits for commit messages and the PR title (see Versioning and Releases in AGENTS.md). Each `feat` and `fix` commit becomes a changelog line, so use hidden types such as `test` or `docs` for the other steps.
 * Do not add `Co-Authored-By` trailers or "Generated with" lines, and do not name the AI tool in commits or pull requests.
 * Push the branch and open the pull request with `gh pr create --base main`.
 * In the description, use the sections from Pull Request Workflow in AGENTS.md and add:
