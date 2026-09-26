@@ -13,11 +13,21 @@ import {
 } from '../../services/properties'
 import { hasErrors } from '../../utils/validation'
 import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
+import { PropertyLocationFields } from './PropertyLocationFields'
 
 type Field = keyof PropertyFormValues
 
 /** Order of the fields in the form, used to focus the first invalid one. */
-const FIELD_ORDER: Field[] = ['name', 'type', 'address', 'postalCode', 'city', 'description']
+const FIELD_ORDER: Field[] = [
+  'name',
+  'type',
+  'address',
+  'postalCode',
+  'city',
+  'description',
+  'latitude',
+  'longitude',
+]
 
 interface PropertyFormProps {
   initialValues: PropertyFormValues
@@ -206,6 +216,18 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
           />
         )}
       </FormField>
+
+      <PropertyLocationFields
+        values={values}
+        errors={{ latitude: errors.latitude, longitude: errors.longitude }}
+        latitudeId={fieldId('latitude')}
+        longitudeId={fieldId('longitude')}
+        onChange={(latitude, longitude) => {
+          setValues((current) => ({ ...current, latitude, longitude }))
+          setErrors((current) => ({ ...current, latitude: undefined, longitude: undefined }))
+          setSaveError(null)
+        }}
+      />
 
       <div className="entity-form__actions">
         <Link to={cancelTo} className="button button--secondary">

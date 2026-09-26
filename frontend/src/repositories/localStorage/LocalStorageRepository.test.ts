@@ -15,6 +15,7 @@ function makeProperty(overrides: Partial<Property> = {}): Property {
     city: 'Joensuu',
     type: 'mixed_use',
     description: '',
+    location: null,
     createdAt: '2026-09-22T10:30:00.000Z',
     updatedAt: '2026-09-22T10:30:00.000Z',
     ...overrides,

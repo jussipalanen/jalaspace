@@ -1,0 +1,45 @@
+.location-map {
+  position: relative;
+  /* Keeps Leaflet's own z-indexes below the header, drawer and dialogs. */
+  isolation: isolate;
+  z-index: 0;
+  height: 320px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-surface-hover);
+}
+
+.location-map__canvas {
+  height: 100%;
+  font-family: var(--font-sans);
+}
+
+.location-map--message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.location-map__pin {
+  color: var(--color-primary);
+  filter: drop-shadow(0 1px 2px rgb(16 24 40 / 0.35));
+}
+
+.location-map__pin.leaflet-marker-draggable {
+  cursor: grab;
+}
+
+.location-map .leaflet-control-attribution {
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 640px) {
+  .location-map {
+    height: 260px;
+  }
+}

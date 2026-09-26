@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { BLOCK_OPENSTREETMAP } from './e2e/fixtures'
 
 // End-to-end tests of the `api` data provider: the production build talks to
 // the real JalaSpace API (backend/), started here with its demo data.
@@ -27,6 +28,7 @@ export default defineConfig({
     baseURL: APP_URL,
     trace: 'on-first-retry',
     ...devices['Desktop Chrome'],
+    launchOptions: { args: [BLOCK_OPENSTREETMAP] },
   },
   webServer: [
     {

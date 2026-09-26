@@ -66,6 +66,7 @@ describe('maintenance service', () => {
       postalCode: '90100',
       city: 'Oulu',
       description: '',
+      location: null,
       createdAt: now.toISOString(),
       updatedAt: now.toISOString(),
     })
