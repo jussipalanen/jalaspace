@@ -20,6 +20,11 @@ import {
   MAINTENANCE_TITLE_MAX_LENGTH,
 } from '../domain/maintenance.ts'
 import {
+  COORDINATE_DECIMALS,
+  LATITUDE_MAX,
+  LATITUDE_MIN,
+  LONGITUDE_MAX,
+  LONGITUDE_MIN,
   POSTAL_CODE_PATTERN,
   PROPERTY_DESCRIPTION_MAX_LENGTH,
   PROPERTY_NAME_MAX_LENGTH,
@@ -108,6 +113,15 @@ const propertyInput = object(
     postalCode: { type: 'string', pattern: POSTAL_CODE_PATTERN.source, example: '80100' },
     city: requiredText(undefined, { example: 'Joensuu' }),
     description: text(PROPERTY_DESCRIPTION_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
+    location: {
+      type: ['object', 'null'],
+      description: `Optional; \`null\` when missing. WGS 84 degrees, as on OpenStreetMap, rounded to ${COORDINATE_DECIMALS} decimals.`,
+      properties: {
+        latitude: { type: 'number', minimum: LATITUDE_MIN, maximum: LATITUDE_MAX, example: 62.601579 },
+        longitude: { type: 'number', minimum: LONGITUDE_MIN, maximum: LONGITUDE_MAX, example: 29.762079 },
+      },
+      required: ['latitude', 'longitude'],
+    },
   },
   ['name', 'type', 'address', 'postalCode', 'city'],
   'Text fields are trimmed.',

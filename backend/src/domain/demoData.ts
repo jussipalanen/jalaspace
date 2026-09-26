@@ -46,6 +46,9 @@ const has = (flags: Partial<Record<SpaceFeature, boolean>>): SpaceFeature[] =>
 // (frontend/src/data/seed/properties.ts and index.ts), so the data matches
 // once the frontend reads it from the API. The remaining spaces are occupied,
 // each with an active lease.
+// Locations were looked up once with OpenStreetMap Nominatim (issue #130).
+// OpenStreetMap has no house number 20 on Hermiankatu, so Tampere uses a
+// point on the street.
 const propertySeeds: PropertySeed[] = [
   {
     key: 'joensuu-center',
@@ -53,6 +56,7 @@ const propertySeeds: PropertySeed[] = [
     address: 'Siltakatu 12',
     postalCode: '80100',
     city: 'Joensuu',
+    location: { latitude: 62.601579, longitude: 29.762079 },
     type: 'mixed_use',
     description: 'City-centre building with street-level shops and three floors of offices.',
     createdDaysAgo: 720,
@@ -95,6 +99,7 @@ const propertySeeds: PropertySeed[] = [
     address: 'Satamakatu 5',
     postalCode: '70100',
     city: 'Kuopio',
+    location: { latitude: 62.888821, longitude: 27.694464 },
     type: 'office',
     description: 'Modern office building by the harbour with flexible open-plan floors.',
     createdDaysAgo: 540,
@@ -131,6 +136,7 @@ const propertySeeds: PropertySeed[] = [
     address: 'Hermiankatu 20',
     postalCode: '33720',
     city: 'Tampere',
+    location: { latitude: 61.447397, longitude: 23.859037 },
     type: 'industrial',
     description: 'Warehouse and light-industrial halls with loading docks and storage units.',
     createdDaysAgo: 480,
@@ -166,8 +172,9 @@ const propertySeeds: PropertySeed[] = [
     key: 'helsinki-kallio',
     name: 'Helsinki Kallio Residences',
     address: 'Fleminginkatu 15',
-    postalCode: '00530',
+    postalCode: '00500',
     city: 'Helsinki',
+    location: { latitude: 60.186508, longitude: 24.953475 },
     type: 'residential',
     description: 'Renovated residential building with 16 apartments.',
     createdDaysAgo: 400,
