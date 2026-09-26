@@ -215,7 +215,7 @@ The AI agent must not merge the Pull Request.
 
 Every Pull Request must be reviewed by a human.
 
-Pull Requests are merged with a merge commit; the commits on the branch must follow Conventional Commits because they become the changelog lines (see Versioning and Releases).
+Pull Requests are merged with a merge commit titled with the PR title; the PR title must follow Conventional Commits because it becomes the changelog line, and branch commits must not use release types (see Versioning and Releases).
 
 A Pull Request should include:
 
@@ -423,7 +423,10 @@ jalaspace/
 │   │   ├── ci.yml
 │   │   ├── dependency-check.yml
 │   │   ├── developer-agent.yml
+│   │   ├── pr-conventions.yml
 │   │   └── release.yml
+│   ├── scripts/
+│   │   └── check-pr-conventions.sh
 │   ├── dependabot.yml
 │   └── developer-agent.md
 │
@@ -1835,18 +1838,17 @@ The first release is `v0.1.0`.
 ## Merge commits
 
 Pull requests are merged with **a merge commit only** (repository setting), so the history shows each branch joining `main`.
-The merge commit uses GitHub's default title (`Merge pull request #12 from …`) and an empty body (repository setting), so:
+The merge commit is titled with the PR title and has an empty body (repository setting: "Pull request title"), so:
 
-* **every Conventional Commit on the branch becomes a changelog line**, and the commits together decide the version bump
-* the merge commit itself is not a Conventional Commit, so release-please ignores it and nothing is listed twice
-* the PR title is not used in the changelog
+* **the PR title becomes the changelog line** and decides the version bump
+* commits on the branch must not use a release type (`feat`, `fix`, `perf`, `refactor`, `revert`) or mark a breaking change; release-please reads every commit in the history, so they would list the change a second time
+* use `test`, `docs`, `chore`, `ci`, `build` or `style` for branch commits, e.g. `chore(spaces): add rooms filter` in a PR titled `feat(spaces): filter spaces by rooms`
 
-Do not set the merge commit body to the PR title or description: release-please reads Conventional Commit lines in a commit body as extra changes, which would list the PR twice.
+The `commit-types` check (`.github/workflows/pr-conventions.yml`) fails a PR whose title is not a Conventional Commit or whose branch commits break these rules. It runs again when the title is edited.
 
-Keep the branch history clean before merging, because each `feat` and `fix` commit is a line in the release notes:
+Do not change the merge message setting to "Default message" or "Pull request title and description": GitHub then copies the PR title or description into the merge commit body, and release-please counts it as a second change (v0.2.0 lists PR #28 twice for this reason).
 
-* give steps that users do not notice a hidden type (`test`, `docs`, `chore`, `refactor` only when behavior is unchanged)
-* fold follow-up corrections into the commit they fix (`git commit --fixup`, then `git rebase --autosquash` on the feature branch) instead of adding `fix: typo` commits
+If a PR contains a feature and an unrelated fix, split it into two PRs so both appear in the changelog.
 
 Squash and rebase merging are disabled, and merged branches are deleted automatically.
 Squash-merged PRs from before this change appear on `main` as single commits without a merge line.
@@ -1870,26 +1872,25 @@ The type decides the next version and the changelog section:
 | breaking change          | minor: 0.1.0 → 0.2.0       | major: 1.2.0 → 2.0.0           | ⚠ BREAKING CHANGES |
 | `docs`, `test`, `ci`, `build`, `style`, `chore` | no release | no release        | not listed        |
 
-Mark a breaking change with `!` after the type or a `BREAKING CHANGE:` footer:
+Mark a breaking change with `!` after the type in the PR title, and explain it in the PR description:
 
 ```text
 feat!: store rents per lease period
-
-BREAKING CHANGE: existing demo data must be reset.
 ```
+
+The merge commit has no body, so a `BREAKING CHANGE:` footer cannot be used.
 
 Useful scopes: `app`, `auth`, `data`, `dashboard`, `properties`, `spaces`, `maintenance`, `tenants`, `leases`, `settings`, `i18n`, `a11y`, `deploy`, `deps`.
 
-Write `feat` and `fix` commit messages for the reader of the release notes:
+Write the PR title for the reader of the release notes:
 
 ```text
 Good:  fix(dashboard): detail lines overflowed their panel on narrow screens
 Avoid: fix: css
 ```
 
-Give the PR a Conventional Commits title too, e.g. the main change of the branch, so the PR list stays readable.
-
-Dependabot uses `fix(deps)` for runtime dependencies (a patch release) and `chore(deps-dev)` for development tools (no release).
+Dependabot uses `build(deps)` for runtime dependencies and `chore(deps-dev)` for development tools, so neither creates a release on its own.
+To release a runtime dependency update (e.g. a security fix), rename its PR title to `fix(deps): …` before merging.
 
 ## Release process
 
@@ -2262,16 +2263,17 @@ Also run appropriate security/dependency checks.
 ## 7. Commit Changes
 
 Use Conventional Commits (see Versioning and Releases).
-Pull requests are merged with a merge commit, so each `feat` and `fix` commit on the branch becomes a changelog line; use hidden types such as `test` or `docs` for the other steps.
+Pull requests are merged with a merge commit titled with the PR title, so the PR title is the changelog line.
+Branch commits use types that do not create a release (`test`, `docs`, `chore`, `ci`, `build`, `style`); the `commit-types` check enforces it.
 
-Examples:
+Examples for a PR titled `feat(properties): create properties`:
 
 ```text
-feat: add property creation
+chore(properties): add property creation
 
-test: add property repository tests
+test(properties): add property repository tests
 
-fix: validate property city field
+chore(properties): validate the property city field
 ```
 
 ## 8. Push Feature Branch
@@ -2307,8 +2309,8 @@ Before creating a PR verify:
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
 [ ] New UI text is translated in all supported languages
-[ ] PR title follows Conventional Commits
-[ ] Commit messages follow Conventional Commits, and feat/fix commits read well as release notes
+[ ] PR title follows Conventional Commits and reads well as a release note
+[ ] Commit messages follow Conventional Commits and use no release types (feat, fix, perf, refactor, revert)
 [ ] UI changes have been manually sanity checked
 ```
 
@@ -2332,6 +2334,7 @@ backend-typecheck
 backend-test
 backend-security-audit
 backend-docker-build
+commit-types
 ```
 
 All required checks should pass before merge.
