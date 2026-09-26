@@ -4,7 +4,7 @@ import { checkTenantDeletion, checkTenantEmail, parseTenantInput, type TenantInp
 const company: TenantInput = {
   type: 'company',
   name: 'Nordic Pixel Oy',
-  contactPerson: 'Aleksi Rautio',
+  contactPerson: 'Aleksi Esimerkki',
   email: 'info@nordic-pixel.example',
   phone: '+358 40 123 4567',
   notes: 'Software development company.',
@@ -29,7 +29,7 @@ describe('tenant input', () => {
   })
 
   it('drops the contact person of a person, whatever it is', () => {
-    const person = { ...company, type: 'person', name: 'Aino Virtanen' }
+    const person = { ...company, type: 'person', name: 'Aino Esimerkki' }
     for (const contactPerson of ['Someone', 'x'.repeat(200), 42]) {
       expect(parseTenantInput({ ...person, contactPerson })).toEqual({
         ok: true,
@@ -95,7 +95,7 @@ describe('tenant input', () => {
 describe('tenant email', () => {
   const tenants = [
     { id: 'tenant-1', email: 'info@nordic-pixel.example' },
-    { id: 'tenant-2', email: 'aino.virtanen@example.com' },
+    { id: 'tenant-2', email: 'aino.esimerkki@example.com' },
   ]
 
   it('must be unique, ignoring case', () => {

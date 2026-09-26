@@ -62,7 +62,7 @@ describe('leases', () => {
     const user = userEvent.setup()
     const { router } = renderRoute('/leases/new')
 
-    await user.selectOptions(await screen.findByLabelText(/^Tenant/), 'Mikko Korhonen')
+    await user.selectOptions(await screen.findByLabelText(/^Tenant/), 'Mikko Esimerkki')
     await user.selectOptions(screen.getByLabelText(/^Property/), 'Kuopio Harbour Business Park')
     await user.selectOptions(screen.getByLabelText(/^Space/), 'B 204 (Available)')
     const start = screen.getByRole('textbox', { name: /^Start date/ })
@@ -73,11 +73,11 @@ describe('leases', () => {
     await user.type(screen.getByLabelText(/^Monthly rent/), '1 250,50')
     await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
-    expect(await screen.findByText('The lease of B 204 for Mikko Korhonen was created.')).toBeInTheDocument()
+    expect(await screen.findByText('The lease of B 204 for Mikko Esimerkki was created.')).toBeInTheDocument()
     expect(router.state.location.pathname).toBe('/leases')
     const leases = await createDataLayer('localStorage').leases.getAll()
     expect(leases.find((lease) => lease.spaceId === 'space-kuopio-harbour-10')).toMatchObject({
-      tenantId: 'tenant-mikko-korhonen',
+      tenantId: 'tenant-mikko-esimerkki',
       endDate: toIsoDate(addDays(new Date(), 372)),
       monthlyRentCents: 125050,
     })
@@ -99,7 +99,7 @@ describe('leases', () => {
     expect(screen.getByText('Enter an amount above 0 and at most 1,000,000 €, with up to 2 decimals.')).toBeInTheDocument()
     expect(screen.getByLabelText(/^Tenant/)).toHaveFocus()
 
-    await user.selectOptions(screen.getByLabelText(/^Tenant/), 'Mikko Korhonen')
+    await user.selectOptions(screen.getByLabelText(/^Tenant/), 'Mikko Esimerkki')
     await user.clear(screen.getByRole('textbox', { name: /^End date/ }))
     await user.keyboard('{Escape}')
     await user.clear(screen.getByLabelText(/^Monthly rent/))
@@ -112,13 +112,13 @@ describe('leases', () => {
 
   it('edits a lease from the tenant page, schedules a move-out and returns there', async () => {
     const user = userEvent.setup()
-    const { router } = renderRoute('/tenants/tenant-aino-virtanen')
+    const { router } = renderRoute('/tenants/tenant-aino-esimerkki')
 
     await user.click(await screen.findByRole('link', { name: 'Edit lease: A 1' }))
     expect(await screen.findByRole('heading', { level: 1, name: 'Edit lease' })).toBeInTheDocument()
     // Tenant and space are shown but cannot be changed.
     expect(screen.queryByLabelText(/^Tenant/)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Aino Virtanen' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Aino Esimerkki' })).toBeInTheDocument()
 
     await user.type(screen.getByRole('textbox', { name: /^End date/ }), day(60))
     await user.keyboard('{Escape}')
@@ -126,7 +126,7 @@ describe('leases', () => {
     await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
     expect(await screen.findByText('Changes to the lease of A 1 were saved.')).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/tenants/tenant-aino-virtanen')
+    expect(router.state.location.pathname).toBe('/tenants/tenant-aino-esimerkki')
     expect(await screen.findByRole('region', { name: 'Spaces' })).toHaveTextContent(day(60))
   })
 

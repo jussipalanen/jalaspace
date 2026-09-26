@@ -14,7 +14,7 @@ test.describe('demo data', () => {
     const properties = await page.evaluate(readCollection, 'jalaspace_properties')
     expect(properties).toHaveLength(4)
     expect(await page.evaluate(readCollection, 'jalaspace_units')).toHaveLength(68)
-    expect(await page.evaluate(() => localStorage.getItem('jalaspace_seed_version'))).toBe('2')
+    expect(await page.evaluate(() => localStorage.getItem('jalaspace_seed_version'))).toBe('3')
 
     // Simulate a user edit, then reload: the seed must not overwrite it.
     await page.evaluate(() => {
@@ -37,15 +37,15 @@ test.describe('demo data', () => {
       stored[0].name = 'Edited by user'
       localStorage.setItem('jalaspace_properties', JSON.stringify(stored))
     })
-    await page.getByLabel('First name').fill('Jussi')
+    await page.getByLabel('First name').fill('Esko')
     await page.getByRole('button', { name: 'Save profile' }).click()
-    await expect(page.getByRole('banner').getByText('Jussi User')).toBeVisible()
+    await expect(page.getByRole('banner').getByText('Esko User')).toBeVisible()
 
     await page.getByRole('button', { name: 'Reset demo data' }).click()
     const dialog = page.getByRole('dialog', { name: 'Reset demo data?' })
     await dialog.getByRole('button', { name: 'Cancel' }).click()
     await expect(dialog).toBeHidden()
-    await expect(page.getByLabel('First name')).toHaveValue('Jussi')
+    await expect(page.getByLabel('First name')).toHaveValue('Esko')
 
     await page.getByRole('button', { name: 'Reset demo data' }).click()
     await dialog.getByRole('button', { name: 'Reset demo data' }).click()

@@ -11,7 +11,7 @@ import { toLeaseForm, type LeaseFormValues } from './leases'
 const day = (offset: number) => formatDate(toIsoDate(addDays(new Date(), offset)))
 // B 204 in Kuopio Harbour is available and has never been leased.
 const values = (overrides: Partial<LeaseFormValues> = {}): LeaseFormValues => ({
-  tenantId: 'tenant-aino-virtanen',
+  tenantId: 'tenant-aino-esimerkki',
   propertyId: 'property-kuopio-harbour',
   spaceId: 'space-kuopio-harbour-10',
   startDate: day(0),
@@ -43,7 +43,7 @@ describe('lease service', () => {
     const data = createDataLayer('localStorage')
     await createLease(data, values())
     // The form was opened before the first lease was saved.
-    const error = await createLease(data, values({ tenantId: 'tenant-mikko-korhonen' })).catch((e: unknown) => e)
+    const error = await createLease(data, values({ tenantId: 'tenant-mikko-esimerkki' })).catch((e: unknown) => e)
     expect(error).toBeInstanceOf(LeaseValidationError)
     expect(error).toMatchObject({ errors: { spaceId: 'overlap' } })
 
@@ -64,7 +64,7 @@ describe('lease service', () => {
     })
 
     expect(updated).toMatchObject({
-      tenantId: 'tenant-aino-virtanen',
+      tenantId: 'tenant-aino-esimerkki',
       spaceId: 'space-helsinki-kallio-1',
       endDate: toIsoDate(addDays(new Date(), 60)),
       monthlyRentCents: 60000,
@@ -79,18 +79,18 @@ describe('lease service', () => {
 
     const updated = await updateLease(data, 'lease-45', {
       ...toLeaseForm(lease45, space, 'fi-FI'),
-      tenantId: 'tenant-mikko-korhonen',
+      tenantId: 'tenant-mikko-esimerkki',
       endDate: day(-1),
     })
 
-    expect(updated.tenantId).toBe('tenant-aino-virtanen')
+    expect(updated.tenantId).toBe('tenant-aino-esimerkki')
     expect(await data.spaces.getById(space.id)).toMatchObject({ status: 'available' })
   })
 
   it('rejects an edit that would overlap another lease, or of a missing lease', async () => {
     const data = createDataLayer('localStorage')
     const first = await createLease(data, values({ endDate: day(10) }))
-    await createLease(data, values({ tenantId: 'tenant-mikko-korhonen', startDate: day(20) }))
+    await createLease(data, values({ tenantId: 'tenant-mikko-esimerkki', startDate: day(20) }))
 
     // Extending the first lease into the second one is not allowed.
     await expect(

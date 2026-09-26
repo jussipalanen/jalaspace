@@ -31,9 +31,9 @@ describe('profile settings', () => {
 
     const firstName = await screen.findByLabelText(/^First name/)
     await user.clear(firstName)
-    await user.type(firstName, 'Jussi')
+    await user.type(firstName, 'Esko')
     await user.clear(screen.getByLabelText(/^Last name/))
-    await user.type(screen.getByLabelText(/^Last name/), 'Alanen')
+    await user.type(screen.getByLabelText(/^Last name/), 'Esimerkki')
     await user.selectOptions(screen.getByLabelText('Day'), '22')
     await user.selectOptions(screen.getByLabelText('Month'), '9')
     await user.selectOptions(screen.getByLabelText('Year'), '1990')
@@ -41,10 +41,10 @@ describe('profile settings', () => {
 
     expect(await screen.findByText('Your profile was saved.')).toBeInTheDocument()
     const header = screen.getByRole('banner')
-    expect(within(header).getByRole('link', { name: /Jussi Alanen/ })).toHaveTextContent('JA')
+    expect(within(header).getByRole('link', { name: /Esko Esimerkki/ })).toHaveTextContent('EE')
     expect(JSON.parse(window.localStorage.getItem(STORAGE_KEYS.profile)!)).toMatchObject({
-      firstName: 'Jussi',
-      lastName: 'Alanen',
+      firstName: 'Esko',
+      lastName: 'Esimerkki',
       birthDate: '1990-09-22',
     })
   })
@@ -82,7 +82,7 @@ describe('profile settings', () => {
       STORAGE_KEYS.profile,
       JSON.stringify({
         firstName: 'Aino',
-        lastName: 'Virtanen',
+        lastName: 'Esimerkki',
         birthDate: '1985-02-03',
         updatedAt: '2026-09-22T10:30:00.000Z',
       }),
@@ -93,7 +93,7 @@ describe('profile settings', () => {
     expect(screen.getByLabelText('Day')).toHaveValue('3')
     expect(screen.getByLabelText('Month')).toHaveValue('2')
     expect(screen.getByLabelText('Year')).toHaveValue('1985')
-    expect(within(screen.getByRole('banner')).getByText('Aino Virtanen')).toBeInTheDocument()
+    expect(within(screen.getByRole('banner')).getByText('Aino Esimerkki')).toBeInTheDocument()
   })
 
   it('is translated to Finnish', async () => {

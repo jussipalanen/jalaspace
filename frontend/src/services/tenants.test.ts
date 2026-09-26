@@ -22,7 +22,7 @@ const seed = createSeedData(new Date(now))
 const valid: TenantFormValues = {
   ...emptyTenantForm(),
   name: 'Pohjola Bakery Oy',
-  contactPerson: 'Liisa Pohjola',
+  contactPerson: 'Liisa Esimerkki',
   email: 'hello@pohjola-bakery.example',
   phone: '+358 40 123 4567',
 }
@@ -108,7 +108,7 @@ describe('tenant leases and rows', () => {
   it('sorts rows by name and filters by type and search', () => {
     const rows = buildTenantRows(seed.tenants, seed.leases, seed.spaces, seed.properties, today, 'fi-FI')
     expect(rows).toHaveLength(31)
-    expect(rows[0]?.tenant.name).toBe('Aino Virtanen')
+    expect(rows[0]?.tenant.name).toBe('Aino Esimerkki')
     expect(rows.find((row) => row.tenant.id === 'tenant-aurora-yoga')?.nextUpcoming?.space?.name).toBe(
       'A 302',
     )
@@ -118,7 +118,7 @@ describe('tenant leases and rows', () => {
     expect(filter('company', '')).toHaveLength(16)
     expect(filter('person', '')).toHaveLength(15)
     // Search matches the contact person and the email as well as the name.
-    expect(filter('', 'aleksi rautio')).toEqual(['tenant-nordic-pixel'])
+    expect(filter('', 'aleksi esimerkki')).toEqual(['tenant-nordic-pixel'])
     expect(filter('', 'info@jarvi-coffee')).toEqual(['tenant-jarvi-coffee'])
     expect(filter('person', 'nordic')).toEqual([])
   })

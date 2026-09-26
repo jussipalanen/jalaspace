@@ -29,8 +29,8 @@ test.describe('application navigation', () => {
   })
 
   test('opens detail pages from a direct link', async ({ page }) => {
-    await page.goto('/tenants/tenant-aino-virtanen')
-    await expectPageHeading(page, 'Aino Virtanen')
+    await page.goto('/tenants/tenant-aino-esimerkki')
+    await expectPageHeading(page, 'Aino Esimerkki')
 
     await page.goto('/tenants/tenant-42')
     await expectPageHeading(page, 'Tenant not found')

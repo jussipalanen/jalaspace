@@ -9,7 +9,7 @@ import { serve } from '../test/serve.ts'
 const input = {
   type: 'company',
   name: 'Nordic Pixel Oy',
-  contactPerson: 'Aleksi Rautio',
+  contactPerson: 'Aleksi Esimerkki',
   email: 'info@nordic-pixel.example',
   phone: '+358 40 123 4567',
   notes: 'Software development company.',
@@ -64,7 +64,7 @@ describe('tenants API', () => {
   })
 
   it('creates a person without a contact person or phone', async () => {
-    const created = await create({ type: 'person', name: 'Aino Virtanen', email: 'aino@example.com', phone: '' })
+    const created = await create({ type: 'person', name: 'Aino Esimerkki', email: 'aino@example.com', phone: '' })
     expect(created).toMatchObject({ type: 'person', contactPerson: null, phone: null })
   })
 

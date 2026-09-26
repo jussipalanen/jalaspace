@@ -144,18 +144,18 @@ describe('demo data', () => {
       id: 'tenant-nordic-pixel',
       type: 'company',
       name: 'Nordic Pixel Oy',
-      contactPerson: 'Aleksi Rautio',
+      contactPerson: 'Aleksi Esimerkki',
       email: 'info@nordic-pixel.example',
       phone: null,
       notes: 'Software development company.',
       createdAt: '2024-10-22T10:30:00.000Z',
       updatedAt: '2024-10-22T10:30:00.000Z',
     })
-    expect(tenants.find(({ id }) => id === 'tenant-laura-makinen')).toMatchObject({
+    expect(tenants.find(({ id }) => id === 'tenant-laura-esimerkki')).toMatchObject({
       type: 'person',
-      name: 'Laura Mäkinen',
+      name: 'Laura Esimerkki',
       contactPerson: null,
-      email: 'laura.makinen@example.com',
+      email: 'laura.esimerkki@example.com',
     })
   })
 

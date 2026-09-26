@@ -9,8 +9,8 @@ test.describe('profile', () => {
     await page.getByRole('link', { name: /Demo User/ }).click()
     await expectPageHeading(page, 'Settings')
 
-    await page.getByLabel('First name').fill('Jussi')
-    await page.getByLabel('Last name').fill('Alanen')
+    await page.getByLabel('First name').fill('Esko')
+    await page.getByLabel('Last name').fill('Esimerkki')
     await page.getByLabel('Day').selectOption('22')
     await page.getByLabel('Month').selectOption('9')
     await page.getByLabel('Year').selectOption('1990')
@@ -18,11 +18,11 @@ test.describe('profile', () => {
 
     await expect(page.getByText('Your profile was saved.')).toBeVisible()
     const header = page.getByRole('banner')
-    await expect(header.getByText('Jussi Alanen')).toBeVisible()
-    await expect(header.getByText('JA', { exact: true })).toBeVisible()
+    await expect(header.getByText('Esko Esimerkki')).toBeVisible()
+    await expect(header.getByText('EE', { exact: true })).toBeVisible()
 
     await page.reload()
-    await expect(page.getByLabel('First name')).toHaveValue('Jussi')
+    await expect(page.getByLabel('First name')).toHaveValue('Esko')
     await expect(page.getByLabel('Day')).toHaveValue('22')
     await expect(page.getByLabel('Month')).toHaveValue('9')
     await expect(page.getByLabel('Year')).toHaveValue('1990')

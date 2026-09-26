@@ -23,7 +23,7 @@ import type { TenantFormValues } from './tenants'
 const values: TenantFormValues = {
   type: 'company',
   name: 'Pohjola Bakery Oy',
-  contactPerson: 'Liisa Pohjola',
+  contactPerson: 'Liisa Esimerkki',
   email: 'hello@pohjola-bakery.example',
   phone: '',
   notes: '',
@@ -93,10 +93,10 @@ describe('tenant service', () => {
 
   it('assigns a tenant from today: an open-ended lease that occupies the space', async () => {
     const data = createDataLayer('localStorage')
-    const { lease, space } = await assignTenantToSpace(data, 'tenant-aino-virtanen', assignment())
+    const { lease, space } = await assignTenantToSpace(data, 'tenant-aino-esimerkki', assignment())
 
     expect(lease).toMatchObject({
-      tenantId: 'tenant-aino-virtanen',
+      tenantId: 'tenant-aino-esimerkki',
       spaceId: 'space-kuopio-harbour-10',
       startDate: today(),
       endDate: null,
@@ -104,7 +104,7 @@ describe('tenant service', () => {
     })
     expect(space.status).toBe('occupied')
     expect(await data.spaces.getById('space-kuopio-harbour-10')).toMatchObject({ status: 'occupied' })
-    const details = getTenantDetails(await loadTenantData(data), 'tenant-aino-virtanen', today())
+    const details = getTenantDetails(await loadTenantData(data), 'tenant-aino-esimerkki', today())
     expect(details?.leases.current.map((entry) => entry.space?.name)).toContain('B 204')
   })
 
@@ -113,7 +113,7 @@ describe('tenant service', () => {
     const start = toIsoDate(addDays(new Date(), 30))
     const { lease, space } = await assignTenantToSpace(
       data,
-      'tenant-aino-virtanen',
+      'tenant-aino-esimerkki',
       assignment(formatDate(start)),
     )
     expect(lease.startDate).toBe(start)
@@ -124,14 +124,14 @@ describe('tenant service', () => {
     const data = createDataLayer('localStorage')
     const before = await data.leases.getAll()
     await expect(
-      assignTenantToSpace(data, 'tenant-aino-virtanen', {
+      assignTenantToSpace(data, 'tenant-aino-esimerkki', {
         ...assignment(),
         propertyId: 'property-joensuu-center',
         spaceId: 'space-joensuu-center-6',
       }),
     ).rejects.toMatchObject({ errors: { spaceId: 'overlap' } })
     // A 302 is reserved for Aurora Yoga later this year.
-    const error = await assignTenantToSpace(data, 'tenant-aino-virtanen', {
+    const error = await assignTenantToSpace(data, 'tenant-aino-esimerkki', {
       ...assignment(),
       propertyId: 'property-joensuu-center',
       spaceId: 'space-joensuu-center-12',
@@ -143,15 +143,15 @@ describe('tenant service', () => {
 
   it('rejects a second assignment of the same space from a stale form', async () => {
     const data = createDataLayer('localStorage')
-    await assignTenantToSpace(data, 'tenant-aino-virtanen', assignment())
+    await assignTenantToSpace(data, 'tenant-aino-esimerkki', assignment())
     await expect(
-      assignTenantToSpace(data, 'tenant-mikko-korhonen', assignment()),
+      assignTenantToSpace(data, 'tenant-mikko-esimerkki', assignment()),
     ).rejects.toMatchObject({ errors: { spaceId: 'overlap' } })
   })
 
   it('removes a tenant who has moved in earlier: the lease ends yesterday and the space is freed', async () => {
     const data = createDataLayer('localStorage')
-    // Aino Virtanen rents A 1 in Helsinki under lease-45.
+    // Aino Esimerkki rents A 1 in Helsinki under lease-45.
     const { action } = await removeTenantFromSpace(data, 'lease-45')
 
     expect(action).toBe('end')
@@ -173,7 +173,7 @@ describe('tenant service', () => {
 
   it('cancels a lease that starts today and frees the space again', async () => {
     const data = createDataLayer('localStorage')
-    const { lease } = await assignTenantToSpace(data, 'tenant-aino-virtanen', assignment())
+    const { lease } = await assignTenantToSpace(data, 'tenant-aino-esimerkki', assignment())
 
     await expect(removeTenantFromSpace(data, lease.id)).resolves.toEqual({ action: 'cancel' })
     expect(await data.spaces.getById('space-kuopio-harbour-10')).toMatchObject({ status: 'available' })

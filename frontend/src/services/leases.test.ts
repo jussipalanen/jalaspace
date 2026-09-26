@@ -23,7 +23,7 @@ const today = '2026-09-22'
 const seed = createSeedData(new Date(now))
 // B 204 in Kuopio Harbour is available and has never been leased.
 const valid: LeaseFormValues = {
-  tenantId: 'tenant-aino-virtanen',
+  tenantId: 'tenant-aino-esimerkki',
   propertyId: 'property-kuopio-harbour',
   spaceId: 'space-kuopio-harbour-10',
   startDate: '1.10.2026',
@@ -138,7 +138,7 @@ describe('building leases', () => {
   it('stores dates as date-only strings and the rent in cents', () => {
     expect(buildNewLease(valid, now, 'lease-new')).toEqual({
       id: 'lease-new',
-      tenantId: 'tenant-aino-virtanen',
+      tenantId: 'tenant-aino-esimerkki',
       spaceId: 'space-kuopio-harbour-10',
       startDate: '2026-10-01',
       endDate: '2027-09-30',

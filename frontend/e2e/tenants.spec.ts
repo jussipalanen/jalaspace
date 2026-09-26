@@ -12,13 +12,13 @@ test.describe('tenants', () => {
     await page.goto('/tenants')
     await expect(count(page)).toHaveText('31 tenants')
     await page.getByLabel('Type').selectOption({ label: 'Person' })
-    await page.getByRole('searchbox', { name: 'Search tenants' }).fill('virtanen')
+    await page.getByRole('searchbox', { name: 'Search tenants' }).fill('aino')
     await expect(count(page)).toHaveText('1 tenant')
 
     await page.reload()
     await expect(count(page)).toHaveText('1 tenant')
-    await page.getByRole('link', { name: 'Aino Virtanen' }).click()
-    await expectPageHeading(page, 'Aino Virtanen')
+    await page.getByRole('link', { name: 'Aino Esimerkki' }).click()
+    await expectPageHeading(page, 'Aino Esimerkki')
     await expect(page.getByRole('region', { name: 'Spaces' })).toContainText('A 1')
   })
 
@@ -28,7 +28,7 @@ test.describe('tenants', () => {
 
     await page.goto('/tenants/new')
     await page.getByRole('textbox', { name: 'Company name' }).fill('Pohjola Bakery Oy')
-    await page.getByRole('textbox', { name: 'Contact person' }).fill('Liisa Pohjola')
+    await page.getByRole('textbox', { name: 'Contact person' }).fill('Liisa Esimerkki')
     await page.getByRole('textbox', { name: 'Email' }).fill('hello@pohjola-bakery.example')
     await page.getByRole('button', { name: 'Save tenant' }).click()
     await expect(page.getByText('Tenant Pohjola Bakery Oy was added.')).toBeVisible()
@@ -76,15 +76,15 @@ test.describe('tenants', () => {
   })
 
   test('moves a tenant out of a space with keyboard only', async ({ page }) => {
-    await page.goto('/tenants/tenant-aino-virtanen')
+    await page.goto('/tenants/tenant-aino-esimerkki')
     await page.getByRole('button', { name: 'Remove from space A 1' }).focus()
     await page.keyboard.press('Enter')
-    const dialog = page.getByRole('dialog', { name: 'Remove Aino Virtanen from A 1?' })
+    const dialog = page.getByRole('dialog', { name: 'Remove Aino Esimerkki from A 1?' })
     await expect(dialog).toContainText('The tenant moves out today')
     await dialog.getByRole('button', { name: 'Remove from space' }).focus()
     await page.keyboard.press('Enter')
 
-    await expect(page.getByText('Aino Virtanen was removed from A 1.')).toBeVisible()
+    await expect(page.getByText('Aino Esimerkki was removed from A 1.')).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Spaces' })).toBeFocused()
     await page.reload()
     await expect(page.getByRole('region', { name: 'Past leases' })).toContainText('A 1')

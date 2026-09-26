@@ -28,16 +28,16 @@ test.describe('demo authentication', () => {
   })
 
   test('signs in, returns to the requested page and survives a reload', async ({ page }) => {
-    await page.goto('/tenants/tenant-aino-virtanen')
+    await page.goto('/tenants/tenant-aino-esimerkki')
     await expect(page).toHaveURL('/login')
 
     await signIn(page)
 
-    await expect(page).toHaveURL('/tenants/tenant-aino-virtanen')
-    await expectPageHeading(page, 'Aino Virtanen')
+    await expect(page).toHaveURL('/tenants/tenant-aino-esimerkki')
+    await expectPageHeading(page, 'Aino Esimerkki')
 
     await page.reload()
-    await expectPageHeading(page, 'Aino Virtanen')
+    await expectPageHeading(page, 'Aino Esimerkki')
     await expect(page.getByText('Demo User')).toBeVisible()
   })
 

@@ -16,25 +16,26 @@ export interface TenantSeed {
 type CompanyRow = [key: string, name: string, contactPerson: string, notes: string]
 type PersonRow = [key: string, name: string, notes: string]
 
-// All names are fictional. Company emails use the reserved `.example` domain.
+// All names are fictional: every person has the placeholder last name Esimerkki
+// (Finnish for "example"). Emails use the reserved example domains.
 const companies: TenantSeed[] = (
   [
-    ['nordic-pixel', 'Nordic Pixel Oy', 'Aleksi Rautio', 'Software development company.'],
-    ['karelia-accounting', 'Karelia Accounting Oy', 'Riikka Hirvonen', 'Accounting and payroll services.'],
-    ['saimaa-design', 'Saimaa Design Studio Oy', 'Tuomas Kettunen', 'Downsized in the spring and moved out of A 201.'],
-    ['koivu-manty-law', 'Koivu & Mänty Law Oy', 'Hanna Koivu', ''],
-    ['revontuli-games', 'Revontuli Games Oy', 'Joonas Pesonen', 'Game studio with offices in Joensuu and Kuopio.'],
-    ['harbour-health', 'Harbour Health Clinic Oy', 'Minna Turunen', 'Physiotherapy clinic on the street level.'],
-    ['jarvi-coffee', 'Järvi Coffee Oy', 'Petri Järvi', 'Café. Grease trap must be serviced twice a year.'],
-    ['northwind-outdoor', 'Northwind Outdoor Oy', 'Satu Heino', 'Outdoor equipment store; also rents storage units.'],
-    ['lumo-florist', 'Lumo Florist Oy', 'Elina Lumme', ''],
-    ['kivea-architects', 'Kiveä Architects Oy', 'Markus Kivelä', ''],
-    ['savo-energy', 'Savo Energy Consulting Oy', 'Jari Karhunen', ''],
-    ['kallavesi-marketing', 'Kallavesi Marketing Oy', 'Outi Partanen', ''],
-    ['arctic-freight', 'Arctic Freight Oy', 'Kimmo Lahtinen', 'Logistics operator; uses the loading docks daily.'],
-    ['tervas-machinery', 'Tervas Machinery Oy', 'Pasi Tervonen', ''],
-    ['aurora-yoga', 'Aurora Yoga Studio Oy', 'Veera Aaltonen', 'Moving in next month.'],
-    ['old-town-books', 'Old Town Books Oy', 'Raimo Vartiainen', 'Former tenant.'],
+    ['nordic-pixel', 'Nordic Pixel Oy', 'Aleksi Esimerkki', 'Software development company.'],
+    ['karelia-accounting', 'Karelia Accounting Oy', 'Riikka Esimerkki', 'Accounting and payroll services.'],
+    ['saimaa-design', 'Saimaa Design Studio Oy', 'Tuomas Esimerkki', 'Downsized in the spring and moved out of A 201.'],
+    ['koivu-manty-law', 'Koivu & Mänty Law Oy', 'Hanna Esimerkki', ''],
+    ['revontuli-games', 'Revontuli Games Oy', 'Joonas Esimerkki', 'Game studio with offices in Joensuu and Kuopio.'],
+    ['harbour-health', 'Harbour Health Clinic Oy', 'Minna Esimerkki', 'Physiotherapy clinic on the street level.'],
+    ['jarvi-coffee', 'Järvi Coffee Oy', 'Petri Esimerkki', 'Café. Grease trap must be serviced twice a year.'],
+    ['northwind-outdoor', 'Northwind Outdoor Oy', 'Satu Esimerkki', 'Outdoor equipment store; also rents storage units.'],
+    ['lumo-florist', 'Lumo Florist Oy', 'Elina Esimerkki', ''],
+    ['kivea-architects', 'Kiveä Architects Oy', 'Markus Esimerkki', ''],
+    ['savo-energy', 'Savo Energy Consulting Oy', 'Jari Esimerkki', ''],
+    ['kallavesi-marketing', 'Kallavesi Marketing Oy', 'Outi Esimerkki', ''],
+    ['arctic-freight', 'Arctic Freight Oy', 'Kimmo Esimerkki', 'Logistics operator; uses the loading docks daily.'],
+    ['tervas-machinery', 'Tervas Machinery Oy', 'Pasi Esimerkki', ''],
+    ['aurora-yoga', 'Aurora Yoga Studio Oy', 'Veera Esimerkki', 'Moving in next month.'],
+    ['old-town-books', 'Old Town Books Oy', 'Raimo Esimerkki', 'Former tenant.'],
   ] satisfies CompanyRow[]
 ).map(([key, name, contactPerson, notes]) => ({
   key,
@@ -47,21 +48,21 @@ const companies: TenantSeed[] = (
 
 const people: TenantSeed[] = (
   [
-    ['aino-virtanen', 'Aino Virtanen', ''],
-    ['mikko-korhonen', 'Mikko Korhonen', ''],
-    ['laura-makinen', 'Laura Mäkinen', ''],
-    ['juha-nieminen', 'Juha Nieminen', ''],
-    ['emilia-hamalainen', 'Emilia Hämäläinen', 'Has a cat.'],
-    ['ville-laine', 'Ville Laine', ''],
-    ['sanna-heikkinen', 'Sanna Heikkinen', ''],
-    ['antti-koskinen', 'Antti Koskinen', ''],
-    ['noora-jarvinen', 'Noora Järvinen', ''],
-    ['eero-lehtonen', 'Eero Lehtonen', ''],
-    ['helmi-saarinen', 'Helmi Saarinen', ''],
-    ['onni-salminen', 'Onni Salminen', ''],
-    ['iida-lindqvist', 'Iida Lindqvist', ''],
-    ['matias-tuominen', 'Matias Tuominen', ''],
-    ['kalle-rantanen', 'Kalle Rantanen', 'Former tenant.'],
+    ['aino-esimerkki', 'Aino Esimerkki', ''],
+    ['mikko-esimerkki', 'Mikko Esimerkki', ''],
+    ['laura-esimerkki', 'Laura Esimerkki', ''],
+    ['juha-esimerkki', 'Juha Esimerkki', ''],
+    ['emilia-esimerkki', 'Emilia Esimerkki', 'Has a cat.'],
+    ['ville-esimerkki', 'Ville Esimerkki', ''],
+    ['sanna-esimerkki', 'Sanna Esimerkki', ''],
+    ['antti-esimerkki', 'Antti Esimerkki', ''],
+    ['noora-esimerkki', 'Noora Esimerkki', ''],
+    ['eero-esimerkki', 'Eero Esimerkki', ''],
+    ['helmi-esimerkki', 'Helmi Esimerkki', ''],
+    ['onni-esimerkki', 'Onni Esimerkki', ''],
+    ['iida-esimerkki', 'Iida Esimerkki', ''],
+    ['matias-esimerkki', 'Matias Esimerkki', ''],
+    ['kalle-esimerkki', 'Kalle Esimerkki', 'Former tenant.'],
   ] satisfies PersonRow[]
 ).map(([key, name, notes]) => ({
   key,
