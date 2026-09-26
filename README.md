@@ -124,6 +124,19 @@ Screenshots: [desktop](docs/screenshots/ask-desktop.png) · [mobile, in Finnish]
 </details>
 
 <details>
+<summary><h2>Property locations</h2></summary>
+
+A property's details page shows where the building is on an [OpenStreetMap](https://www.openstreetmap.org/) map. To set or change the location, edit the property:
+
+- **Search address** is pre-filled from the address fields. Press **Search** (or Enter) and choose a match to move the pin there. Searches are limited to Finland, and the address is sent to OpenStreetMap.
+- Drag the pin, or click the map, to fine-tune the location. The **Latitude** and **Longitude** fields follow the pin and can also be edited directly.
+- **Clear location** removes it; the location is optional.
+
+The maps use [Leaflet](https://leafletjs.com/) with OpenStreetMap's free map tiles and address search (Nominatim), so no API key or billing account is needed. To follow their usage policies, the search runs only when asked (never while typing), at most once per second, and repeated searches are answered from a cache.
+
+</details>
+
+<details>
 <summary><h2>Languages</h2></summary>
 
 JalaSpace is available in **English** and **Finnish**. Switch the language from the selector in the header, on the sign-in page or in **Settings**. The page updates immediately.
