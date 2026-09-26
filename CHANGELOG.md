@@ -5,6 +5,18 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.19.0](https://github.com/jussipalanen/jalaspace/compare/v0.18.0...v0.19.0) (2026-09-26)
+
+
+### Added
+
+* **properties:** show the property location on a map and set it by dragging a pin ([#131](https://github.com/jussipalanen/jalaspace/issues/131)) ([f8ea834](https://github.com/jussipalanen/jalaspace/commit/f8ea834baae7646b46df1e191af5363aa6443ec0))
+
+
+### Fixed
+
+* **data:** give every demo person the placeholder last name Esimerkki ([#128](https://github.com/jussipalanen/jalaspace/issues/128)) ([df79bca](https://github.com/jussipalanen/jalaspace/commit/df79bca8c417d56d4afb4537d57bfdddbb8e4908))
+
 ## [0.18.0](https://github.com/jussipalanen/jalaspace/compare/v0.17.0...v0.18.0) (2026-09-24)
 
 
