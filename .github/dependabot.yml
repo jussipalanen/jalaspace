@@ -7,8 +7,10 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     commit-message:
-      # Runtime dependency updates are releasable fixes; dev-tool updates are chores.
-      prefix: fix
+      # Branch commits must not use release types (see Versioning and Releases in
+      # AGENTS.md): build(deps) marks runtime updates, chore(deps-dev) dev tools.
+      # Rename a runtime update's PR title to fix(deps) to release it.
+      prefix: build
       prefix-development: chore
       include: scope
     groups:
@@ -29,7 +31,7 @@ updates:
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
     commit-message:
-      prefix: fix
+      prefix: build
       prefix-development: chore
       include: scope
     groups:

@@ -353,6 +353,8 @@ Each check is a separate job:
 
 The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc) and [`backend/.nvmrc`](backend/.nvmrc), so CI and local development use the same version.
 
+[`pr-conventions.yml`](.github/workflows/pr-conventions.yml) runs the `commit-types` check on every pull request: the PR title must be a Conventional Commit, and branch commits must not use release types (see Versions and releases).
+
 Dependencies are also monitored between pull requests:
 
 - [`dependency-check.yml`](.github/workflows/dependency-check.yml) runs `npm audit` weekly for both `frontend/` and `backend/` and writes an `npm outdated` report to the job summary. It can also be started manually.
@@ -419,7 +421,7 @@ Releases are prepared automatically by [release-please](https://github.com/googl
 - `fix:` → patch version (0.1.0 → 0.1.1)
 - `docs:`, `test:`, `ci:`, `chore:` → no release
 
-Pull requests are **squash-merged**, so each PR title (e.g. `feat(properties): …`) becomes one changelog line.
+Pull requests are merged with a **merge commit** titled with the PR title, so each PR title (e.g. `feat(properties): …`) becomes one changelog line. Commits on the branch use types that do not create a release (`chore`, `test`, `docs` …), which the `commit-types` check enforces.
 
 After each merge to `main`, release-please keeps a **release PR** up to date with the next version and its CHANGELOG entry. Merging that PR creates the tag and the GitHub Release. See "Versioning and Releases" in [AGENTS.md](AGENTS.md).
 

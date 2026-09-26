@@ -1,0 +1,32 @@
+name: PR conventions
+
+# Pull requests are merged with a merge commit titled with the PR title, so the
+# PR title is the changelog line and branch commits must not use release types.
+# Runs again when the title is edited.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-conventions-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  commit-types:
+    name: commit-types
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - name: Check the PR title and branch commits
+        env:
+          # Passed through the environment so the title is never run as shell code.
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: bash .github/scripts/check-pr-conventions.sh "$PR_TITLE" "$BASE_SHA" "$HEAD_SHA"
