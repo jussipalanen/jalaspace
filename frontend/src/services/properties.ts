@@ -1,8 +1,9 @@
 import type { IsoDateTime } from '../types/common'
 import { generateId } from '../utils/id'
 import type { MaintenanceTask } from '../types/maintenance'
-import type { Property, PropertyType } from '../types/property'
+import type { Property, PropertyLocation, PropertyType } from '../types/property'
 import type { Space } from '../types/space'
+import { DEFAULT_MAP_ZOOM, formatCoordinate, isMapZoom, parseCoordinate } from './location'
 import { calculateOccupancy, isOpenMaintenance, type OccupancyMetrics } from './metrics'
 
 export const PROPERTY_TYPES: readonly PropertyType[] = [
@@ -20,6 +21,10 @@ export function isPropertyType(value: string): value is PropertyType {
 export const PROPERTY_NAME_MAX_LENGTH = 100
 export const PROPERTY_DESCRIPTION_MAX_LENGTH = 1000
 
+/**
+ * Form values; latitude and longitude are the raw text, both empty for no
+ * location. The zoom level follows the map and is saved with the location.
+ */
 export interface PropertyFormValues {
   name: string
   type: PropertyType
@@ -27,6 +32,9 @@ export interface PropertyFormValues {
   postalCode: string
   city: string
   description: string
+  latitude: string
+  longitude: string
+  zoom: number
 }
 
 /** Error codes per field; the UI translates them (`properties.form.validation.<field>.<code>`). */
@@ -36,17 +44,59 @@ export interface PropertyFormErrors {
   postalCode?: 'required' | 'invalid'
   city?: 'required'
   description?: 'tooLong'
+  /** `required` when only the other coordinate is filled in. */
+  latitude?: 'required' | 'invalid'
+  longitude?: 'required' | 'invalid'
 }
 
 const POSTAL_CODE_PATTERN = /^\d{5}$/
 
 export function emptyPropertyForm(): PropertyFormValues {
-  return { name: '', type: 'office', address: '', postalCode: '', city: '', description: '' }
+  return {
+    name: '',
+    type: 'office',
+    address: '',
+    postalCode: '',
+    city: '',
+    description: '',
+    latitude: '',
+    longitude: '',
+    zoom: DEFAULT_MAP_ZOOM,
+  }
 }
 
 export function toPropertyForm(property: Property): PropertyFormValues {
   const { name, type, address, postalCode, city, description } = property
-  return { name, type, address, postalCode, city, description }
+  // Data saved before locations existed has no `location` field.
+  const location = property.location ?? null
+  return {
+    name,
+    type,
+    address,
+    postalCode,
+    city,
+    description,
+    latitude: location ? formatCoordinate(location.latitude) : '',
+    longitude: location ? formatCoordinate(location.longitude) : '',
+    // Locations saved before zoom levels were added have none.
+    zoom: isMapZoom(location?.zoom) ? location.zoom : DEFAULT_MAP_ZOOM,
+  }
+}
+
+/** The location the form values describe: `null` when both coordinates are empty or either is invalid. */
+export function toLocation(
+  values: Pick<PropertyFormValues, 'latitude' | 'longitude' | 'zoom'>,
+): PropertyLocation | null {
+  const latitude = parseCoordinate(values.latitude, 'latitude')
+  const longitude = parseCoordinate(values.longitude, 'longitude')
+  if (latitude === null || longitude === null) return null
+  return { latitude, longitude, zoom: isMapZoom(values.zoom) ? values.zoom : DEFAULT_MAP_ZOOM }
+}
+
+/** The text search that finds the property's address, e.g. "Siltakatu 12, 80100 Joensuu". */
+export function addressSearchText(values: Pick<PropertyFormValues, 'address' | 'postalCode' | 'city'>): string {
+  const place = [values.postalCode.trim(), values.city.trim()].filter(Boolean).join(' ')
+  return [values.address.trim(), place].filter(Boolean).join(', ')
 }
 
 export function validatePropertyForm(values: PropertyFormValues): PropertyFormErrors {
@@ -68,10 +118,22 @@ export function validatePropertyForm(values: PropertyFormValues): PropertyFormEr
     errors.description = 'tooLong'
   }
 
+  // The location is optional, but it needs both coordinates.
+  const latitude = values.latitude.trim()
+  const longitude = values.longitude.trim()
+  if (latitude || longitude) {
+    if (!latitude) errors.latitude = 'required'
+    else if (parseCoordinate(latitude, 'latitude') === null) errors.latitude = 'invalid'
+    if (!longitude) errors.longitude = 'required'
+    else if (parseCoordinate(longitude, 'longitude') === null) errors.longitude = 'invalid'
+  }
+
   return errors
 }
 
-function normalize(values: PropertyFormValues): PropertyFormValues {
+type PropertyFields = Omit<Property, 'id' | 'createdAt' | 'updatedAt'>
+
+function normalize(values: PropertyFormValues): PropertyFields {
   return {
     name: values.name.trim(),
     type: values.type,
@@ -79,6 +141,7 @@ function normalize(values: PropertyFormValues): PropertyFormValues {
     postalCode: values.postalCode.trim(),
     city: values.city.trim(),
     description: values.description.trim(),
+    location: toLocation(values),
   }
 }
 

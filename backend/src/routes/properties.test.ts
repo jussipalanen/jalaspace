@@ -110,6 +110,26 @@ describe('properties API', () => {
     expect(await store.properties.get(created.id)).toEqual(updated)
   })
 
+  it('stores, changes and clears the location', async () => {
+    const created = await create()
+    expect(created.location).toBeNull()
+
+    const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
+    const located = (await (await send('PUT', `/properties/${created.id}`, { ...input, location })).json()) as Property
+    expect(located.location).toEqual(location)
+
+    const cleared = (await (await send('PUT', `/properties/${created.id}`, { ...input, location: null })).json()) as Property
+    expect(cleared.location).toBeNull()
+  })
+
+  it('rejects an invalid location', async () => {
+    const response = await send('POST', '/properties', { ...input, location: { latitude: 91, longitude: 29 } })
+
+    expect(response.status).toBe(400)
+    expect(await response.json()).toEqual({ error: { code: 'validation_failed', fields: { location: 'invalid' } } })
+    expect(await store.properties.list()).toEqual([])
+  })
+
   it('does not change a property when the update is invalid', async () => {
     const created = await create()
 

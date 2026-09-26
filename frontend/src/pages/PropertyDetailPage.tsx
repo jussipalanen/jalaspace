@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { StatCard } from '../components/StatCard/StatCard'
 import { StatusBadge } from '../components/StatusBadge/StatusBadge'
 import { DeletePropertyDialog } from '../features/properties/DeletePropertyDialog'
+import { PropertyLocationCard } from '../features/properties/PropertyLocationCard'
 import { usePropertyDetails } from '../features/properties/usePropertyData'
 import { formatArea, formatNumber, formatPercent } from '../i18n/format'
 import { useTranslation } from '../i18n/useTranslation'
@@ -101,25 +102,29 @@ function PropertyDetailsView({
         />
       </section>
 
-      <section className="card property-details" aria-labelledby="property-details-title">
-        <h2 id="property-details-title" className="section__title">
-          {t('properties.detail.details')}
-        </h2>
-        <dl className="detail-list">
-          <dt>{t('properties.form.fields.type')}</dt>
-          <dd>{t(`properties.type.${property.type}`)}</dd>
-          <dt>{t('properties.form.fields.address')}</dt>
-          <dd>
-            {property.address}, {property.postalCode} {property.city}
-          </dd>
-          <dt>{t('properties.form.fields.description')}</dt>
-          <dd>{property.description || t('properties.detail.noDescription')}</dd>
-          <dt>{t('properties.detail.created')}</dt>
-          <dd>{formatDate(property.createdAt)}</dd>
-          <dt>{t('properties.detail.updated')}</dt>
-          <dd>{formatDate(property.updatedAt)}</dd>
-        </dl>
-      </section>
+      <div className="property-overview">
+        <section className="card property-details" aria-labelledby="property-details-title">
+          <h2 id="property-details-title" className="section__title">
+            {t('properties.detail.details')}
+          </h2>
+          <dl className="detail-list">
+            <dt>{t('properties.form.fields.type')}</dt>
+            <dd>{t(`properties.type.${property.type}`)}</dd>
+            <dt>{t('properties.form.fields.address')}</dt>
+            <dd>
+              {property.address}, {property.postalCode} {property.city}
+            </dd>
+            <dt>{t('properties.form.fields.description')}</dt>
+            <dd>{property.description || t('properties.detail.noDescription')}</dd>
+            <dt>{t('properties.detail.created')}</dt>
+            <dd>{formatDate(property.createdAt)}</dd>
+            <dt>{t('properties.detail.updated')}</dt>
+            <dd>{formatDate(property.updatedAt)}</dd>
+          </dl>
+        </section>
+
+        <PropertyLocationCard property={property} />
+      </div>
 
       <section className="section" aria-labelledby="property-spaces-title">
         <div className="section__header">

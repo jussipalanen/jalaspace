@@ -19,6 +19,9 @@ const values: PropertyFormValues = {
   postalCode: '90100',
   city: 'Oulu',
   description: 'Offices near the university.',
+  latitude: '',
+  longitude: '',
+  zoom: 16,
 }
 
 describe('property service', () => {

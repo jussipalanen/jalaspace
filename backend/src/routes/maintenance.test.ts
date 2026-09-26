@@ -17,6 +17,7 @@ const property = (id: string): Property => ({
   postalCode: '80100',
   city: 'Joensuu',
   description: '',
+  location: null,
   createdAt: CREATED,
   updatedAt: CREATED,
 })

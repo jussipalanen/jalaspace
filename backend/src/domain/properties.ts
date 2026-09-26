@@ -12,6 +12,25 @@ export const PROPERTY_DESCRIPTION_MAX_LENGTH = 1000
 
 export const POSTAL_CODE_PATTERN = /^\d{5}$/
 
+export const LATITUDE_MIN = -90
+export const LATITUDE_MAX = 90
+export const LONGITUDE_MIN = -180
+export const LONGITUDE_MAX = 180
+/** Coordinates are stored with this many decimals, about 0.1 m. */
+export const COORDINATE_DECIMALS = 6
+/** Map zoom levels of OpenStreetMap's tiles that make sense for a building. */
+export const MAP_ZOOM_MIN = 1
+export const MAP_ZOOM_MAX = 19
+/** Used when a client sends a location without a zoom level. */
+export const DEFAULT_MAP_ZOOM = 16
+
+/** A point on the map in WGS 84 degrees, as used by OpenStreetMap, and the map's zoom level. */
+export interface GeoLocation {
+  latitude: number
+  longitude: number
+  zoom: number
+}
+
 /** The fields a client may set; the server sets `id`, `createdAt` and `updatedAt`. */
 export interface PropertyInput {
   name: string
@@ -20,12 +39,46 @@ export interface PropertyInput {
   postalCode: string
   city: string
   description: string
+  /** Where the building is, or `null` when not set. */
+  location: GeoLocation | null
 }
 
 export interface Property extends Entity, PropertyInput {}
 
 function isPropertyType(value: unknown): value is PropertyType {
   return (PROPERTY_TYPES as readonly unknown[]).includes(value)
+}
+
+function isCoordinate(value: unknown, min: number, max: number): value is number {
+  return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max
+}
+
+function roundCoordinate(value: number): number {
+  const factor = 10 ** COORDINATE_DECIMALS
+  return Math.round(value * factor) / factor
+}
+
+function isZoom(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= MAP_ZOOM_MIN && value <= MAP_ZOOM_MAX
+}
+
+/**
+ * Reads the optional location: missing or `null` is no location, so clients
+ * that do not send it keep working. Coordinates are rounded to 6 decimals, and
+ * a missing zoom level is the default one. Returns `undefined` when invalid.
+ */
+function readLocation(value: unknown): GeoLocation | null | undefined {
+  if (value === undefined || value === null) return null
+  if (!isRecord(value)) return undefined
+  const { latitude, longitude, zoom = null } = value
+  if (!isCoordinate(latitude, LATITUDE_MIN, LATITUDE_MAX)) return undefined
+  if (!isCoordinate(longitude, LONGITUDE_MIN, LONGITUDE_MAX)) return undefined
+  if (zoom !== null && !isZoom(zoom)) return undefined
+  return {
+    latitude: roundCoordinate(latitude),
+    longitude: roundCoordinate(longitude),
+    zoom: zoom ?? DEFAULT_MAP_ZOOM,
+  }
 }
 
 /** Checks a request body and returns the trimmed input, or an error code per field. */
@@ -59,6 +112,9 @@ export function parsePropertyInput(body: unknown): ParseResult<PropertyInput> {
   if (type === undefined || type === null || type === '') errors.type = 'required'
   else if (!isPropertyType(type)) errors.type = 'invalid'
 
+  const location = readLocation(source.location)
+  if (location === undefined) errors.location = 'invalid'
+
   if (Object.keys(errors).length > 0) return { ok: false, errors }
   return {
     ok: true,
@@ -70,6 +126,7 @@ export function parsePropertyInput(body: unknown): ParseResult<PropertyInput> {
       postalCode: postalCode!,
       city: city!,
       description: description!,
+      location: location as GeoLocation | null,
     },
   }
 }

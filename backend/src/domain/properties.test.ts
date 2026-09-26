@@ -10,20 +10,25 @@ const valid = {
   description: 'City-centre building.',
 }
 
+/** The parsed values of `valid`: a request without a location stores none. */
+const parsed = { ...valid, location: null }
+
+const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
+
 describe('property input', () => {
   it('accepts valid input and trims the text', () => {
     const result = parsePropertyInput({ ...valid, name: '  Joensuu Center ', city: ' Joensuu' })
-    expect(result).toEqual({ ok: true, values: valid })
+    expect(result).toEqual({ ok: true, values: parsed })
   })
 
   it('treats a missing description as empty', () => {
     const { description: _description, ...withoutDescription } = valid
-    expect(parsePropertyInput(withoutDescription)).toEqual({ ok: true, values: { ...valid, description: '' } })
+    expect(parsePropertyInput(withoutDescription)).toEqual({ ok: true, values: { ...parsed, description: '' } })
   })
 
   it('ignores fields the client may not set', () => {
     const result = parsePropertyInput({ ...valid, id: 'mine', createdAt: 'yesterday', extra: true })
-    expect(result).toEqual({ ok: true, values: valid })
+    expect(result).toEqual({ ok: true, values: parsed })
   })
 
   it('reports every missing required field', () => {
@@ -69,6 +74,60 @@ describe('property input', () => {
       ok: false,
       errors: { name: 'invalid', city: 'invalid', description: 'invalid' },
     })
+  })
+})
+
+describe('property location', () => {
+  it('accepts a location and stores it', () => {
+    expect(parsePropertyInput({ ...valid, location })).toEqual({ ok: true, values: { ...valid, location } })
+  })
+
+  it('treats a missing or null location as no location', () => {
+    expect(parsePropertyInput(valid)).toEqual({ ok: true, values: parsed })
+    expect(parsePropertyInput({ ...valid, location: null })).toEqual({ ok: true, values: parsed })
+  })
+
+  it('rounds the coordinates to 6 decimals', () => {
+    const result = parsePropertyInput({
+      ...valid,
+      location: { latitude: 62.60157949, longitude: 29.7620791234, zoom: 17 },
+    })
+    expect(result).toEqual({ ok: true, values: { ...valid, location } })
+  })
+
+  it('accepts the limits of latitude and longitude', () => {
+    for (const edge of [
+      { latitude: -90, longitude: -180, zoom: 1 },
+      { latitude: 90, longitude: 180, zoom: 19 },
+    ]) {
+      expect(parsePropertyInput({ ...valid, location: edge })).toEqual({ ok: true, values: { ...valid, location: edge } })
+    }
+  })
+
+  it('uses zoom level 16 when the location has none', () => {
+    for (const zoom of [undefined, null]) {
+      const result = parsePropertyInput({ ...valid, location: { latitude: 62.601579, longitude: 29.762079, zoom } })
+      expect(result).toEqual({ ok: true, values: { ...valid, location: { ...location, zoom: 16 } } })
+    }
+  })
+
+  it.each([
+    { latitude: 91, longitude: 29 },
+    { latitude: 62, longitude: 29, zoom: 0 },
+    { latitude: 62, longitude: 29, zoom: 20 },
+    { latitude: 62, longitude: 29, zoom: 16.5 },
+    { latitude: 62, longitude: 29, zoom: '16' },
+    { latitude: -90.5, longitude: 29 },
+    { latitude: 62, longitude: 181 },
+    { latitude: 62, longitude: -180.1 },
+    { latitude: '62', longitude: 29 },
+    { latitude: 62 },
+    { latitude: Number.NaN, longitude: 29 },
+    [62, 29],
+    'Siltakatu 12',
+    42,
+  ])('rejects the location %j', (value) => {
+    expect(parsePropertyInput({ ...valid, location: value })).toEqual({ ok: false, errors: { location: 'invalid' } })
   })
 })
 

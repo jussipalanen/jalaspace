@@ -9,6 +9,13 @@ export const API_URL = 'http://api.jalaspace.test'
 export const E2E_BACKEND_URL = 'http://localhost:3100'
 
 /**
+ * Chromium flag that makes OpenStreetMap's servers unreachable, so no test calls
+ * its map tiles or address search. Tests that need them answer with `page.route`,
+ * which runs before the browser looks up the host.
+ */
+export const BLOCK_OPENSTREETMAP = '--host-resolver-rules=MAP *.openstreetmap.org ~NOTFOUND'
+
+/**
  * Browser storage state with a signed-in demo session, for tests that
  * don't exercise the sign-in flow itself.
  */

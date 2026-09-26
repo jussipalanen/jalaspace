@@ -3,6 +3,31 @@ import { expectPageHeading, signedInState } from './fixtures'
 
 test.use({ storageState: async ({ baseURL }, use) => use(signedInState(baseURL!)) })
 
+/** A grey 1×1 PNG, served instead of OpenStreetMap's map tiles. */
+const TILE = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mN8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==',
+  'base64',
+)
+
+const OULU_MATCH = {
+  lat: '65.0120890',
+  lon: '25.4650770',
+  display_name: '3, Kauppurienkatu, Keskusta, Oulu, 90100, Suomi / Finland',
+}
+
+/** Answers the map tile and address search requests; returns the searches made. */
+async function mockOpenStreetMap(page: Page): Promise<URL[]> {
+  const searches: URL[] = []
+  await page.route('https://tile.openstreetmap.org/**', (route) =>
+    route.fulfill({ contentType: 'image/png', body: TILE }),
+  )
+  await page.route('https://nominatim.openstreetmap.org/search?*', (route) => {
+    searches.push(new URL(route.request().url()))
+    return route.fulfill({ json: [OULU_MATCH] })
+  })
+  return searches
+}
+
 async function createProperty(page: Page, name: string) {
   await page.goto('/properties/new')
   await page.getByLabel('Name').fill(name)
@@ -27,6 +52,54 @@ test.describe('properties', () => {
     await expect(page.getByRole('link', { name: 'Oulu Tech Campus' })).toBeVisible()
     // The one-time success message is not shown again.
     await expect(page.getByText('Property Oulu Tech Campus was added.')).toHaveCount(0)
+  })
+
+  test('the location is set by searching, dragging the pin and zooming, and survives a reload', async ({
+    page,
+  }) => {
+    const searches = await mockOpenStreetMap(page)
+    await page.goto('/properties/new')
+    await page.getByLabel('Name').fill('Oulu Tech Campus')
+    await page.getByLabel('Street address').fill('Kauppurienkatu 3')
+    await page.getByLabel('Postal code').fill('90100')
+    await page.getByLabel('City').fill('Oulu')
+
+    await page.getByRole('button', { name: 'Search', exact: true }).click()
+    await page.getByRole('list', { name: 'Matches' }).getByRole('button', { name: OULU_MATCH.display_name }).click()
+    expect(searches).toHaveLength(1)
+    expect(searches[0]!.searchParams.get('q')).toBe('Kauppurienkatu 3, 90100 Oulu')
+    expect(searches[0]!.searchParams.get('countrycodes')).toBe('fi')
+    await expect(page.getByLabel('Latitude')).toHaveValue('65.012089')
+    await expect(page.getByLabel('Longitude')).toHaveValue('25.465077')
+
+    // Fine-tune by dragging the pin to the south-east.
+    const formMap = page.getByRole('region', { name: 'Map for setting the location' })
+    const pin = formMap.getByTitle('Property location. Drag to move.')
+    const box = (await pin.boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await page.mouse.down()
+    await page.mouse.move(box.x + box.width / 2 + 60, box.y + box.height / 2 + 40, { steps: 10 })
+    await page.mouse.up()
+    await expect(page.getByLabel('Latitude')).not.toHaveValue('65.012089')
+    const latitude = Number(await page.getByLabel('Latitude').inputValue())
+    const longitude = Number(await page.getByLabel('Longitude').inputValue())
+    expect(latitude).toBeLessThan(65.012089)
+    expect(longitude).toBeGreaterThan(25.465077)
+
+    // A new pin is shown at zoom level 16; zooming in once saves 17.
+    await formMap.getByRole('button', { name: 'Zoom in' }).click()
+
+    await page.getByRole('button', { name: 'Save property' }).click()
+    await expectPageHeading(page, 'Oulu Tech Campus')
+    const coordinates = page.getByText(`${latitude}, ${longitude}`)
+    const openInOsm = page.getByRole('link', { name: 'Open in OpenStreetMap' })
+    await expect(page.getByRole('region', { name: 'Map of Oulu Tech Campus' })).toBeVisible()
+    await expect(coordinates).toBeVisible()
+    await expect(openInOsm).toHaveAttribute('href', new RegExp(`#map=17/${latitude}/${longitude}$`))
+
+    await page.reload()
+    await expect(coordinates).toBeVisible()
+    await expect(openInOsm).toHaveAttribute('href', new RegExp(`#map=17/${latitude}/${longitude}$`))
   })
 
   test('an invalid property cannot be saved', async ({ page }) => {

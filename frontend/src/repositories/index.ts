@@ -18,6 +18,8 @@ import type {
 } from './Repository'
 import type { SessionRepository } from './SessionRepository'
 import type { Entity } from '../types/common'
+import { DEFAULT_MAP_ZOOM, isMapZoom } from '../services/location'
+import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 
 export interface DataLayer {
@@ -34,6 +36,16 @@ export interface DataLayer {
 function withSpaceDefaults(entity: Entity): Space {
   const space = entity as Space
   return { ...space, rooms: space.rooms ?? null, features: Array.isArray(space.features) ? space.features : [] }
+}
+
+/** Properties from an API version before locations (or their zoom levels) were added have none. */
+function withPropertyDefaults(entity: Entity): Property {
+  const property = entity as Property
+  const location = property.location ?? null
+  return {
+    ...property,
+    location: location && { ...location, zoom: isMapZoom(location.zoom) ? location.zoom : DEFAULT_MAP_ZOOM },
+  }
 }
 
 /** Single place that maps a data provider to its repository implementations. */
@@ -54,7 +66,7 @@ export function createDataLayer(provider: DataProvider): DataLayer {
         throw new Error('The "api" data provider needs VITE_API_URL, e.g. http://localhost:3000.')
       }
       return {
-        properties: new ApiRepository(apiUrl, '/properties'),
+        properties: new ApiRepository(apiUrl, '/properties', withPropertyDefaults),
         // The API serves spaces under the app route's name.
         spaces: new ApiRepository(apiUrl, '/units', withSpaceDefaults),
         tenants: new ApiRepository(apiUrl, '/tenants'),

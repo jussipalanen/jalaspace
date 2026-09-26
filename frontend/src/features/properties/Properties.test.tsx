@@ -1,10 +1,23 @@
 import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createDataLayer } from '../../repositories'
 import { LocalStorageDemoDataStore } from '../../repositories/localStorage/LocalStorageDemoDataStore'
 import { initializeDemoData } from '../../services/demoDataService'
+import { AddressSearchError, type AddressMatch } from '../../services/addressSearch'
 import { renderRoute } from '../../test/renderRoute'
+
+// Tests never call OpenStreetMap.
+const searchAddress = vi.hoisted(() => vi.fn<(query: string, language: string) => Promise<AddressMatch[]>>())
+vi.mock('../../services/addressSearch', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../services/addressSearch')>()),
+  searchAddress,
+}))
+
+const OULU: AddressMatch = {
+  label: '3, Kauppurienkatu, Keskusta, Oulu, 90100, Suomi / Finland',
+  location: { latitude: 65.012089, longitude: 25.465077 },
+}
 
 type User = ReturnType<typeof userEvent.setup>
 
@@ -20,6 +33,7 @@ const rows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1
 
 describe('properties', () => {
   beforeEach(async () => {
+    searchAddress.mockReset()
     await initializeDemoData(new LocalStorageDemoDataStore())
   })
 
@@ -159,6 +173,99 @@ describe('properties', () => {
       'href',
       '/properties',
     )
+  })
+
+  it('shows the location on the details page', async () => {
+    renderRoute('/properties/property-joensuu-center')
+
+    expect(await screen.findByRole('region', { name: 'Map of Joensuu Center' })).toBeInTheDocument()
+    expect(screen.getByText('62.601579, 29.762079')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open in OpenStreetMap' })).toHaveAttribute(
+      'href',
+      'https://www.openstreetmap.org/?mlat=62.601579&mlon=29.762079#map=17/62.601579/29.762079',
+    )
+  })
+
+  it('sets the location by searching the address and choosing a match', async () => {
+    const user = userEvent.setup()
+    searchAddress.mockResolvedValue([OULU, { ...OULU, label: 'Kauppurienkatu, Oulu' }])
+    const { router } = renderRoute('/properties/new')
+
+    await fillForm(user, {
+      Name: 'Oulu Tech Campus',
+      'Street address': 'Kauppurienkatu 3',
+      'Postal code': '90100',
+      City: 'Oulu',
+    })
+    const search = screen.getByRole('searchbox', { name: 'Search address' })
+    expect(search).toHaveValue('Kauppurienkatu 3, 90100 Oulu')
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(searchAddress).toHaveBeenCalledWith('Kauppurienkatu 3, 90100 Oulu', 'en')
+
+    const matches = await screen.findByRole('list', { name: 'Matches' })
+    await user.click(within(matches).getByRole('button', { name: OULU.label }))
+    expect(screen.getByLabelText(/^Latitude/)).toHaveValue('65.012089')
+    expect(screen.getByLabelText(/^Longitude/)).toHaveValue('25.465077')
+    expect(screen.getByText(`The pin was moved to ${OULU.label}.`)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Save property' }))
+    expect(await screen.findByRole('region', { name: 'Map of Oulu Tech Campus' })).toBeInTheDocument()
+    const id = router.state.location.pathname.split('/').pop()!
+    const saved = await createDataLayer('localStorage').properties.getById(id)
+    // A new location is saved at zoom level 16 unless the user zooms the map.
+    expect(saved?.location).toEqual({ ...OULU.location, zoom: 16 })
+  })
+
+  it('searches with Enter without submitting the form, and explains no matches and errors', async () => {
+    const user = userEvent.setup()
+    searchAddress.mockResolvedValueOnce([]).mockRejectedValueOnce(new AddressSearchError('failed'))
+    const { router } = renderRoute('/properties/property-kuopio-harbour/edit')
+
+    const search = await screen.findByRole('searchbox', { name: 'Search address' })
+    await user.clear(search)
+    await user.type(search, 'Nowhere 1{Enter}')
+    expect(await screen.findByText(/No matches in Finland/)).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/properties/property-kuopio-harbour/edit')
+
+    await user.type(search, '0{Enter}')
+    expect(await screen.findByRole('alert')).toHaveTextContent('The address search is not available right now.')
+
+    await user.clear(search)
+    await user.click(screen.getByRole('button', { name: 'Search' }))
+    expect(screen.getByText('Enter an address to search for.')).toBeInTheDocument()
+    expect(searchAddress).toHaveBeenCalledTimes(2)
+  })
+
+  it('sets the location with the coordinate inputs and refuses half a location', async () => {
+    const user = userEvent.setup()
+    renderRoute('/properties/property-kuopio-harbour/edit')
+
+    await fillForm(user, { Latitude: '91', Longitude: '' })
+    await user.click(screen.getByRole('button', { name: 'Save property' }))
+    expect(screen.getByText('Enter a latitude between -90 and 90.')).toBeInTheDocument()
+    expect(screen.getByText('Enter the longitude too, or clear the location.')).toBeInTheDocument()
+
+    await fillForm(user, { Latitude: '62,8901', Longitude: '27.6789' })
+    await user.click(screen.getByRole('button', { name: 'Save property' }))
+    expect(await screen.findByText('62.8901, 27.6789')).toBeInTheDocument()
+  })
+
+  it('clears the location and shows how to set it again', async () => {
+    const user = userEvent.setup()
+    renderRoute('/properties/property-kuopio-harbour/edit')
+
+    await user.click(await screen.findByRole('button', { name: 'Clear location' }))
+    expect(screen.getByLabelText(/^Latitude/)).toHaveValue('')
+    expect(screen.getByRole('button', { name: 'Clear location' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Save property' }))
+
+    expect(await screen.findByText('No location set. Edit the property to add it.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Set location' })).toHaveAttribute(
+      'href',
+      '/properties/property-kuopio-harbour/edit',
+    )
+    const saved = await createDataLayer('localStorage').properties.getById('property-kuopio-harbour')
+    expect(saved?.location).toBeNull()
   })
 
   it('is translated to Finnish', async () => {

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { getLeaseStatus } from '../../services/leases'
+import { toLocation, toPropertyForm, validatePropertyForm } from '../../services/properties'
 import { normalizeFeatures, toSpaceForm, validateSpaceForm } from '../../services/spaces'
 import { toIsoDate } from '../../utils/date'
 import { createSeedData } from '.'
@@ -25,6 +26,19 @@ describe('seed data', () => {
     expect(count('occupied')).toBe(58)
     expect(count('available')).toBe(7)
     expect(count('maintenance')).toBe(3)
+  })
+
+  it('gives every property a location in Finland that the property form accepts', () => {
+    for (const property of data.properties) {
+      expect(property.location).not.toBeNull()
+      const { latitude, longitude } = property.location!
+      expect(latitude).toBeGreaterThan(59.5)
+      expect(latitude).toBeLessThan(70.1)
+      expect(longitude).toBeGreaterThan(19)
+      expect(longitude).toBeLessThan(31.6)
+      expect(validatePropertyForm(toPropertyForm(property))).toEqual({})
+      expect(toLocation(toPropertyForm(property))).toEqual(property.location)
+    }
   })
 
   it('records rooms and features that the space form accepts', () => {

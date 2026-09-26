@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { BLOCK_OPENSTREETMAP } from './e2e/fixtures'
 
 const PORT = 4173
 const BASE_URL = `http://localhost:${PORT}`
@@ -17,6 +18,7 @@ export default defineConfig({
   use: {
     baseURL: BASE_URL,
     trace: 'on-first-retry',
+    launchOptions: { args: [BLOCK_OPENSTREETMAP] },
   },
   projects: [
     {

@@ -20,6 +20,14 @@ import {
   MAINTENANCE_TITLE_MAX_LENGTH,
 } from '../domain/maintenance.ts'
 import {
+  COORDINATE_DECIMALS,
+  DEFAULT_MAP_ZOOM,
+  LATITUDE_MAX,
+  LATITUDE_MIN,
+  LONGITUDE_MAX,
+  LONGITUDE_MIN,
+  MAP_ZOOM_MAX,
+  MAP_ZOOM_MIN,
   POSTAL_CODE_PATTERN,
   PROPERTY_DESCRIPTION_MAX_LENGTH,
   PROPERTY_NAME_MAX_LENGTH,
@@ -108,6 +116,23 @@ const propertyInput = object(
     postalCode: { type: 'string', pattern: POSTAL_CODE_PATTERN.source, example: '80100' },
     city: requiredText(undefined, { example: 'Joensuu' }),
     description: text(PROPERTY_DESCRIPTION_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
+    location: {
+      type: ['object', 'null'],
+      description: `Optional; \`null\` when missing. WGS 84 degrees, as on OpenStreetMap, rounded to ${COORDINATE_DECIMALS} decimals.`,
+      properties: {
+        latitude: { type: 'number', minimum: LATITUDE_MIN, maximum: LATITUDE_MAX, example: 62.601579 },
+        longitude: { type: 'number', minimum: LONGITUDE_MIN, maximum: LONGITUDE_MAX, example: 29.762079 },
+        zoom: {
+          type: 'integer',
+          minimum: MAP_ZOOM_MIN,
+          maximum: MAP_ZOOM_MAX,
+          default: DEFAULT_MAP_ZOOM,
+          description: `Zoom level the map shows the location at; ${DEFAULT_MAP_ZOOM} when missing.`,
+          example: 17,
+        },
+      },
+      required: ['latitude', 'longitude'],
+    },
   },
   ['name', 'type', 'address', 'postalCode', 'city'],
   'Text fields are trimmed.',

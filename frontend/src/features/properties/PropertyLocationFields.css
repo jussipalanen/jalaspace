@@ -1,0 +1,93 @@
+.location-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+/* A legend is not a flex item, so it gets its own spacing. */
+.location-fields__legend {
+  padding: 0;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.location-fields__search {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--space-3);
+}
+
+/* Lines the button up with the input, below the label. */
+.location-fields__search-button {
+  margin-top: calc(var(--text-sm) * 1.55 + var(--space-1));
+}
+
+.location-fields__status:empty {
+  display: none;
+}
+
+.location-fields__results {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.location-fields__results-title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-strong);
+}
+
+.location-fields__matches {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.location-fields__matches li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.location-fields__match {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.location-fields__match:hover {
+  background: var(--color-surface-hover);
+}
+
+.location-fields__match:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: -2px;
+}
+
+@media (max-width: 640px) {
+  .location-fields__search {
+    grid-template-columns: 1fr;
+  }
+
+  .location-fields__search-button {
+    margin-top: 0;
+  }
+}

@@ -14,6 +14,7 @@ const property: Property = {
   postalCode: '80100',
   city: 'Joensuu',
   description: '',
+  location: null,
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
 }

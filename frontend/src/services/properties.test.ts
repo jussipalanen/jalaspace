@@ -2,12 +2,15 @@ import { describe, expect, it } from 'vitest'
 import { createSeedData } from '../data/seed'
 import type { Property } from '../types/property'
 import {
+  addressSearchText,
   applyPropertyChanges,
   buildNewProperty,
   checkPropertyDeletion,
   emptyPropertyForm,
   matchesPropertySearch,
   summarizeProperties,
+  toLocation,
+  toPropertyForm,
   validatePropertyForm,
   type PropertyFormValues,
 } from './properties'
@@ -19,9 +22,14 @@ const valid: PropertyFormValues = {
   postalCode: '90100',
   city: 'Oulu',
   description: '',
+  latitude: '',
+  longitude: '',
+  zoom: 16,
 }
 
 const seed = createSeedData(new Date('2026-09-22T10:30:00.000Z'))
+
+const NOW = '2026-09-22T10:30:00.000Z'
 
 describe('validatePropertyForm', () => {
   it('accepts a complete property', () => {
@@ -54,6 +62,68 @@ describe('validatePropertyForm', () => {
     expect(validatePropertyForm({ ...valid, description: 'x'.repeat(1001) }).description).toBe(
       'tooLong',
     )
+  })
+})
+
+describe('property location in the form', () => {
+  it('is optional', () => {
+    expect(validatePropertyForm({ ...valid, latitude: ' ', longitude: '' })).toEqual({})
+  })
+
+  it('accepts both coordinates', () => {
+    expect(validatePropertyForm({ ...valid, latitude: '65.012', longitude: '25,4651' })).toEqual({})
+  })
+
+  it('needs both coordinates', () => {
+    expect(validatePropertyForm({ ...valid, latitude: '65.012' })).toEqual({ longitude: 'required' })
+    expect(validatePropertyForm({ ...valid, longitude: '25.465' })).toEqual({ latitude: 'required' })
+  })
+
+  it('rejects text and out-of-range coordinates', () => {
+    expect(validatePropertyForm({ ...valid, latitude: '91', longitude: 'east' })).toEqual({
+      latitude: 'invalid',
+      longitude: 'invalid',
+    })
+  })
+
+  it('round-trips a stored location and its zoom level through the form', () => {
+    const location = { latitude: 65.012089, longitude: 25.465077, zoom: 18 }
+    const property = buildNewProperty(
+      { ...valid, latitude: '65.012089', longitude: '25,465077', zoom: 18 },
+      NOW,
+      'p1',
+    )
+    expect(property.location).toEqual(location)
+    expect(toPropertyForm(property)).toMatchObject({ latitude: '65.012089', longitude: '25.465077', zoom: 18 })
+    expect(toLocation(toPropertyForm(property))).toEqual(location)
+  })
+
+  it('uses zoom level 16 for a new form, a missing zoom level or an invalid one', () => {
+    expect(emptyPropertyForm().zoom).toBe(16)
+    const property = buildNewProperty(valid, NOW, 'p1')
+    const legacy = { ...property, location: { latitude: 65, longitude: 25 } } as unknown as Property
+    expect(toPropertyForm(legacy).zoom).toBe(16)
+    expect(toLocation({ latitude: '65', longitude: '25', zoom: 25 })).toEqual({ latitude: 65, longitude: 25, zoom: 16 })
+    expect(toLocation({ latitude: '65', longitude: '25', zoom: 1.5 })?.zoom).toBe(16)
+  })
+
+  it('stores no location when both coordinates are empty', () => {
+    expect(buildNewProperty(valid, NOW, 'p1').location).toBeNull()
+    const located = buildNewProperty({ ...valid, latitude: '65', longitude: '25' }, NOW, 'p1')
+    expect(applyPropertyChanges(located, { ...valid, latitude: '', longitude: '' }, NOW).location).toBeNull()
+  })
+
+  it('treats data saved before locations existed as no location', () => {
+    const { location: _location, ...legacy } = buildNewProperty(valid, NOW, 'p1')
+    expect(toPropertyForm(legacy as Property)).toMatchObject({ latitude: '', longitude: '' })
+  })
+
+  it('builds the address search from the address fields', () => {
+    expect(addressSearchText(valid)).toBe('Kauppurienkatu 3, 90100 Oulu')
+    expect(addressSearchText({ address: ' Kauppurienkatu 3 ', postalCode: '', city: ' Oulu ' })).toBe(
+      'Kauppurienkatu 3, Oulu',
+    )
+    expect(addressSearchText({ address: '', postalCode: '', city: '' })).toBe('')
   })
 })
 
