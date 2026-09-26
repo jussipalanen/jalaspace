@@ -114,7 +114,7 @@ describe('properties API', () => {
     const created = await create()
     expect(created.location).toBeNull()
 
-    const location = { latitude: 62.601579, longitude: 29.762079 }
+    const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
     const located = (await (await send('PUT', `/properties/${created.id}`, { ...input, location })).json()) as Property
     expect(located.location).toEqual(location)
 

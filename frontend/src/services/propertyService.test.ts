@@ -21,6 +21,7 @@ const values: PropertyFormValues = {
   description: 'Offices near the university.',
   latitude: '',
   longitude: '',
+  zoom: 16,
 }
 
 describe('property service', () => {

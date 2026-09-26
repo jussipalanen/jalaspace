@@ -17,7 +17,11 @@ export function PropertyLocationCard({ property }: { property: Property }) {
       </h2>
       {location ? (
         <>
-          <LocationMap location={location} label={t('properties.location.mapLabel', { name: property.name })} />
+          <LocationMap
+            location={location}
+            zoom={location.zoom}
+            label={t('properties.location.mapLabel', { name: property.name })}
+          />
           <p className="property-location__coordinates">
             <span>
               {t('properties.location.coordinates', {
@@ -26,7 +30,7 @@ export function PropertyLocationCard({ property }: { property: Property }) {
               })}
             </span>
             <a
-              href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=17/${location.latitude}/${location.longitude}`}
+              href={`https://www.openstreetmap.org/?mlat=${location.latitude}&mlon=${location.longitude}#map=${location.zoom}/${location.latitude}/${location.longitude}`}
             >
               {t('properties.location.openInOsm')}
             </a>

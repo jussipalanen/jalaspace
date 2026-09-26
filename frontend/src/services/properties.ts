@@ -1,9 +1,9 @@
 import type { IsoDateTime } from '../types/common'
 import { generateId } from '../utils/id'
 import type { MaintenanceTask } from '../types/maintenance'
-import type { GeoLocation, Property, PropertyType } from '../types/property'
+import type { Property, PropertyLocation, PropertyType } from '../types/property'
 import type { Space } from '../types/space'
-import { formatCoordinate, parseCoordinate } from './location'
+import { DEFAULT_MAP_ZOOM, formatCoordinate, isMapZoom, parseCoordinate } from './location'
 import { calculateOccupancy, isOpenMaintenance, type OccupancyMetrics } from './metrics'
 
 export const PROPERTY_TYPES: readonly PropertyType[] = [
@@ -21,7 +21,10 @@ export function isPropertyType(value: string): value is PropertyType {
 export const PROPERTY_NAME_MAX_LENGTH = 100
 export const PROPERTY_DESCRIPTION_MAX_LENGTH = 1000
 
-/** Form values; latitude and longitude are the raw text, both empty for no location. */
+/**
+ * Form values; latitude and longitude are the raw text, both empty for no
+ * location. The zoom level follows the map and is saved with the location.
+ */
 export interface PropertyFormValues {
   name: string
   type: PropertyType
@@ -31,6 +34,7 @@ export interface PropertyFormValues {
   description: string
   latitude: string
   longitude: string
+  zoom: number
 }
 
 /** Error codes per field; the UI translates them (`properties.form.validation.<field>.<code>`). */
@@ -57,6 +61,7 @@ export function emptyPropertyForm(): PropertyFormValues {
     description: '',
     latitude: '',
     longitude: '',
+    zoom: DEFAULT_MAP_ZOOM,
   }
 }
 
@@ -73,14 +78,19 @@ export function toPropertyForm(property: Property): PropertyFormValues {
     description,
     latitude: location ? formatCoordinate(location.latitude) : '',
     longitude: location ? formatCoordinate(location.longitude) : '',
+    // Locations saved before zoom levels were added have none.
+    zoom: isMapZoom(location?.zoom) ? location.zoom : DEFAULT_MAP_ZOOM,
   }
 }
 
 /** The location the form values describe: `null` when both coordinates are empty or either is invalid. */
-export function toLocation(values: Pick<PropertyFormValues, 'latitude' | 'longitude'>): GeoLocation | null {
+export function toLocation(
+  values: Pick<PropertyFormValues, 'latitude' | 'longitude' | 'zoom'>,
+): PropertyLocation | null {
   const latitude = parseCoordinate(values.latitude, 'latitude')
   const longitude = parseCoordinate(values.longitude, 'longitude')
-  return latitude === null || longitude === null ? null : { latitude, longitude }
+  if (latitude === null || longitude === null) return null
+  return { latitude, longitude, zoom: isMapZoom(values.zoom) ? values.zoom : DEFAULT_MAP_ZOOM }
 }
 
 /** The text search that finds the property's address, e.g. "Siltakatu 12, 80100 Joensuu". */

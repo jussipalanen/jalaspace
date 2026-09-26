@@ -21,10 +21,13 @@ import {
 } from '../domain/maintenance.ts'
 import {
   COORDINATE_DECIMALS,
+  DEFAULT_MAP_ZOOM,
   LATITUDE_MAX,
   LATITUDE_MIN,
   LONGITUDE_MAX,
   LONGITUDE_MIN,
+  MAP_ZOOM_MAX,
+  MAP_ZOOM_MIN,
   POSTAL_CODE_PATTERN,
   PROPERTY_DESCRIPTION_MAX_LENGTH,
   PROPERTY_NAME_MAX_LENGTH,
@@ -119,6 +122,14 @@ const propertyInput = object(
       properties: {
         latitude: { type: 'number', minimum: LATITUDE_MIN, maximum: LATITUDE_MAX, example: 62.601579 },
         longitude: { type: 'number', minimum: LONGITUDE_MIN, maximum: LONGITUDE_MAX, example: 29.762079 },
+        zoom: {
+          type: 'integer',
+          minimum: MAP_ZOOM_MIN,
+          maximum: MAP_ZOOM_MAX,
+          default: DEFAULT_MAP_ZOOM,
+          description: `Zoom level the map shows the location at; ${DEFAULT_MAP_ZOOM} when missing.`,
+          example: 17,
+        },
       },
       required: ['latitude', 'longitude'],
     },

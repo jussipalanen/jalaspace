@@ -904,7 +904,8 @@ Rules:
 
 Location:
 
-* `location` is optional: `{ latitude, longitude }` in WGS 84 degrees (latitude −90…90, longitude −180…180), rounded to 6 decimals, or `null`; the API treats a missing `location` as `null`, so older clients keep working
+* `location` is optional: `{ latitude, longitude, zoom }` or `null`; coordinates in WGS 84 degrees (latitude −90…90, longitude −180…180), rounded to 6 decimals; `zoom` is the map's zoom level, a whole number 1–19 (16 when missing); the API treats a missing `location` as `null`, so older clients keep working
+* the zoom level is saved when the user zooms the form's map while a pin is set; a new pin starts at 16, and the details page and its OpenStreetMap link use the saved level
 * spaces use their property's location; they have none of their own
 * the details page shows the location on a map; the form sets it with an address search, a draggable pin (a click on the map also places it) and latitude and longitude inputs, which keyboard and screen reader users need because dragging is mouse-only
 * maps use Leaflet with OpenStreetMap tiles and always show the OpenStreetMap attribution ([tile usage policy](https://operations.osmfoundation.org/policies/tiles/)); the map code is loaded lazily, only on pages that show a map

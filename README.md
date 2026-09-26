@@ -130,6 +130,7 @@ A property's details page shows where the building is on an [OpenStreetMap](http
 
 - **Search address** is pre-filled from the address fields. Press **Search** (or Enter) and choose a match to move the pin there. Searches are limited to Finland, and the address is sent to OpenStreetMap.
 - Drag the pin, or click the map, to fine-tune the location. The **Latitude** and **Longitude** fields follow the pin and can also be edited directly.
+- Zoom the map to the level you want to see: the zoom level is saved with the location, and the details page opens the map at it.
 - **Clear location** removes it; the location is optional.
 
 The maps use [Leaflet](https://leafletjs.com/) with OpenStreetMap's free map tiles and address search (Nominatim), so no API key or billing account is needed. To follow their usage policies, the search runs only when asked (never while typing), at most once per second, and repeated searches are answered from a cache.

@@ -2,7 +2,13 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from '../../i18n/useTranslation'
-import { isSameLocation, roundLocation } from '../../services/location'
+import {
+  DEFAULT_MAP_ZOOM,
+  isSameLocation,
+  MAP_ZOOM_MAX,
+  MAP_ZOOM_MIN,
+  roundLocation,
+} from '../../services/location'
 import type { GeoLocation } from '../../types/property'
 import './LocationMap.css'
 
@@ -11,11 +17,8 @@ import './LocationMap.css'
 // attribution, which the map always shows.
 
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-const TILE_MAX_ZOOM = 19
 /** Finland, shown before a location is set. */
 const DEFAULT_VIEW = { center: [64.5, 26] as L.LatLngTuple, zoom: 5 }
-/** Close enough to tell buildings apart. */
-const LOCATION_ZOOM = 16
 
 const PIN_ICON = L.divIcon({
   className: 'location-map__pin',
@@ -29,18 +32,31 @@ const toLocation = (latLng: L.LatLng): GeoLocation => roundLocation({ latitude: 
 
 export interface LocationMapProps {
   location: GeoLocation | null
+  /** Zoom level to show `location` at; 16 when not given. */
+  zoom?: number
   /** Accessible name of the map, e.g. "Map of Joensuu Center". */
   label: string
   /** Makes the pin draggable and lets a click on the map place it. */
   onChange?: (location: GeoLocation) => void
+  /** Called when the user zooms the map while a pin is set. */
+  onZoomChange?: (zoom: number) => void
 }
 
 /** A map with a pin at `location`; loaded lazily through `LazyLocationMap`. */
-export default function LocationMap({ location, label, onChange }: LocationMapProps) {
+export default function LocationMap({
+  location,
+  zoom = DEFAULT_MAP_ZOOM,
+  label,
+  onChange,
+  onZoomChange,
+}: LocationMapProps) {
   const { t } = useTranslation()
   const containerRef = useRef<HTMLDivElement>(null)
   const markerRef = useRef<L.Marker | null>(null)
   const onChangeRef = useRef(onChange)
+  const onZoomChangeRef = useRef(onZoomChange)
+  // Read when the pin moves elsewhere; a change of zoom alone does not move the map.
+  const zoomRef = useRef(zoom)
   const [map, setMap] = useState<L.Map | null>(null)
   const editable = onChange !== undefined
 
@@ -51,6 +67,8 @@ export default function LocationMap({ location, label, onChange }: LocationMapPr
 
   useEffect(() => {
     onChangeRef.current = onChange
+    onZoomChangeRef.current = onZoomChange
+    zoomRef.current = zoom
   })
 
   // Created again when the language changes, so the controls use the new texts.
@@ -59,14 +77,23 @@ export default function LocationMap({ location, label, onChange }: LocationMapPr
     if (!container) return
     const created = L.map(container, {
       ...DEFAULT_VIEW,
+      minZoom: MAP_ZOOM_MIN,
+      maxZoom: MAP_ZOOM_MAX,
       zoomControl: false,
       // The page scrolls over the map; zoom with the buttons or pinch.
       scrollWheelZoom: false,
     })
     created.attributionControl.setPrefix('<a href="https://leafletjs.com">Leaflet</a>')
     L.control.zoom({ zoomInTitle, zoomOutTitle }).addTo(created)
-    L.tileLayer(TILE_URL, { maxZoom: TILE_MAX_ZOOM, attribution }).addTo(created)
+    L.tileLayer(TILE_URL, { maxZoom: MAP_ZOOM_MAX, attribution }).addTo(created)
     if (editable) created.on('click', (event) => onChangeRef.current?.(toLocation(event.latlng)))
+    // Only the zoom level of a set location is kept. An animated zoom reports its
+    // target when it starts, so a save right after zooming keeps the new level.
+    const reportZoom = (zoom: number) => {
+      if (markerRef.current) onZoomChangeRef.current?.(zoom)
+    }
+    created.on('zoomanim', (event) => reportZoom(event.zoom))
+    created.on('zoomend', () => reportZoom(created.getZoom()))
 
     // Leaflet measures its container; measure again when the layout changes.
     const resizeObserver =
@@ -82,7 +109,8 @@ export default function LocationMap({ location, label, onChange }: LocationMapPr
     }
   }, [attribution, editable, zoomInTitle, zoomOutTitle])
 
-  // Keeps the pin at `location`, and brings it into view when it moves elsewhere.
+  // Keeps the pin at `location`, and brings it into view at `zoom` when it moves
+  // elsewhere. Zooming alone never moves the map, even with the pin out of view.
   useEffect(() => {
     if (!map) return
     if (!location) {
@@ -92,17 +120,19 @@ export default function LocationMap({ location, label, onChange }: LocationMapPr
     }
 
     const latLng = toLatLng(location)
-    let marker = markerRef.current
+    const marker = markerRef.current
     if (!marker) {
-      marker = L.marker(latLng, { icon: PIN_ICON, draggable: editable, keyboard: false, title: pinTitle })
-      if (editable) marker.on('dragend', (event) => onChangeRef.current?.(toLocation(event.target.getLatLng())))
-      marker.addTo(map)
-      markerRef.current = marker
-      map.setView(latLng, Math.max(map.getZoom(), LOCATION_ZOOM))
+      const created = L.marker(latLng, { icon: PIN_ICON, draggable: editable, keyboard: false, title: pinTitle })
+      if (editable) created.on('dragend', (event) => onChangeRef.current?.(toLocation(event.target.getLatLng())))
+      // Set the view before adding the pin, so the view change is not reported as the user's zoom.
+      map.setView(latLng, zoomRef.current, { animate: false })
+      created.addTo(map)
+      markerRef.current = created
       return
     }
-    if (!isSameLocation(toLocation(marker.getLatLng()), location)) marker.setLatLng(latLng)
-    if (!map.getBounds().contains(latLng)) map.setView(latLng, Math.max(map.getZoom(), LOCATION_ZOOM))
+    if (isSameLocation(toLocation(marker.getLatLng()), location)) return
+    marker.setLatLng(latLng)
+    if (!map.getBounds().contains(latLng)) map.setView(latLng, zoomRef.current)
   }, [map, location, editable, pinTitle])
 
   return (

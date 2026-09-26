@@ -212,7 +212,8 @@ describe('properties', () => {
     expect(await screen.findByRole('region', { name: 'Map of Oulu Tech Campus' })).toBeInTheDocument()
     const id = router.state.location.pathname.split('/').pop()!
     const saved = await createDataLayer('localStorage').properties.getById(id)
-    expect(saved?.location).toEqual(OULU.location)
+    // A new location is saved at zoom level 16 unless the user zooms the map.
+    expect(saved?.location).toEqual({ ...OULU.location, zoom: 16 })
   })
 
   it('searches with Enter without submitting the form, and explains no matches and errors', async () => {

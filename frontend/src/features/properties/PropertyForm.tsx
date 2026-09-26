@@ -227,6 +227,7 @@ export function PropertyForm({ initialValues, cancelTo, onSubmit }: PropertyForm
           setErrors((current) => ({ ...current, latitude: undefined, longitude: undefined }))
           setSaveError(null)
         }}
+        onZoomChange={(zoom) => setValues((current) => ({ ...current, zoom }))}
       />
 
       <div className="entity-form__actions">

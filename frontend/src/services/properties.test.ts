@@ -24,6 +24,7 @@ const valid: PropertyFormValues = {
   description: '',
   latitude: '',
   longitude: '',
+  zoom: 16,
 }
 
 const seed = createSeedData(new Date('2026-09-22T10:30:00.000Z'))
@@ -85,12 +86,25 @@ describe('property location in the form', () => {
     })
   })
 
-  it('round-trips a stored location through the form', () => {
-    const location = { latitude: 65.012089, longitude: 25.465077 }
-    const property = buildNewProperty({ ...valid, latitude: '65.012089', longitude: '25,465077' }, NOW, 'p1')
+  it('round-trips a stored location and its zoom level through the form', () => {
+    const location = { latitude: 65.012089, longitude: 25.465077, zoom: 18 }
+    const property = buildNewProperty(
+      { ...valid, latitude: '65.012089', longitude: '25,465077', zoom: 18 },
+      NOW,
+      'p1',
+    )
     expect(property.location).toEqual(location)
-    expect(toPropertyForm(property)).toMatchObject({ latitude: '65.012089', longitude: '25.465077' })
+    expect(toPropertyForm(property)).toMatchObject({ latitude: '65.012089', longitude: '25.465077', zoom: 18 })
     expect(toLocation(toPropertyForm(property))).toEqual(location)
+  })
+
+  it('uses zoom level 16 for a new form, a missing zoom level or an invalid one', () => {
+    expect(emptyPropertyForm().zoom).toBe(16)
+    const property = buildNewProperty(valid, NOW, 'p1')
+    const legacy = { ...property, location: { latitude: 65, longitude: 25 } } as unknown as Property
+    expect(toPropertyForm(legacy).zoom).toBe(16)
+    expect(toLocation({ latitude: '65', longitude: '25', zoom: 25 })).toEqual({ latitude: 65, longitude: 25, zoom: 16 })
+    expect(toLocation({ latitude: '65', longitude: '25', zoom: 1.5 })?.zoom).toBe(16)
   })
 
   it('stores no location when both coordinates are empty', () => {

@@ -9,7 +9,7 @@ import {
   type AddressMatch,
   type AddressSearchErrorCode,
 } from '../../services/addressSearch'
-import { formatCoordinate } from '../../services/location'
+import { DEFAULT_MAP_ZOOM, formatCoordinate } from '../../services/location'
 import {
   addressSearchText,
   toLocation,
@@ -34,6 +34,8 @@ interface PropertyLocationFieldsProps {
   longitudeId: string
   /** Sets the latitude and longitude text; both empty clears the location. */
   onChange: (latitude: string, longitude: string) => void
+  /** Sets the zoom level saved with the location. */
+  onZoomChange: (zoom: number) => void
 }
 
 /**
@@ -46,6 +48,7 @@ export function PropertyLocationFields({
   latitudeId,
   longitudeId,
   onChange,
+  onZoomChange,
 }: PropertyLocationFieldsProps) {
   const { t, language } = useTranslation()
   const idPrefix = useId()
@@ -57,8 +60,11 @@ export function PropertyLocationFields({
   const [search, setSearch] = useState<SearchState>({ status: 'idle' })
   const query = editedQuery ?? addressText
   const { latitude, longitude } = values
-  // A stable object, so the map only moves when the coordinates change.
-  const location = useMemo(() => toLocation({ latitude, longitude }), [latitude, longitude])
+  // A stable object, so the map only moves when the coordinates change; it gets the zoom level separately.
+  const location = useMemo(
+    () => toLocation({ latitude, longitude, zoom: DEFAULT_MAP_ZOOM }),
+    [latitude, longitude],
+  )
 
   const setLocation = (next: GeoLocation) => {
     onChange(formatCoordinate(next.latitude), formatCoordinate(next.longitude))
@@ -168,7 +174,13 @@ export function PropertyLocationFields({
         </div>
       )}
 
-      <LocationMap location={location} label={t('properties.location.formMapLabel')} onChange={setLocation} />
+      <LocationMap
+        location={location}
+        zoom={values.zoom}
+        label={t('properties.location.formMapLabel')}
+        onChange={setLocation}
+        onZoomChange={onZoomChange}
+      />
 
       <div className="entity-form__row">
         <FormField
@@ -211,6 +223,7 @@ export function PropertyLocationFields({
           className="button button--secondary"
           onClick={() => {
             onChange('', '')
+            onZoomChange(DEFAULT_MAP_ZOOM)
             setSearch({ status: 'idle' })
           }}
           disabled={!values.latitude && !values.longitude}

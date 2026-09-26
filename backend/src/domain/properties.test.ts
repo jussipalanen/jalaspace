@@ -13,7 +13,7 @@ const valid = {
 /** The parsed values of `valid`: a request without a location stores none. */
 const parsed = { ...valid, location: null }
 
-const location = { latitude: 62.601579, longitude: 29.762079 }
+const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
 
 describe('property input', () => {
   it('accepts valid input and trims the text', () => {
@@ -88,21 +88,35 @@ describe('property location', () => {
   })
 
   it('rounds the coordinates to 6 decimals', () => {
-    const result = parsePropertyInput({ ...valid, location: { latitude: 62.60157949, longitude: 29.7620791234 } })
-    expect(result).toEqual({ ok: true, values: { ...valid, location: { latitude: 62.601579, longitude: 29.762079 } } })
+    const result = parsePropertyInput({
+      ...valid,
+      location: { latitude: 62.60157949, longitude: 29.7620791234, zoom: 17 },
+    })
+    expect(result).toEqual({ ok: true, values: { ...valid, location } })
   })
 
   it('accepts the limits of latitude and longitude', () => {
     for (const edge of [
-      { latitude: -90, longitude: -180 },
-      { latitude: 90, longitude: 180 },
+      { latitude: -90, longitude: -180, zoom: 1 },
+      { latitude: 90, longitude: 180, zoom: 19 },
     ]) {
       expect(parsePropertyInput({ ...valid, location: edge })).toEqual({ ok: true, values: { ...valid, location: edge } })
     }
   })
 
+  it('uses zoom level 16 when the location has none', () => {
+    for (const zoom of [undefined, null]) {
+      const result = parsePropertyInput({ ...valid, location: { latitude: 62.601579, longitude: 29.762079, zoom } })
+      expect(result).toEqual({ ok: true, values: { ...valid, location: { ...location, zoom: 16 } } })
+    }
+  })
+
   it.each([
     { latitude: 91, longitude: 29 },
+    { latitude: 62, longitude: 29, zoom: 0 },
+    { latitude: 62, longitude: 29, zoom: 20 },
+    { latitude: 62, longitude: 29, zoom: 16.5 },
+    { latitude: 62, longitude: 29, zoom: '16' },
     { latitude: -90.5, longitude: 29 },
     { latitude: 62, longitude: 181 },
     { latitude: 62, longitude: -180.1 },

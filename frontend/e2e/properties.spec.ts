@@ -54,7 +54,7 @@ test.describe('properties', () => {
     await expect(page.getByText('Property Oulu Tech Campus was added.')).toHaveCount(0)
   })
 
-  test('the location is set by searching the address and dragging the pin, and survives a reload', async ({
+  test('the location is set by searching, dragging the pin and zooming, and survives a reload', async ({
     page,
   }) => {
     const searches = await mockOpenStreetMap(page)
@@ -73,7 +73,8 @@ test.describe('properties', () => {
     await expect(page.getByLabel('Longitude')).toHaveValue('25.465077')
 
     // Fine-tune by dragging the pin to the south-east.
-    const pin = page.getByRole('region', { name: 'Map for setting the location' }).getByTitle('Property location. Drag to move.')
+    const formMap = page.getByRole('region', { name: 'Map for setting the location' })
+    const pin = formMap.getByTitle('Property location. Drag to move.')
     const box = (await pin.boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
     await page.mouse.down()
@@ -85,14 +86,20 @@ test.describe('properties', () => {
     expect(latitude).toBeLessThan(65.012089)
     expect(longitude).toBeGreaterThan(25.465077)
 
+    // A new pin is shown at zoom level 16; zooming in once saves 17.
+    await formMap.getByRole('button', { name: 'Zoom in' }).click()
+
     await page.getByRole('button', { name: 'Save property' }).click()
     await expectPageHeading(page, 'Oulu Tech Campus')
     const coordinates = page.getByText(`${latitude}, ${longitude}`)
+    const openInOsm = page.getByRole('link', { name: 'Open in OpenStreetMap' })
     await expect(page.getByRole('region', { name: 'Map of Oulu Tech Campus' })).toBeVisible()
     await expect(coordinates).toBeVisible()
+    await expect(openInOsm).toHaveAttribute('href', new RegExp(`#map=17/${latitude}/${longitude}$`))
 
     await page.reload()
     await expect(coordinates).toBeVisible()
+    await expect(openInOsm).toHaveAttribute('href', new RegExp(`#map=17/${latitude}/${longitude}$`))
   })
 
   test('an invalid property cannot be saved', async ({ page }) => {

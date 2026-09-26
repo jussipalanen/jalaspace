@@ -8,6 +8,15 @@ export const LONGITUDE_MIN = -180
 export const LONGITUDE_MAX = 180
 /** Coordinates are stored with this many decimals, about 0.1 m. */
 export const COORDINATE_DECIMALS = 6
+/** Map zoom levels of OpenStreetMap's tiles that make sense for a building. */
+export const MAP_ZOOM_MIN = 1
+export const MAP_ZOOM_MAX = 19
+/** Zoom level for a new location, close enough to tell buildings apart. */
+export const DEFAULT_MAP_ZOOM = 16
+
+export function isMapZoom(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= MAP_ZOOM_MIN && value <= MAP_ZOOM_MAX
+}
 
 export type Coordinate = 'latitude' | 'longitude'
 

@@ -18,11 +18,17 @@ export const LONGITUDE_MIN = -180
 export const LONGITUDE_MAX = 180
 /** Coordinates are stored with this many decimals, about 0.1 m. */
 export const COORDINATE_DECIMALS = 6
+/** Map zoom levels of OpenStreetMap's tiles that make sense for a building. */
+export const MAP_ZOOM_MIN = 1
+export const MAP_ZOOM_MAX = 19
+/** Used when a client sends a location without a zoom level. */
+export const DEFAULT_MAP_ZOOM = 16
 
-/** A point on the map in WGS 84 degrees, as used by OpenStreetMap. */
+/** A point on the map in WGS 84 degrees, as used by OpenStreetMap, and the map's zoom level. */
 export interface GeoLocation {
   latitude: number
   longitude: number
+  zoom: number
 }
 
 /** The fields a client may set; the server sets `id`, `createdAt` and `updatedAt`. */
@@ -52,18 +58,27 @@ function roundCoordinate(value: number): number {
   return Math.round(value * factor) / factor
 }
 
+function isZoom(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= MAP_ZOOM_MIN && value <= MAP_ZOOM_MAX
+}
+
 /**
  * Reads the optional location: missing or `null` is no location, so clients
- * that do not send it keep working. Coordinates are rounded to 6 decimals.
- * Returns `undefined` when the value is invalid.
+ * that do not send it keep working. Coordinates are rounded to 6 decimals, and
+ * a missing zoom level is the default one. Returns `undefined` when invalid.
  */
 function readLocation(value: unknown): GeoLocation | null | undefined {
   if (value === undefined || value === null) return null
   if (!isRecord(value)) return undefined
-  const { latitude, longitude } = value
+  const { latitude, longitude, zoom = null } = value
   if (!isCoordinate(latitude, LATITUDE_MIN, LATITUDE_MAX)) return undefined
   if (!isCoordinate(longitude, LONGITUDE_MIN, LONGITUDE_MAX)) return undefined
-  return { latitude: roundCoordinate(latitude), longitude: roundCoordinate(longitude) }
+  if (zoom !== null && !isZoom(zoom)) return undefined
+  return {
+    latitude: roundCoordinate(latitude),
+    longitude: roundCoordinate(longitude),
+    zoom: zoom ?? DEFAULT_MAP_ZOOM,
+  }
 }
 
 /** Checks a request body and returns the trimmed input, or an error code per field. */

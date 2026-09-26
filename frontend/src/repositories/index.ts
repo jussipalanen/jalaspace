@@ -18,6 +18,7 @@ import type {
 } from './Repository'
 import type { SessionRepository } from './SessionRepository'
 import type { Entity } from '../types/common'
+import { DEFAULT_MAP_ZOOM, isMapZoom } from '../services/location'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 
@@ -37,10 +38,14 @@ function withSpaceDefaults(entity: Entity): Space {
   return { ...space, rooms: space.rooms ?? null, features: Array.isArray(space.features) ? space.features : [] }
 }
 
-/** Properties from an API version before locations were added have none. */
+/** Properties from an API version before locations (or their zoom levels) were added have none. */
 function withPropertyDefaults(entity: Entity): Property {
   const property = entity as Property
-  return { ...property, location: property.location ?? null }
+  const location = property.location ?? null
+  return {
+    ...property,
+    location: location && { ...location, zoom: isMapZoom(location.zoom) ? location.zoom : DEFAULT_MAP_ZOOM },
+  }
 }
 
 /** Single place that maps a data provider to its repository implementations. */
