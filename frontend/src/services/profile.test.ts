@@ -13,8 +13,8 @@ import {
 
 const today = new Date(2026, 8, 22)
 const valid: ProfileFormValues = {
-  firstName: 'Jussi',
-  lastName: 'Alanen',
+  firstName: 'Esko',
+  lastName: 'Esimerkki',
   birthDay: '22',
   birthMonth: '9',
   birthYear: '1990',
@@ -28,15 +28,15 @@ describe('profile defaults and names', () => {
       birthDate: null,
       updatedAt: '',
     })
-    expect(defaultProfile({ id: 'u', email: 'x', name: 'Anna Maria Virtanen' })).toMatchObject({
+    expect(defaultProfile({ id: 'u', email: 'x', name: 'Anna Maria Esimerkki' })).toMatchObject({
       firstName: 'Anna',
-      lastName: 'Maria Virtanen',
+      lastName: 'Maria Esimerkki',
     })
   })
 
   it('joins first and last name', () => {
-    expect(fullName({ firstName: 'Jussi', lastName: 'Alanen' })).toBe('Jussi Alanen')
-    expect(fullName({ firstName: 'Jussi', lastName: '' })).toBe('Jussi')
+    expect(fullName({ firstName: 'Esko', lastName: 'Esimerkki' })).toBe('Esko Esimerkki')
+    expect(fullName({ firstName: 'Esko', lastName: '' })).toBe('Esko')
   })
 })
 
@@ -125,12 +125,12 @@ describe('validateProfileForm', () => {
 describe('buildProfile', () => {
   it('trims names and stores the save time', () => {
     const profile = buildProfile(
-      { ...valid, firstName: ' Jussi ', lastName: ' Alanen ' },
+      { ...valid, firstName: ' Esko ', lastName: ' Esimerkki ' },
       new Date('2026-09-22T10:30:00.000Z'),
     )
     expect(profile).toEqual({
-      firstName: 'Jussi',
-      lastName: 'Alanen',
+      firstName: 'Esko',
+      lastName: 'Esimerkki',
       birthDate: '1990-09-22',
       updatedAt: '2026-09-22T10:30:00.000Z',
     })

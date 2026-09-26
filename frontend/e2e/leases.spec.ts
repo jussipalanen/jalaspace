@@ -37,19 +37,19 @@ test.describe('leases', () => {
     await page.goto('/leases')
     await page.getByRole('link', { name: 'New lease' }).click()
     await expectPageHeading(page, 'New lease')
-    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Korhonen' })
+    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Esimerkki' })
     await page.getByRole('combobox', { name: 'Property' }).selectOption({ label: 'Kuopio Harbour Business Park' })
     await page.getByRole('combobox', { name: 'Space' }).selectOption({ label: 'B 204 (Available)' })
     await page.getByLabel('Monthly rent (€)').fill('980')
     await expect(page.getByText('The lease is active today, so the space will be occupied.')).toBeVisible()
     await page.getByRole('button', { name: 'Save lease' }).click()
-    await expect(page.getByText('The lease of B 204 for Mikko Korhonen was created.')).toBeVisible()
+    await expect(page.getByText('The lease of B 204 for Mikko Esimerkki was created.')).toBeVisible()
 
     await page.reload()
     await page.getByRole('searchbox', { name: 'Search leases' }).fill('B 204')
-    // Wait for the filter: Mikko Korhonen also has another lease.
+    // Wait for the filter: Mikko Esimerkki also has another lease.
     await expect(count(page)).toHaveText('1 lease')
-    const row = page.getByRole('row').filter({ hasText: 'Mikko Korhonen' })
+    const row = page.getByRole('row').filter({ hasText: 'Mikko Esimerkki' })
     await expect(row).toContainText('Active')
     await expect(row).toContainText('€980.00')
     await page.goto('/')
@@ -82,7 +82,7 @@ test.describe('leases', () => {
 
   test('rejects an overlapping lease', async ({ page }) => {
     await page.goto('/leases/new?space=space-joensuu-center-6')
-    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Korhonen' })
+    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Esimerkki' })
     await page.getByRole('button', { name: 'Save lease' }).click()
     await expect(
       page.getByText('This space already has a lease during this period. Change the dates or choose another space.'),

@@ -41,7 +41,7 @@ describe('demo data', () => {
   it('reset restores the default profile', async () => {
     const store = new LocalStorageDemoDataStore()
     await initializeDemoData(store, now)
-    window.localStorage.setItem(STORAGE_KEYS.profile, '{"firstName":"Jussi"}')
+    window.localStorage.setItem(STORAGE_KEYS.profile, '{"firstName":"Esko"}')
 
     await resetDemoData(store, now)
 

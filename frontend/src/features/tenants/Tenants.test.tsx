@@ -24,9 +24,9 @@ describe('tenants', () => {
     expect(rows()).toHaveLength(31)
     expect(screen.getByText('31 tenants')).toBeInTheDocument()
     const aino = rows()[0]!
-    expect(within(aino).getByRole('link', { name: 'Aino Virtanen' })).toHaveAttribute(
+    expect(within(aino).getByRole('link', { name: 'Aino Esimerkki' })).toHaveAttribute(
       'href',
-      '/tenants/tenant-aino-virtanen',
+      '/tenants/tenant-aino-esimerkki',
     )
     expect(aino).toHaveTextContent('Person')
     expect(aino).toHaveTextContent('A 1 · Helsinki Kallio Residences')
@@ -43,8 +43,8 @@ describe('tenants', () => {
     expect(rows()).toHaveLength(15)
 
     await user.selectOptions(screen.getByLabelText('Type'), 'Company')
-    await user.type(screen.getByRole('searchbox', { name: 'Search tenants' }), 'rautio')
-    expect(router.state.location.search).toBe('?type=company&q=rautio')
+    await user.type(screen.getByRole('searchbox', { name: 'Search tenants' }), 'aleksi')
+    expect(router.state.location.search).toBe('?type=company&q=aleksi')
     expect(rows()).toHaveLength(1)
     expect(rows()[0]).toHaveTextContent('Nordic Pixel Oy')
 
@@ -64,7 +64,7 @@ describe('tenants', () => {
     expect(
       within(spaces).getByRole('button', { name: 'Remove from space A 304' }),
     ).toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Details' })).toHaveTextContent('Tuomas Kettunen')
+    expect(screen.getByRole('region', { name: 'Details' })).toHaveTextContent('Tuomas Esimerkki')
     expect(screen.getByRole('region', { name: 'Past leases' })).toHaveTextContent('A 201')
   })
 
@@ -101,7 +101,7 @@ describe('tenants', () => {
     const { router } = renderRoute('/tenants/new')
 
     await user.type(await screen.findByRole('textbox', { name: /^Company name/ }), ' Pohjola Bakery Oy ')
-    await user.type(screen.getByRole('textbox', { name: /^Contact person/ }), 'Liisa Pohjola')
+    await user.type(screen.getByRole('textbox', { name: /^Contact person/ }), 'Liisa Esimerkki')
     await user.type(screen.getByRole('textbox', { name: /^Email/ }), 'hello@pohjola-bakery.example')
     await user.click(screen.getByRole('button', { name: 'Save tenant' }))
 
@@ -111,7 +111,7 @@ describe('tenants', () => {
     const id = router.state.location.pathname.split('/').at(-1)!
     expect(await createDataLayer('localStorage').tenants.getById(id)).toMatchObject({
       name: 'Pohjola Bakery Oy',
-      contactPerson: 'Liisa Pohjola',
+      contactPerson: 'Liisa Esimerkki',
       phone: null,
     })
   })
@@ -141,18 +141,18 @@ describe('tenants', () => {
 
   it('assigns a tenant to a space with a new lease and returns to the tenant', async () => {
     const user = userEvent.setup()
-    const { router } = renderRoute('/tenants/tenant-aino-virtanen')
+    const { router } = renderRoute('/tenants/tenant-aino-esimerkki')
 
     await user.click(await screen.findByRole('link', { name: 'Assign to space' }))
-    expect(await screen.findByLabelText(/^Tenant/)).toHaveValue('tenant-aino-virtanen')
+    expect(await screen.findByLabelText(/^Tenant/)).toHaveValue('tenant-aino-esimerkki')
     await user.selectOptions(screen.getByLabelText(/^Property/), 'Kuopio Harbour Business Park')
     await user.selectOptions(screen.getByLabelText(/^Space/), 'B 204 (Available)')
     await user.type(screen.getByLabelText(/^Monthly rent/), '980')
     expect(screen.getByText('The lease is active today, so the space will be occupied.')).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
-    expect(await screen.findByText('The lease of B 204 for Aino Virtanen was created.')).toBeInTheDocument()
-    expect(router.state.location.pathname).toBe('/tenants/tenant-aino-virtanen')
+    expect(await screen.findByText('The lease of B 204 for Aino Esimerkki was created.')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/tenants/tenant-aino-esimerkki')
     const spaces = await screen.findByRole('region', { name: 'Spaces' })
     expect(within(spaces).getByRole('link', { name: 'B 204' })).toBeInTheDocument()
     expect(spaces).toHaveTextContent('€980.00 / month')
@@ -163,7 +163,7 @@ describe('tenants', () => {
 
   it('reserves a space for a future start date', async () => {
     const user = userEvent.setup()
-    renderRoute('/leases/new?tenant=tenant-aino-virtanen')
+    renderRoute('/leases/new?tenant=tenant-aino-esimerkki')
     const start = formatDate(toIsoDate(addDays(new Date(), 14)))
 
     await user.selectOptions(await screen.findByLabelText(/^Property/), 'Kuopio Harbour Business Park')
@@ -175,7 +175,7 @@ describe('tenants', () => {
     expect(screen.getByText(`The lease starts on ${start}. Until then the space keeps its current status.`)).toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: 'Save lease' }))
 
-    expect(await screen.findByText('The lease of B 204 for Aino Virtanen was created.')).toBeInTheDocument()
+    expect(await screen.findByText('The lease of B 204 for Aino Esimerkki was created.')).toBeInTheDocument()
     expect(await createDataLayer('localStorage').spaces.getById('space-kuopio-harbour-10')).toMatchObject({
       status: 'available',
     })
@@ -183,14 +183,14 @@ describe('tenants', () => {
 
   it('removes a tenant from a space after confirmation and frees the space', async () => {
     const user = userEvent.setup()
-    renderRoute('/tenants/tenant-aino-virtanen')
+    renderRoute('/tenants/tenant-aino-esimerkki')
 
     await user.click(await screen.findByRole('button', { name: 'Remove from space A 1' }))
-    const dialog = screen.getByRole('dialog', { name: 'Remove Aino Virtanen from A 1?' })
+    const dialog = screen.getByRole('dialog', { name: 'Remove Aino Esimerkki from A 1?' })
     expect(dialog).toHaveTextContent(formatDate(toIsoDate(addDays(new Date(), -1))))
     await user.click(within(dialog).getByRole('button', { name: 'Remove from space' }))
 
-    expect(await screen.findByText('Aino Virtanen was removed from A 1.')).toBeInTheDocument()
+    expect(await screen.findByText('Aino Esimerkki was removed from A 1.')).toBeInTheDocument()
     // The page reloads its data in the background after the success message.
     expect(await screen.findByText('This tenant does not rent any space at the moment.')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Spaces' })).toHaveFocus()

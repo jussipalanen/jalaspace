@@ -57,15 +57,15 @@ describe('settings: demo data reset', () => {
     window.localStorage.setItem(
       STORAGE_KEYS.profile,
       JSON.stringify({
-        firstName: 'Jussi',
-        lastName: 'Alanen',
+        firstName: 'Esko',
+        lastName: 'Esimerkki',
         birthDate: '1990-09-22',
         updatedAt: '2026-09-22T10:30:00.000Z',
       }),
     )
     renderRoute('/settings', { language: 'en' })
 
-    expect(await screen.findByLabelText(/^First name/)).toHaveValue('Jussi')
+    expect(await screen.findByLabelText(/^First name/)).toHaveValue('Esko')
     await user.click(resetButton())
     const dialog = screen.getByRole('dialog', { name: 'Reset demo data?' })
     await user.click(within(dialog).getByRole('button', { name: 'Reset demo data' }))

@@ -71,7 +71,7 @@ describe('ask search', () => {
 
     const inHelsinki = run(search('tenants', { types: ['person'], city: 'Helsinki' }))
     if (inHelsinki.area !== 'tenants') throw new Error('Expected tenants')
-    expect(inHelsinki.rows.map((row) => row.tenant.name)).toContain('Aino Virtanen')
+    expect(inHelsinki.rows.map((row) => row.tenant.name)).toContain('Aino Esimerkki')
     expect(inHelsinki.rows.every((row) => row.tenant.type === 'person')).toBe(true)
   })
 

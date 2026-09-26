@@ -102,14 +102,14 @@ test.describe('api data provider', () => {
     expect(await spaceStatus()).toBe('available')
 
     await page.goto('/leases/new?space=space-kuopio-harbour-10')
-    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Korhonen' })
+    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Mikko Esimerkki' })
     await page.getByLabel('Monthly rent (€)').fill('980')
     await page.getByRole('button', { name: 'Save lease' }).click()
-    await expect(page.getByText('The lease of B 204 for Mikko Korhonen was created.')).toBeVisible()
+    await expect(page.getByText('The lease of B 204 for Mikko Esimerkki was created.')).toBeVisible()
     expect(await spaceStatus()).toBe('occupied')
 
     await page.goto('/leases/new?space=space-kuopio-harbour-10')
-    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Aino Virtanen' })
+    await page.getByRole('combobox', { name: 'Tenant' }).selectOption({ label: 'Aino Esimerkki' })
     await page.getByRole('button', { name: 'Save lease' }).click()
     await expect(
       page.getByText('This space already has a lease during this period. Change the dates or choose another space.'),

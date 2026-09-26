@@ -24,7 +24,7 @@ describe('spaces', () => {
     const a1 = rows()[0]!
     expect(a1).toHaveTextContent('A 1')
     expect(a1).toHaveTextContent('Helsinki Kallio Residences')
-    expect(within(a1).getByRole('link', { name: 'Aino Virtanen' })).toBeInTheDocument()
+    expect(within(a1).getByRole('link', { name: 'Aino Esimerkki' })).toBeInTheDocument()
   })
 
   it('opens the status filter from the URL, as the dashboard links do', async () => {
