@@ -134,6 +134,8 @@ A property's details page shows where the building is on an [OpenStreetMap](http
 
 The maps use [Leaflet](https://leafletjs.com/) with OpenStreetMap's free map tiles and address search (Nominatim), so no API key or billing account is needed. To follow their usage policies, the search runs only when asked (never while typing), at most once per second, and repeated searches are answered from a cache.
 
+Screenshots: [details page](docs/screenshots/property-location-desktop.png) · [location in the form](docs/screenshots/property-location-form.png).
+
 </details>
 
 <details>
