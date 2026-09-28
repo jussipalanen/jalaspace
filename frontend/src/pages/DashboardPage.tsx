@@ -3,6 +3,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { AskPanel } from '../features/dashboard/AskPanel'
 import { AvailableSpaces } from '../features/dashboard/AvailableSpaces'
 import { DashboardStats } from '../features/dashboard/DashboardStats'
+import { LatestApplications } from '../features/dashboard/LatestApplications'
 import { RecentActivity } from '../features/dashboard/RecentActivity'
 import { RecentMaintenance } from '../features/dashboard/RecentMaintenance'
 import { useDashboard } from '../features/dashboard/useDashboard'
@@ -29,6 +30,7 @@ export function DashboardPage() {
           <div className="dashboard__panels">
             <RecentMaintenance items={summary.recentMaintenance} />
             <AvailableSpaces items={summary.availableSpaces} />
+            <LatestApplications items={summary.latestApplications} />
             <RecentActivity items={summary.recentActivity} />
           </div>
         </>

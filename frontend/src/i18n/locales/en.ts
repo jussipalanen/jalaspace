@@ -182,6 +182,11 @@ export const en = {
         other: '{occupied} of {count} spaces occupied',
       },
       openMaintenance: 'Open maintenance',
+      openApplications: 'Open applications',
+      applicationStates: {
+        submitted: 'New',
+        in_review: 'In review',
+      },
       spaceStates: {
         occupied: 'Occupied',
         available: 'Available',
@@ -199,6 +204,13 @@ export const en = {
       empty: 'All spaces are occupied or in maintenance.',
       reservedFrom: 'Reserved from {date}',
       floor: 'Floor {floor}',
+      applications: { one: '{count} application', other: '{count} applications' },
+    },
+    latestApplications: {
+      title: 'Latest applications',
+      empty: 'No applications yet.',
+      received: 'Received {date}',
+      viewAll: 'View all applications',
     },
     activity: {
       title: 'Recent activity',
@@ -207,6 +219,8 @@ export const en = {
         maintenance_completed: 'Maintenance task completed',
         lease_started: 'Lease started',
         lease_ended: 'Lease ended',
+        application_received: 'Application received',
+        application_approved: 'Application approved',
       },
     },
     viewAll: 'View all',

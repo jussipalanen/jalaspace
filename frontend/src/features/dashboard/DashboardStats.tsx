@@ -6,6 +6,11 @@ import { useTranslation } from '../../i18n/useTranslation'
 import type { DashboardStats as Stats, SpaceBreakdown } from '../../services/dashboard'
 import type { MaintenancePriority } from '../../types/maintenance'
 
+const APPLICATION_STATES: { key: 'submitted' | 'in_review'; color: string }[] = [
+  { key: 'submitted', color: 'var(--color-chart-application-new)' },
+  { key: 'in_review', color: 'var(--color-chart-application-review)' },
+]
+
 const SPACE_STATES: { key: keyof SpaceBreakdown; color: string }[] = [
   { key: 'occupied', color: 'var(--color-chart-occupied)' },
   { key: 'available', color: 'var(--color-chart-available)' },
@@ -24,6 +29,11 @@ export function DashboardStats({ stats }: { stats: Stats }) {
   const { t, locale } = useTranslation()
 
   const spaces = SPACE_STATES.map(({ key, color }) => ({ key, color, value: stats.spaceBreakdown[key] }))
+  const applications = APPLICATION_STATES.map(({ key, color }) => ({
+    key,
+    color,
+    value: stats.openApplicationsByStatus[key],
+  }))
   const priorities = PRIORITIES.map(({ key, color }) => ({
     key,
     color,
@@ -89,6 +99,22 @@ export function DashboardStats({ stats }: { stats: Stats }) {
           />
         }
         to="/maintenance"
+      />
+      <StatCard
+        label={t('dashboard.stats.openApplications')}
+        value={formatNumber(stats.openApplicationCount, locale)}
+        chart={<RingChart segments={applications} />}
+        legend={
+          <ChartLegend
+            items={applications.map(({ key, color, value }) => ({
+              key,
+              color,
+              label: t(`dashboard.stats.applicationStates.${key}`),
+              value: formatNumber(value, locale),
+            }))}
+          />
+        }
+        to="/applications?status=open"
       />
     </section>
   )
