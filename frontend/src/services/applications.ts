@@ -354,3 +354,17 @@ export function otherOpenApplications(application: Application, applications: Ap
     .filter((other) => other.id !== application.id && other.spaceId === application.spaceId && isOpenApplication(other))
     .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
 }
+
+/** The largest number the sidebar badge shows; more is shown as "+100". */
+export const NEW_APPLICATIONS_BADGE_MAX = 100
+
+/** Applications nobody has handled yet: status `submitted` (the Dashboard's "New applications"). */
+export function countNewApplications(applications: Pick<Application, 'status'>[]): number {
+  return applications.filter((application) => application.status === 'submitted').length
+}
+
+/** The badge text for a count: nothing for 0, the number up to 100, "+100" above that. */
+export function newApplicationsBadge(count: number): string | null {
+  if (count <= 0) return null
+  return count > NEW_APPLICATIONS_BADGE_MAX ? `+${NEW_APPLICATIONS_BADGE_MAX}` : String(count)
+}

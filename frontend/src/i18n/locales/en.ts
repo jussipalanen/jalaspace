@@ -36,6 +36,8 @@ export const en = {
       settings: 'Settings',
     },
     apiDocs: 'API docs',
+    newApplications: { one: ', {count} new', other: ', {count} new' },
+    newApplicationsOver: ', more than {max} new',
     opensInNewTab: '(opens in a new tab)',
   },
   header: {

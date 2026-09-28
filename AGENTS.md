@@ -1013,6 +1013,7 @@ Implement:
 * status filter (one status, or open = submitted and in review), property filter and search (name, contact person, email), kept in the URL (`?status=`, `?property=`, `?q=`)
 * detail page with status actions
 * delete
+* a round badge next to **Applications** in the sidebar with the number of new (`submitted`) applications: hidden at 0, the number up to 100, "+100" above that; counted again after every navigation (so handling an application lowers it at once) and when another tab changes the stored applications; the link's accessible name says it in words ("Applications, 3 new")
 
 Rules:
 

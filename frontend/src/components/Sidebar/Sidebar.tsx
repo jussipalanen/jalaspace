@@ -2,7 +2,9 @@ import { NavLink } from 'react-router'
 import { getApiUrl } from '../../config/api'
 import { isSharedData } from '../../config/dataProvider'
 import { mainNavigation, secondaryNavigation } from '../../config/navigation'
+import { useNewApplicationCount } from '../../features/applications/useNewApplicationCount'
 import { useTranslation } from '../../i18n/useTranslation'
+import { NEW_APPLICATIONS_BADGE_MAX, newApplicationsBadge } from '../../services/applications'
 import type { NavItem } from '../../types/navigation'
 import { CloseIcon, CodeIcon, ExternalLinkIcon, LogoMark } from '../icons'
 import './Sidebar.css'
@@ -13,19 +15,50 @@ interface SidebarProps {
   onClose: () => void
 }
 
-function SidebarLink({ item, onNavigate }: { item: NavItem; onNavigate: () => void }) {
+/** The round count itself, hidden from screen readers: the link's label says it in words. */
+function NewApplicationsBadge({ count }: { count: number | null }) {
+  const text = newApplicationsBadge(count ?? 0)
+  if (!text) return null
+  return (
+    <span className="sidebar__badge" aria-hidden="true">
+      {text}
+    </span>
+  )
+}
+
+function SidebarLink({
+  item,
+  onNavigate,
+  newApplications = null,
+}: {
+  item: NavItem
+  onNavigate: () => void
+  newApplications?: number | null
+}) {
   const { t } = useTranslation()
   const Icon = item.icon
+  const label = t(item.labelKey)
+  const count = item.badge === 'newApplications' ? newApplications : null
+  // An explicit name, e.g. "Applications, 3 new": browsers would otherwise put
+  // a space before the comma of hidden text next to the label.
+  const accessibleName = count
+    ? label +
+      (count > NEW_APPLICATIONS_BADGE_MAX
+        ? t('nav.newApplicationsOver', { max: NEW_APPLICATIONS_BADGE_MAX })
+        : t('nav.newApplications', { count }))
+    : undefined
   return (
     <li>
       <NavLink
         to={item.to}
         end={item.end}
         onClick={onNavigate}
+        aria-label={accessibleName}
         className={({ isActive }) => (isActive ? 'sidebar__link is-active' : 'sidebar__link')}
       >
         <Icon className="sidebar__link-icon" />
-        <span>{t(item.labelKey)}</span>
+        <span>{label}</span>
+        <NewApplicationsBadge count={count} />
       </NavLink>
     </li>
   )
@@ -57,6 +90,7 @@ function ApiDocsLink({ onNavigate }: { onNavigate: () => void }) {
 
 export function Sidebar({ id, isOpen, onClose }: SidebarProps) {
   const { t } = useTranslation()
+  const newApplications = useNewApplicationCount()
 
   return (
     <aside id={id} className={isOpen ? 'sidebar is-open' : 'sidebar'} aria-label={t('nav.sidebar')}>
@@ -83,7 +117,7 @@ export function Sidebar({ id, isOpen, onClose }: SidebarProps) {
               </p>
               <ul className="sidebar__list" aria-labelledby={headingId}>
                 {section.items.map((item) => (
-                  <SidebarLink key={item.to} item={item} onNavigate={onClose} />
+                  <SidebarLink key={item.to} item={item} onNavigate={onClose} newApplications={newApplications} />
                 ))}
               </ul>
             </div>

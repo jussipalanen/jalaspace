@@ -35,6 +35,8 @@ export const fi: Messages = {
       settings: 'Asetukset',
     },
     apiDocs: 'API-kuvaus',
+    newApplications: { one: ', {count} uusi', other: ', {count} uutta' },
+    newApplicationsOver: ', yli {max} uutta',
     opensInNewTab: '(avautuu uuteen välilehteen)',
   },
   header: {
