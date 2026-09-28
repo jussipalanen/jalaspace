@@ -2,7 +2,7 @@
 
 The JalaSpace backend: a REST API written in TypeScript on Node.js 24 LTS with [Express 5](https://expressjs.com/).
 
-It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants and leases) AI suggestions for maintenance tasks, and AI answers for Ask JalaSpace. The frontend uses them with `VITE_DATA_PROVIDER=api`, e.g. in Docker Compose. Until then, the frontend keeps using browser localStorage.
+It is at an early stage: it has a health endpoint, endpoints for all domain entities (properties, spaces, maintenance tasks, tenants, leases and rental applications), AI suggestions for maintenance tasks, and AI answers for Ask JalaSpace. The frontend uses them with `VITE_DATA_PROVIDER=api`, e.g. in Docker Compose. Until then, the frontend keeps using browser localStorage.
 
 ## Running
 
@@ -97,8 +97,9 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 400    | `validation_failed` | The body has invalid fields, listed in `fields` |
   | 404    | `not_found`         | The route or resource does not exist  |
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
-  | 409    | `space_in_use`      | The space still has leases or maintenance tasks |
+  | 409    | `space_in_use`      | The space still has leases, maintenance tasks or applications |
   | 409    | `tenant_in_use`     | The tenant still has leases |
+  | 409    | `invalid_status_change` | The application's status cannot change this way (with `from` and `to`) |
   | 409    | `limit_reached`     | The collection is full, so nothing more can be created (with `limit`) |
   | 413    | `payload_too_large` | The request body is over the limit    |
   | 429    | `rate_limited`      | Too many writes, demo resets or AI requests from this client (with `Retry-After`), or the AI quota is used up |
@@ -148,6 +149,11 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
 | POST   | `/api/leases`         | `201` with the created lease and a `Location` header           |
 | PUT    | `/api/leases/:id`     | The updated lease, or `404 not_found`                          |
 | DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
+| GET    | `/api/applications`   | All rental applications                                        |
+| GET    | `/api/applications/:id` | One application, or `404 not_found`                          |
+| POST   | `/api/applications`   | `201` with the created, submitted application and a `Location` header |
+| PUT    | `/api/applications/:id` | The updated application, `404 not_found`, or `409 invalid_status_change` |
+| DELETE | `/api/applications/:id` | `204`, or `404 not_found`                                    |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
 | POST   | `/api/maintenance/suggestions` | An AI suggestion for a maintenance task, see below     |
 | POST   | `/api/ask`            | Turns a question into a place in the app or a search filter, see below |
@@ -205,10 +211,10 @@ curl -X POST http://localhost:3000/api/units \
 - **Status follows the leases:** a space is occupied exactly when it has an active lease (see Leases). A new space has no leases, so `occupied` is saved as `available`; a space with an active lease stays occupied whatever the client sends, and one without cannot be made occupied. Clients choose between `available` and `maintenance`.
 - Leases start and end as days pass, so the stored statuses are brought up to date whenever spaces are read.
 - A space with maintenance tasks cannot move to another property (`propertyId`: `maintenanceLinked`), because the tasks refer to both.
-- A space that still has leases or maintenance tasks cannot be deleted:
+- A space that still has leases, maintenance tasks or applications cannot be deleted:
 
   ```json
-  { "error": { "code": "space_in_use", "leaseCount": 1, "maintenanceCount": 2 } }
+  { "error": { "code": "space_in_use", "leaseCount": 1, "maintenanceCount": 2, "applicationCount": 0 } }
   ```
 
 ### Maintenance tasks
@@ -287,6 +293,34 @@ curl -X POST http://localhost:3000/api/leases \
 - An update changes only the period and the rent; the stored tenant and space are kept, whatever the client sends.
 - **Removing a tenant from a space**, as in the app: end a running lease yesterday with a `PUT`, or `DELETE` a lease that has not started to cancel it. Nothing refers to a lease, so it can always be deleted.
 
+### Applications
+
+Rental applications from people looking for a space. The applicant's details follow the tenant rules, except that the email need not be unique: one applicant may apply for several spaces.
+
+| Field              | Rules                                                              |
+| ------------------ | ------------------------------------------------------------------ |
+| `spaceId`          | Required; the space must exist (`notFound`). Fixed once the application exists |
+| `applicantType`    | Required: `company` or `person`                                    |
+| `name`             | Required, at most 100 characters                                   |
+| `contactPerson`    | Optional, at most 100 characters; only companies have one          |
+| `email`            | Required, a valid address of at most 254 characters                |
+| `phone`            | Optional (`null` when empty): 5–20 characters of digits, spaces, `+`, `-` and parentheses |
+| `desiredStartDate` | Required, a date-only ISO string such as `2026-11-01`              |
+| `message`          | Optional, at most 2000 characters                                  |
+| `status`           | `submitted`, `in_review`, `approved`, `rejected` or `withdrawn`; ignored on create |
+| `tenantId`         | The tenant an approved application became: required with `approved` and must exist (`notFound`), otherwise saved as `null` |
+
+```bash
+curl -X POST http://localhost:3000/api/applications \
+  -H 'content-type: application/json' \
+  -d '{"spaceId":"space-helsinki-kallio-11","applicantType":"person","name":"Lotta Esimerkki","email":"lotta.esimerkki@example.com","desiredStartDate":"2026-11-01"}'
+```
+
+- **A new application is always `submitted`**, without a tenant, whatever the client sends.
+- **Status changes are updates:** `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`. `approved`, `rejected` and `withdrawn` are final; other changes are refused with `409 invalid_status_change`. The server sets `decidedAt` when a decision is made.
+- Applications contain personal details, so their contents are never logged.
+- Nothing refers to an application, so it can always be deleted. A space with applications cannot be deleted.
+
 ### Maintenance suggestions
 
 `POST /api/maintenance/suggestions` suggests a title, a description, a category and a priority from the user's title, description or both. The description first states the problem with only the facts from the user's text (no added causes, places, times or other details, and no names or contact details), then a `To check:` list (`Tarkistettavaa:` in Finnish) of typical things for a maintenance worker to check, written as checks, not findings. Nothing is stored; the user reviews the suggestion in the app and decides whether to use it.
@@ -350,7 +384,7 @@ The API is public and keeps its data in memory, so it limits how fast one client
 | Writes (`POST`, `PUT`, `DELETE`) per client | 60 per minute (`WRITE_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
 | Demo resets per client, on top of the write limit | 10 per hour (`RESET_RATE_LIMIT`) | `429 rate_limited` with `Retry-After` |
 | AI requests (suggestions and questions together) per client | 10 per 10 minutes | `429 rate_limited` with `Retry-After` |
-| Stored records | properties 50, spaces 500, maintenance tasks 500, tenants 300, leases 1000 | `409 limit_reached` with the limit |
+| Stored records | properties 50, spaces 500, maintenance tasks 500, tenants 300, leases 1000, applications 300 | `409 limit_reached` with the limit |
 
 - Reads are not limited. AI requests count only against their own limit.
 - A full collection can still be updated and cleaned up: only creating is refused.
@@ -363,7 +397,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants and 62 leases, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants, 62 leases and 7 applications, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 
