@@ -3,7 +3,7 @@ import { createApp } from '../app.ts'
 import type { Tenant } from '../domain/tenants.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
-import { lease } from '../test/fixtures.ts'
+import { application, lease } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const input = {
@@ -132,15 +132,16 @@ describe('tenants API', () => {
     expect((await send('GET', `/tenants/${created.id}`)).status).toBe(404)
   })
 
-  it('refuses to delete a tenant that still has leases', async () => {
+  it('refuses to delete a tenant that still has leases or an approved application', async () => {
     const created = await create()
     await store.leases.insert(lease({ id: 'lease-1', tenantId: created.id }))
     await store.leases.insert(lease({ id: 'lease-2', tenantId: created.id, spaceId: 'space-2' }))
+    await store.applications.insert(application({ id: 'application-1', status: 'approved', tenantId: created.id }))
 
     const response = await send('DELETE', `/tenants/${created.id}`)
 
     expect(response.status).toBe(409)
-    expect(await response.json()).toEqual({ error: { code: 'tenant_in_use', leaseCount: 2 } })
+    expect(await response.json()).toEqual({ error: { code: 'tenant_in_use', leaseCount: 2, applicationCount: 1 } })
     expect(await store.tenants.get(created.id)).toEqual(created)
   })
 })

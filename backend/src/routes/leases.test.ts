@@ -221,7 +221,7 @@ describe('leases API', () => {
     const deleteTenant = await send('DELETE', '/tenants/tenant-1')
     const deleteSpace = await send('DELETE', '/units/space-1')
 
-    expect(await deleteTenant.json()).toEqual({ error: { code: 'tenant_in_use', leaseCount: 1 } })
+    expect(await deleteTenant.json()).toEqual({ error: { code: 'tenant_in_use', leaseCount: 1, applicationCount: 0 } })
     expect(await deleteSpace.json()).toEqual({ error: { code: 'space_in_use', leaseCount: 1, maintenanceCount: 0, applicationCount: 0 } })
   })
 })
