@@ -164,6 +164,19 @@ test.describe('api data provider', () => {
     expect(reserved.status()).toBe(409)
   })
 
+  test('approves an application into a tenant on the API', async ({ page, request }) => {
+    await page.goto('/applications/application-6')
+    await page.getByRole('region', { name: 'Status' }).getByRole('button', { name: 'Approve' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Approve' }).click()
+    await expectPageHeading(page, 'New lease')
+
+    const application = await getJson<{ status: string; tenantId: string }>(request, '/applications/application-6')
+    expect(application.status).toBe('approved')
+    const tenant = await getJson<{ name: string }>(request, `/tenants/${application.tenantId}`)
+    expect(tenant.name).toBe('Consulting Esimerkki Oy')
+    expect((await request.delete(api(`/tenants/${application.tenantId}`))).status()).toBe(409)
+  })
+
   test('Reset demo data in Settings restores the API data', async ({ page, request }) => {
     expect((await request.delete(api('/maintenance/maintenance-1'))).status()).toBe(204)
 

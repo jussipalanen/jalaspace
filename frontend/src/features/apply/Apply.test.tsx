@@ -73,7 +73,7 @@ describe('public application form', () => {
     expect(screen.getByText('Enter a valid email address.')).toBeInTheDocument()
     expect(screen.getByText('Confirm that you have not entered real personal information.')).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: /^Full name/ })).toHaveFocus()
-    expect(await createDataLayer('localStorage').applications.getAll()).toHaveLength(7)
+    expect(await createDataLayer('localStorage').applications.getAll()).toHaveLength(8)
   })
 
   it('sends an application that the property manager then sees', async () => {
@@ -128,7 +128,7 @@ describe('public application form', () => {
     expect(
       await screen.findByRole('heading', { level: 1, name: 'This space is no longer available' }),
     ).toBeInTheDocument()
-    expect(await data.applications.getAll()).toHaveLength(7)
+    expect(await data.applications.getAll()).toHaveLength(8)
   })
 
   it('links a signed-in manager back to the app', async () => {

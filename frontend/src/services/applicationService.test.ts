@@ -7,16 +7,20 @@ import type { ApplicationFormValues } from './applications'
 import {
   ApplicationStatusChangeError,
   ApplicationValidationError,
+  approveApplication,
   changeApplicationStatus,
   createApplication,
   deleteApplication,
   getApplicationDetails,
   loadApplicationData,
+  leaseFormPath,
   loadOpenSpaces,
+  rejectApplications,
   SpaceUnavailableError,
 } from './applicationService'
 import { initializeDemoData } from './demoDataService'
 import { deleteSpace, SpaceDeletionBlockedError } from './spaceService'
+import { deleteTenant, TenantDeletionBlockedError } from './tenantService'
 
 const now = new Date('2026-09-25T08:00:00.000Z')
 const today = '2026-09-25'
@@ -160,6 +164,112 @@ describe('application service', () => {
           now,
         ),
       ).rejects.toMatchObject({ errors: { email: 'duplicate' } })
+    })
+  })
+
+  describe('approving', () => {
+    it('creates a tenant from the applicant and links the approved application to it', async () => {
+      const data = createDataLayer('localStorage')
+      const tenantsBefore = (await data.tenants.getAll()).length
+
+      const result = await approveApplication(data, 'application-6', now)
+
+      expect(result.tenantCreated).toBe(true)
+      expect(result.tenant).toMatchObject({
+        type: 'company',
+        name: 'Consulting Esimerkki Oy',
+        contactPerson: 'Tapio Esimerkki',
+        email: 'info@consulting-esimerkki.example',
+        phone: '+358501234564',
+        notes: '',
+      })
+      expect(result.application).toMatchObject({
+        status: 'approved',
+        tenantId: result.tenant.id,
+        decidedAt: now.toISOString(),
+      })
+      expect(await data.tenants.getAll()).toHaveLength(tenantsBefore + 1)
+      // No lease is created: the manager saves it in the lease form.
+      expect((await data.leases.getAll()).some((lease) => lease.tenantId === result.tenant.id)).toBe(false)
+    })
+
+    it('reuses the tenant with the same email, ignoring case, without changing it', async () => {
+      const data = createDataLayer('localStorage')
+      const application = (await data.applications.getById('application-5'))!
+      await data.applications.update({ ...application, email: 'INFO@nordic-pixel.example' })
+      const tenantBefore = await data.tenants.getById('tenant-nordic-pixel')
+
+      const result = await approveApplication(data, 'application-5', now)
+
+      expect(result.tenantCreated).toBe(false)
+      expect(result.application.tenantId).toBe('tenant-nordic-pixel')
+      expect(await data.tenants.getById('tenant-nordic-pixel')).toEqual(tenantBefore)
+    })
+
+    it('does not create a second tenant when approving again after saving the application failed', async () => {
+      const data = createDataLayer('localStorage')
+      const { applications } = data
+      const failing = {
+        ...data,
+        applications: {
+          getAll: () => applications.getAll(),
+          getById: (id: string) => applications.getById(id),
+          create: applications.create.bind(applications),
+          delete: (id: string) => applications.delete(id),
+          update: () => Promise.reject(new Error('storage full')),
+        },
+      }
+      await expect(approveApplication(failing, 'application-6', now)).rejects.toThrow('storage full')
+      const tenantsAfterFailure = await data.tenants.getAll()
+
+      const result = await approveApplication(data, 'application-6', now)
+
+      expect(result.tenantCreated).toBe(false)
+      expect(await data.tenants.getAll()).toEqual(tenantsAfterFailure)
+      expect(result.application.status).toBe('approved')
+    })
+
+    it('refuses decided applications and spaces that cannot be applied for any more', async () => {
+      const data = createDataLayer('localStorage')
+      await expect(approveApplication(data, 'application-1', now)).rejects.toBeInstanceOf(
+        ApplicationStatusChangeError,
+      )
+
+      const space = (await data.spaces.getById('space-helsinki-kallio-11'))!
+      await data.spaces.update({ ...space, status: 'maintenance' })
+      await expect(approveApplication(data, 'application-7', now)).rejects.toBeInstanceOf(SpaceUnavailableError)
+      expect(await data.applications.getById('application-7')).toMatchObject({ status: 'submitted' })
+    })
+
+    it('shows the other open applications for the space and rejects them together', async () => {
+      const data = createDataLayer('localStorage')
+      await approveApplication(data, 'application-4', now)
+      const details = getApplicationDetails(await loadApplicationData(data), 'application-4', today)!
+      expect(details.otherOpen.map((other) => other.id)).toEqual(['application-7'])
+      expect(details.tenant?.name).toBe('Oskari Esimerkki')
+      expect(details.hasLease).toBe(false)
+
+      // One of them was decided meanwhile: it is skipped, not rejected twice.
+      await changeApplicationStatus(data, 'application-3', 'withdrawn', now)
+      expect(await rejectApplications(data, ['application-7', 'application-3'], now)).toBe(1)
+      expect(await data.applications.getById('application-7')).toMatchObject({ status: 'rejected' })
+      expect(await data.applications.getById('application-3')).toMatchObject({ status: 'withdrawn' })
+    })
+
+    it('links to the lease form with the tenant, space and desired start filled in', () => {
+      expect(
+        leaseFormPath({ id: 'application-4', tenantId: 'tenant-x', spaceId: 'space-1', desiredStartDate: '2026-10-19' }),
+      ).toBe('/leases/new?tenant=tenant-x&space=space-1&startDate=2026-10-19&returnTo=%2Fapplications%2Fapplication-4')
+    })
+
+    it('keeps a tenant that an approved application refers to', async () => {
+      const data = createDataLayer('localStorage')
+      const { tenant } = await approveApplication(data, 'application-6', now)
+
+      const error = await deleteTenant(data, tenant.id).catch((e: unknown) => e)
+
+      expect(error).toBeInstanceOf(TenantDeletionBlockedError)
+      expect(error).toMatchObject({ check: { leaseCount: 0, applicationCount: 1 } })
     })
   })
 })
