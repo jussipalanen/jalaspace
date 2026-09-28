@@ -31,7 +31,7 @@ async function submitNewProperty(dataLayer: DataLayer, language?: 'fi') {
   const user = userEvent.setup()
   renderRoute('/properties/new', { dataLayer, language })
   await user.type(await screen.findByLabelText(/^(Name|Nimi)/), 'Oulu Office House')
-  await user.type(screen.getByLabelText(/^(Street address|Katuosoite)/), 'Kauppurienkatu 3')
+  await user.type(screen.getByLabelText(/^(Street address|Katuosoite)/), 'Esimerkkitori 3')
   await user.type(screen.getByLabelText(/^(Postal code|Postinumero)/), '90100')
   await user.type(screen.getByLabelText(/^(City|Postitoimipaikka)/), 'Oulu')
   await user.click(screen.getByRole('button', { name: /^(Save property|Tallenna kiinteistö)$/ }))

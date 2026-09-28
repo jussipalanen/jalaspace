@@ -15,7 +15,7 @@ import { tenantSeeds } from './tenants'
  * Bump when the seed data or its shape changes. Browsers with an older
  * version are re-seeded on their next visit.
  */
-export const SEED_VERSION = 6
+export const SEED_VERSION = 7
 
 // Seed entities use stable, readable ids; entities created in the app use UUIDs.
 const propertyId = (key: string) => `property-${key}`

@@ -147,11 +147,11 @@ describe('demo data', () => {
     expect(tenants).toHaveLength(31)
     expect(tenants.filter((tenant) => tenant.type === 'company')).toHaveLength(16)
     expect(tenants[0]).toEqual({
-      id: 'tenant-nordic-pixel',
+      id: 'tenant-software-esimerkki',
       type: 'company',
-      name: 'Nordic Pixel Oy',
+      name: 'Software Esimerkki Oy',
       contactPerson: 'Aleksi Esimerkki',
-      email: 'info@nordic-pixel.example',
+      email: 'info@software-esimerkki.example',
       phone: null,
       notes: 'Software development company.',
       createdAt: '2024-10-22T10:30:00.000Z',
@@ -185,7 +185,7 @@ describe('demo data', () => {
     expect(count('ended')).toBe(3)
     expect(leases[0]).toEqual({
       id: 'lease-1',
-      tenantId: 'tenant-jarvi-coffee',
+      tenantId: 'tenant-cafe-esimerkki',
       spaceId: 'space-joensuu-center-1',
       startDate: '2026-06-24',
       endDate: '2027-03-21',

@@ -105,7 +105,7 @@ describe('ask answer', () => {
         kind: 'search',
         area: 'leases',
         leases: {
-          tenant: 'Nordic',
+          tenant: 'Software',
           tenantTypes: ['company'],
           statuses: ['active'],
           endDate: { from: '2026-09-24', to: '2026-12-31' },
@@ -117,7 +117,7 @@ describe('ask answer', () => {
     )
     expect(answer).toMatchObject({
       filter: {
-        tenant: 'Nordic',
+        tenant: 'Software',
         tenantTypes: ['company'],
         statuses: ['active'],
         endDate: { from: '2026-09-24', to: '2026-12-31' },

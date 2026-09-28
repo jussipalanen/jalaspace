@@ -62,7 +62,7 @@ test.describe('api data provider', () => {
     await page.goto('/properties/new')
     await page.getByLabel('Name').fill('Oulu Office House')
     await page.getByLabel('Type').selectOption('Office')
-    await page.getByLabel('Street address').fill('Kauppurienkatu 3')
+    await page.getByLabel('Street address').fill('Esimerkkitori 3')
     await page.getByLabel('Postal code').fill('90100')
     await page.getByLabel('City').fill('Oulu')
     await page.getByRole('button', { name: 'Save property' }).click()

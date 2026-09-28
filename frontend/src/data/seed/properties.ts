@@ -41,19 +41,19 @@ const pad = (value: number) => String(value).padStart(2, '0')
 const has = (flags: Partial<Record<SpaceFeature, boolean>>): SpaceFeature[] =>
   SPACE_FEATURES.filter((feature) => flags[feature])
 
-// Addresses are illustrative; the properties and their details are fictional.
-// Locations were looked up once with OpenStreetMap Nominatim (issue #130); the
-// backend seed (backend/src/domain/demoData.ts) uses the same values. OpenStreetMap
-// has no house number 20 on Hermiankatu, so Tampere uses a point on the street,
-// shown from further out.
+// The properties are fictional: the street addresses do not exist ("Esimerkki"
+// is Finnish for "example"), but the cities and postal codes are real, so the
+// postal code rule and the maps work. Each location is a general spot near the
+// centre of its city, shown from further out, never a specific building. The
+// backend seed (backend/src/domain/demoData.ts) uses the same values.
 export const propertySeeds: PropertySeed[] = [
   {
     key: 'joensuu-center',
     name: 'Joensuu Center',
-    address: 'Siltakatu 12',
+    address: 'Esimerkkikatu 12',
     postalCode: '80100',
     city: 'Joensuu',
-    location: { latitude: 62.601579, longitude: 29.762079, zoom: 17 },
+    location: { latitude: 62.6013, longitude: 29.7636, zoom: 15 },
     type: 'mixed_use',
     description: 'City-centre building with street-level shops and three floors of offices.',
     createdDaysAgo: 720,
@@ -79,24 +79,24 @@ export const propertySeeds: PropertySeed[] = [
     available: [4, 11],
     maintenance: [15],
     occupants: [
-      'jarvi-coffee',
-      'northwind-outdoor',
-      'lumo-florist',
-      'harbour-health',
-      ...repeat('nordic-pixel', 4),
-      ...repeat('karelia-accounting', 3),
-      ...repeat('saimaa-design', 2),
-      ...repeat('koivu-manty-law', 3),
-      ...repeat('revontuli-games', 3),
+      'cafe-esimerkki',
+      'outdoor-store-esimerkki',
+      'florist-esimerkki',
+      'health-clinic-esimerkki',
+      ...repeat('software-esimerkki', 4),
+      ...repeat('accounting-esimerkki', 3),
+      ...repeat('design-studio-esimerkki', 2),
+      ...repeat('law-office-esimerkki', 3),
+      ...repeat('games-esimerkki', 3),
     ],
   },
   {
     key: 'kuopio-harbour',
     name: 'Kuopio Harbour Business Park',
-    address: 'Satamakatu 5',
+    address: 'Esimerkinranta 5',
     postalCode: '70100',
     city: 'Kuopio',
-    location: { latitude: 62.888821, longitude: 27.694464, zoom: 17 },
+    location: { latitude: 62.8925, longitude: 27.6782, zoom: 15 },
     type: 'office',
     description: 'Modern office building by the harbour with flexible open-plan floors.',
     createdDaysAgo: 540,
@@ -120,20 +120,20 @@ export const propertySeeds: PropertySeed[] = [
     available: [2, 9, 16],
     maintenance: [],
     occupants: [
-      ...repeat('kivea-architects', 4),
-      ...repeat('revontuli-games', 3),
-      ...repeat('nordic-pixel', 2),
-      ...repeat('savo-energy', 3),
-      ...repeat('kallavesi-marketing', 3),
+      ...repeat('architects-esimerkki', 4),
+      ...repeat('games-esimerkki', 3),
+      ...repeat('software-esimerkki', 2),
+      ...repeat('energy-consulting-esimerkki', 3),
+      ...repeat('marketing-esimerkki', 3),
     ],
   },
   {
     key: 'tampere-hervanta',
     name: 'Tampere Hervanta Logistics',
-    address: 'Hermiankatu 20',
+    address: 'Esimerkintie 20',
     postalCode: '33720',
     city: 'Tampere',
-    location: { latitude: 61.447397, longitude: 23.859037, zoom: 15 },
+    location: { latitude: 61.4502, longitude: 23.8517, zoom: 14 },
     type: 'industrial',
     description: 'Warehouse and light-industrial halls with loading docks and storage units.',
     createdDaysAgo: 480,
@@ -158,20 +158,20 @@ export const propertySeeds: PropertySeed[] = [
     available: [7],
     maintenance: [3],
     occupants: [
-      ...repeat('arctic-freight', 3),
-      ...repeat('tervas-machinery', 3),
-      'arctic-freight',
-      ...repeat('northwind-outdoor', 2),
-      'karelia-accounting',
+      ...repeat('freight-esimerkki', 3),
+      ...repeat('machinery-esimerkki', 3),
+      'freight-esimerkki',
+      ...repeat('outdoor-store-esimerkki', 2),
+      'accounting-esimerkki',
     ],
   },
   {
     key: 'helsinki-kallio',
     name: 'Helsinki Kallio Residences',
-    address: 'Fleminginkatu 15',
+    address: 'Esimerkkikuja 15',
     postalCode: '00500',
     city: 'Helsinki',
-    location: { latitude: 60.186508, longitude: 24.953475, zoom: 17 },
+    location: { latitude: 60.1841, longitude: 24.951, zoom: 15 },
     type: 'residential',
     description: 'Renovated residential building with 16 apartments.',
     createdDaysAgo: 400,
@@ -227,9 +227,9 @@ export interface InactiveLeaseSeed {
 }
 
 export const inactiveLeaseSeeds: InactiveLeaseSeed[] = [
-  { tenant: 'aurora-yoga', property: 'joensuu-center', spaceIndex: 11, startInDays: 45, endInDays: null },
-  { tenant: 'saimaa-design', property: 'joensuu-center', spaceIndex: 4, startInDays: -900, endInDays: -60 },
-  { tenant: 'old-town-books', property: 'kuopio-harbour', spaceIndex: 2, startInDays: -1100, endInDays: -120 },
+  { tenant: 'yoga-studio-esimerkki', property: 'joensuu-center', spaceIndex: 11, startInDays: 45, endInDays: null },
+  { tenant: 'design-studio-esimerkki', property: 'joensuu-center', spaceIndex: 4, startInDays: -900, endInDays: -60 },
+  { tenant: 'bookshop-esimerkki', property: 'kuopio-harbour', spaceIndex: 2, startInDays: -1100, endInDays: -120 },
   { tenant: 'kalle-esimerkki', property: 'helsinki-kallio', spaceIndex: 10, startInDays: -700, endInDays: -30 },
 ]
 

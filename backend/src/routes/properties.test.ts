@@ -10,7 +10,7 @@ import { serve } from '../test/serve.ts'
 const input = {
   name: 'Joensuu Center',
   type: 'mixed_use',
-  address: 'Siltakatu 12',
+  address: 'Esimerkkikatu 12',
   postalCode: '80100',
   city: 'Joensuu',
   description: 'City-centre building.',
@@ -114,7 +114,7 @@ describe('properties API', () => {
     const created = await create()
     expect(created.location).toBeNull()
 
-    const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
+    const location = { latitude: 62.6013, longitude: 29.7636, zoom: 17 }
     const located = (await (await send('PUT', `/properties/${created.id}`, { ...input, location })).json()) as Property
     expect(located.location).toEqual(location)
 

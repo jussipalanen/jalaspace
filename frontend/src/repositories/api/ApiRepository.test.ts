@@ -10,7 +10,7 @@ const property: Property = {
   id: 'property-1',
   name: 'Joensuu Center',
   type: 'mixed_use',
-  address: 'Siltakatu 12',
+  address: 'Esimerkkikatu 12',
   postalCode: '80100',
   city: 'Joensuu',
   description: '',

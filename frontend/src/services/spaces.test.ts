@@ -210,7 +210,7 @@ describe('space rows and filters', () => {
       'A 205',
       'A 206',
     ])
-    expect(filter('', '', 'NORDIC')).toHaveLength(6)
+    expect(filter('', '', 'SOFTWARE')).toHaveLength(6)
   })
 
   it('filters by rooms and by features the space must all have', () => {
@@ -279,7 +279,7 @@ describe('reconciling space statuses with leases', () => {
   })
 
   it('frees a space whose lease has ended and occupies one whose lease has started', () => {
-    // Later, A 202's lease has ended and Aurora Yoga's lease of A 302 has started.
+    // Later, A 202's lease has ended and Yoga Studio Esimerkki's lease of A 302 has started.
     const leases = seed.leases.map((lease) =>
       lease.spaceId === 'space-joensuu-center-6' ? { ...lease, endDate: '2026-09-21' } : lease,
     )

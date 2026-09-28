@@ -196,14 +196,14 @@ describe('application service', () => {
     it('reuses the tenant with the same email, ignoring case, without changing it', async () => {
       const data = createDataLayer('localStorage')
       const application = (await data.applications.getById('application-5'))!
-      await data.applications.update({ ...application, email: 'INFO@nordic-pixel.example' })
-      const tenantBefore = await data.tenants.getById('tenant-nordic-pixel')
+      await data.applications.update({ ...application, email: 'INFO@software-esimerkki.example' })
+      const tenantBefore = await data.tenants.getById('tenant-software-esimerkki')
 
       const result = await approveApplication(data, 'application-5', now)
 
       expect(result.tenantCreated).toBe(false)
-      expect(result.application.tenantId).toBe('tenant-nordic-pixel')
-      expect(await data.tenants.getById('tenant-nordic-pixel')).toEqual(tenantBefore)
+      expect(result.application.tenantId).toBe('tenant-software-esimerkki')
+      expect(await data.tenants.getById('tenant-software-esimerkki')).toEqual(tenantBefore)
     })
 
     it('does not create a second tenant when approving again after saving the application failed', async () => {

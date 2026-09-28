@@ -3,14 +3,14 @@ import { formatCoordinate, isSameLocation, parseCoordinate, roundLocation } from
 
 describe('parseCoordinate', () => {
   it('parses degrees with a decimal point or a decimal comma', () => {
-    expect(parseCoordinate('62.601579', 'latitude')).toBe(62.601579)
-    expect(parseCoordinate(' 29,762079 ', 'longitude')).toBe(29.762079)
+    expect(parseCoordinate('62.601300', 'latitude')).toBe(62.601300)
+    expect(parseCoordinate(' 29,763600 ', 'longitude')).toBe(29.763600)
     expect(parseCoordinate('-33', 'latitude')).toBe(-33)
     expect(parseCoordinate('+.5', 'longitude')).toBe(0.5)
   })
 
   it('rounds to 6 decimals', () => {
-    expect(parseCoordinate('62.60157949', 'latitude')).toBe(62.601579)
+    expect(parseCoordinate('62.60130049', 'latitude')).toBe(62.601300)
   })
 
   it('accepts the limits and rejects values outside them', () => {
@@ -27,7 +27,8 @@ describe('parseCoordinate', () => {
 
 describe('formatting and comparing locations', () => {
   it('formats with a decimal point and at most 6 decimals', () => {
-    expect(formatCoordinate(62.60157949)).toBe('62.601579')
+    expect(formatCoordinate(62.60131249)).toBe('62.601312')
+    expect(formatCoordinate(62.6013)).toBe('62.6013')
     expect(formatCoordinate(-33)).toBe('-33')
   })
 
@@ -39,9 +40,9 @@ describe('formatting and comparing locations', () => {
   })
 
   it('compares at the stored precision', () => {
-    const a = { latitude: 62.601579, longitude: 29.762079 }
-    expect(isSameLocation(a, { latitude: 62.6015791, longitude: 29.7620789 })).toBe(true)
-    expect(isSameLocation(a, { latitude: 62.60158, longitude: 29.762079 })).toBe(false)
+    const a = { latitude: 62.601300, longitude: 29.763600 }
+    expect(isSameLocation(a, { latitude: 62.6013001, longitude: 29.7635999 })).toBe(true)
+    expect(isSameLocation(a, { latitude: 62.60158, longitude: 29.763600 })).toBe(false)
     expect(isSameLocation(a, null)).toBe(false)
     expect(isSameLocation(null, null)).toBe(true)
   })
