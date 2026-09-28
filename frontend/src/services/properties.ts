@@ -93,7 +93,7 @@ export function toLocation(
   return { latitude, longitude, zoom: isMapZoom(values.zoom) ? values.zoom : DEFAULT_MAP_ZOOM }
 }
 
-/** The text search that finds the property's address, e.g. "Siltakatu 12, 80100 Joensuu". */
+/** The text search that finds the property's address, e.g. "Esimerkkikatu 12, 80100 Joensuu". */
 export function addressSearchText(values: Pick<PropertyFormValues, 'address' | 'postalCode' | 'city'>): string {
   const place = [values.postalCode.trim(), values.city.trim()].filter(Boolean).join(' ')
   return [values.address.trim(), place].filter(Boolean).join(', ')

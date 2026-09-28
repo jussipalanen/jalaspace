@@ -408,7 +408,7 @@ export const fi: Messages = {
       hint: 'Vapaaehtoinen. Hae osoitteella ja tarkenna sitten vetämällä nastaa tai napsauttamalla karttaa.',
       search: {
         label: 'Hae osoitteella',
-        hint: 'Hakee Suomesta, esim. Siltakatu 12, 80100 Joensuu.',
+        hint: 'Hakee Suomesta: katuosoite, postinumero ja paikkakunta.',
         submit: 'Hae',
         searching: 'Haetaan…',
         privacy: 'Hakemasi osoite lähetetään OpenStreetMapille.',
@@ -443,8 +443,8 @@ export const fi: Messages = {
       hints: {
         postalCode: '5 numeroa, esim. 80100',
         description: 'Vapaaehtoinen, enintään {max} merkkiä',
-        latitude: 'Asteina, esim. 62.601579',
-        longitude: 'Asteina, esim. 29.762079',
+        latitude: 'Asteina, esim. 62.6013',
+        longitude: 'Asteina, esim. 29.7636',
       },
       save: 'Tallenna kiinteistö',
       saving: 'Tallennetaan…',
@@ -1195,7 +1195,7 @@ export const fi: Messages = {
       },
       hints: {
         name: 'Enintään {max} merkkiä',
-        phone: 'Esimerkiksi +358 40 123 4567',
+        phone: 'Esimerkiksi +358 50 123 4567',
         notes: 'Enintään {max} merkkiä',
       },
       save: 'Tallenna vuokralainen',
