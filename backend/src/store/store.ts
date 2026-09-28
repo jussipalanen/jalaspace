@@ -1,3 +1,4 @@
+import type { Application } from '../domain/applications.ts'
 import type { Entity } from '../domain/common.ts'
 import type { Lease } from '../domain/leases.ts'
 import type { MaintenanceTask } from '../domain/maintenance.ts'
@@ -27,4 +28,5 @@ export interface Store {
   maintenance: Collection<MaintenanceTask>
   tenants: Collection<Tenant>
   leases: Collection<Lease>
+  applications: Collection<Application>
 }

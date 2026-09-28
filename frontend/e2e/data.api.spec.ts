@@ -15,7 +15,7 @@ async function getJson<T>(request: APIRequestContext, path: string): Promise<T> 
 }
 
 const entityKeys = () =>
-  Object.keys(localStorage).filter((key) => /properties|units|tenants|leases|maintenance|seed_version/.test(key))
+  Object.keys(localStorage).filter((key) => /properties|units|tenants|leases|maintenance|applications|seed_version/.test(key))
 
 test.beforeEach(async ({ request }) => {
   expect((await request.post(api('/demo/reset'))).status()).toBe(204)
@@ -114,6 +114,21 @@ test.describe('api data provider', () => {
     await expect(
       page.getByText('This space already has a lease during this period. Change the dates or choose another space.'),
     ).toBeVisible()
+  })
+
+  test('reviews and rejects an application', async ({ page, request }) => {
+    await page.goto('/applications/application-7')
+    await expectPageHeading(page, 'Lotta Esimerkki')
+    const status = page.getByRole('region', { name: 'Status' })
+    await status.getByRole('button', { name: 'Start review' }).click()
+    await expect(status).toContainText('In review')
+    await status.getByRole('button', { name: 'Reject' }).click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Reject application' }).click()
+    await expect(status).toContainText('Rejected')
+
+    const application = await getJson<{ status: string; decidedAt: string | null }>(request, '/applications/application-7')
+    expect(application.status).toBe('rejected')
+    expect(application.decidedAt).not.toBeNull()
   })
 
   test('Reset demo data in Settings restores the API data', async ({ page, request }) => {

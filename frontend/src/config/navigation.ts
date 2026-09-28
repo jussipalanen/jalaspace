@@ -2,6 +2,7 @@ import {
   BuildingIcon,
   DashboardIcon,
   FileTextIcon,
+  InboxIcon,
   LayoutGridIcon,
   SettingsIcon,
   UsersIcon,
@@ -28,6 +29,7 @@ export const mainNavigation: NavSection[] = [
   {
     titleKey: 'nav.sections.leasing',
     items: [
+      { labelKey: 'nav.items.applications', to: '/applications', icon: InboxIcon },
       { labelKey: 'nav.items.tenants', to: '/tenants', icon: UsersIcon },
       { labelKey: 'nav.items.leases', to: '/leases', icon: FileTextIcon },
     ],

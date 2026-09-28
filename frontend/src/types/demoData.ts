@@ -1,3 +1,4 @@
+import type { Application } from './application'
 import type { Lease } from './lease'
 import type { MaintenanceTask } from './maintenance'
 import type { Property } from './property'
@@ -11,4 +12,5 @@ export interface DemoData {
   tenants: Tenant[]
   leases: Lease[]
   maintenance: MaintenanceTask[]
+  applications: Application[]
 }

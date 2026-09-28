@@ -1,3 +1,4 @@
+import type { ApplicationStatus } from '../types/application'
 import type { LeaseStatus } from '../types/lease'
 import type { MaintenancePriority, MaintenanceStatus } from '../types/maintenance'
 import type { SpaceStatus } from '../types/space'
@@ -27,4 +28,12 @@ export const leaseStatusTones: Record<LeaseStatus, Tone> = {
   upcoming: 'info',
   active: 'success',
   ended: 'neutral',
+}
+
+export const applicationStatusTones: Record<ApplicationStatus, Tone> = {
+  submitted: 'info',
+  in_review: 'warning',
+  approved: 'success',
+  rejected: 'danger',
+  withdrawn: 'neutral',
 }

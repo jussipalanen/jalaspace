@@ -88,12 +88,17 @@ export function spacesRouter(store: Store, now: () => Date = () => new Date()): 
     if (!(await store.spaces.get(id))) throw new ApiError(404, 'not_found')
 
     // Checked with the current data on every delete, like properties.
-    const [leases, maintenance] = await Promise.all([store.leases.list(), store.maintenance.list()])
-    const check = checkSpaceDeletion(id, leases, maintenance)
+    const [leases, maintenance, applications] = await Promise.all([
+      store.leases.list(),
+      store.maintenance.list(),
+      store.applications.list(),
+    ])
+    const check = checkSpaceDeletion(id, leases, maintenance, applications)
     if (!check.allowed) {
       throw new ApiError(409, 'space_in_use', {
         leaseCount: check.leaseCount,
         maintenanceCount: check.maintenanceCount,
+        applicationCount: check.applicationCount,
       })
     }
 

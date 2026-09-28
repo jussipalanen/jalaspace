@@ -1,3 +1,4 @@
+import type { Application } from '../domain/applications.ts'
 import type { Lease } from '../domain/leases.ts'
 import type { MaintenanceTask } from '../domain/maintenance.ts'
 
@@ -29,6 +30,26 @@ export function lease(overrides: Partial<Lease> & Pick<Lease, 'id'>): Lease {
     monthlyRentCents: null,
     createdAt: '2020-01-01T00:00:00.000Z',
     updatedAt: '2020-01-01T00:00:00.000Z',
+    ...overrides,
+  }
+}
+
+/** A submitted application from a person, for tests that only care about some fields. */
+export function application(overrides: Partial<Application> & Pick<Application, 'id'>): Application {
+  return {
+    spaceId: 'space-1',
+    applicantType: 'person',
+    name: 'Lotta Esimerkki',
+    contactPerson: null,
+    email: 'lotta.esimerkki@example.com',
+    phone: null,
+    desiredStartDate: '2026-11-01',
+    message: '',
+    status: 'submitted',
+    tenantId: null,
+    decidedAt: null,
+    createdAt: '2026-09-20T08:00:00.000Z',
+    updatedAt: '2026-09-20T08:00:00.000Z',
     ...overrides,
   }
 }

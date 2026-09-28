@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   tenants: 'jalaspace_tenants',
   leases: 'jalaspace_leases',
   maintenance: 'jalaspace_maintenance',
+  applications: 'jalaspace_applications',
   seedVersion: 'jalaspace_seed_version',
   language: 'jalaspace_language',
   profile: 'jalaspace_profile',

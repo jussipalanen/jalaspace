@@ -20,13 +20,14 @@ export const createWriteRateLimiter = (perMinute = DEFAULT_WRITE_RATE_LIMIT) =>
 export const createResetRateLimiter = (perHour = DEFAULT_RESET_RATE_LIMIT) =>
   new RateLimiter({ limit: perHour, windowMs: HOUR_MS })
 
-/** Maximum stored records per collection, far above the demo data (4, 68, 14, 31 and 62). */
+/** Maximum stored records per collection, far above the demo data (4, 68, 14, 31, 62 and 7). */
 export interface CollectionLimits {
   properties: number
   spaces: number
   maintenance: number
   tenants: number
   leases: number
+  applications: number
 }
 
 export const DEFAULT_COLLECTION_LIMITS: CollectionLimits = {
@@ -35,6 +36,7 @@ export const DEFAULT_COLLECTION_LIMITS: CollectionLimits = {
   maintenance: 500,
   tenants: 300,
   leases: 1000,
+  applications: 300,
 }
 
 /** Counts a request against `limiter`, or throws `429 rate_limited` with `Retry-After`. */
@@ -92,5 +94,6 @@ export function collectionLimits(store: Store, limits: CollectionLimits): Router
   router.post('/maintenance', guard(store.maintenance, limits.maintenance))
   router.post('/tenants', guard(store.tenants, limits.tenants))
   router.post('/leases', guard(store.leases, limits.leases))
+  router.post('/applications', guard(store.applications, limits.applications))
   return router
 }

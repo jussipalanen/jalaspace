@@ -61,6 +61,9 @@ export function DeleteSpaceDialog({ open, space, deletion, onClose, onBlocked }:
           {deletion.maintenanceCount > 0 && (
             <li>{t('spaces.delete.blockedMaintenance', { count: deletion.maintenanceCount })}</li>
           )}
+          {deletion.applicationCount > 0 && (
+            <li>{t('spaces.delete.blockedApplications', { count: deletion.applicationCount })}</li>
+          )}
         </ul>
       </ConfirmDialog>
     )

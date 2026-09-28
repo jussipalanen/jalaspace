@@ -212,7 +212,7 @@ describe('maintenance API', () => {
     expect(await deleteProperty.json()).toEqual({
       error: { code: 'property_in_use', spaceCount: 1, maintenanceCount: 1 },
     })
-    expect(await deleteSpace.json()).toEqual({ error: { code: 'space_in_use', leaseCount: 0, maintenanceCount: 1 } })
+    expect(await deleteSpace.json()).toEqual({ error: { code: 'space_in_use', leaseCount: 0, maintenanceCount: 1, applicationCount: 0 } })
   })
 
   it('leaves the AI suggestions endpoint in place', async () => {
