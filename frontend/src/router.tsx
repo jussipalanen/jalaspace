@@ -1,8 +1,11 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { RequireAuth } from './features/auth/RequireAuth'
 import { AppLayout } from './layouts/AppLayout'
+import { PublicLayout } from './layouts/PublicLayout'
 import { ApplicationDetailPage } from './pages/ApplicationDetailPage'
 import { ApplicationsPage } from './pages/ApplicationsPage'
+import { ApplyFormPage } from './pages/ApplyFormPage'
+import { ApplyPage } from './pages/ApplyPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { EditLeasePage, NewLeasePage } from './pages/LeaseFormPage'
 import { LeasesPage } from './pages/LeasesPage'
@@ -28,6 +31,16 @@ const handle = (titleKey: MessageKey): RouteHandle => ({ titleKey })
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
+  // The application form is public: people looking for a space do not sign in.
+  {
+    path: '/apply',
+    element: <PublicLayout />,
+    errorElement: <RouteErrorPage />,
+    children: [
+      { index: true, element: <ApplyPage />, handle: handle('pages.apply.title') },
+      { path: ':spaceId', element: <ApplyFormPage />, handle: handle('pages.applyForm.title') },
+    ],
+  },
   {
     path: '/',
     element: (

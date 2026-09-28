@@ -5,6 +5,7 @@ import { EmptyState } from '../components/EmptyState/EmptyState'
 import { InboxIcon, SearchIcon } from '../components/icons'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { SearchField } from '../components/SearchField/SearchField'
+import { ApplicationFormLink } from '../features/applications/ApplicationFormLink'
 import { ApplicationTable } from '../features/applications/ApplicationTable'
 import { useApplicationData } from '../features/applications/useApplicationData'
 import { useTranslation } from '../i18n/useTranslation'
@@ -52,7 +53,11 @@ export function ApplicationsPage() {
 
   return (
     <>
-      <PageHeader title={t('pages.applications.title')} description={t('pages.applications.description')} />
+      <PageHeader
+        title={t('pages.applications.title')}
+        description={t('pages.applications.description')}
+        actions={<ApplicationFormLink className="button button--secondary" />}
+      />
 
       {state.status === 'loading' && <LoadingState />}
       {state.status === 'error' && (

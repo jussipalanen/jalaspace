@@ -2,6 +2,7 @@ import { Link } from 'react-router'
 import { StatusBadge } from '../../components/StatusBadge/StatusBadge'
 import { formatArea } from '../../i18n/format'
 import { useTranslation } from '../../i18n/useTranslation'
+import { ApplicationFormLink } from '../applications/ApplicationFormLink'
 import type { SpaceRow } from '../../services/spaces'
 import { spaceStatusTones } from '../../utils/tones'
 
@@ -40,7 +41,7 @@ export function SpaceTable({ rows }: { rows: SpaceRow[] }) {
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ space, property, tenant }) => (
+          {rows.map(({ space, property, tenant, openForApplications }) => (
             <tr key={space.id}>
               <td className="data-table__main">
                 <Link
@@ -70,9 +71,12 @@ export function SpaceTable({ rows }: { rows: SpaceRow[] }) {
                 {space.rooms ?? '—'}
               </td>
               <td data-label={columns.status}>
-                <StatusBadge tone={spaceStatusTones[space.status]}>
-                  {t(`space.status.${space.status}`)}
-                </StatusBadge>
+                <span className="space-status">
+                  <StatusBadge tone={spaceStatusTones[space.status]}>
+                    {t(`space.status.${space.status}`)}
+                  </StatusBadge>
+                  {openForApplications && <ApplicationFormLink space={space} className="space-status__form-link" />}
+                </span>
               </td>
               <td data-label={columns.tenant}>
                 {tenant ? <Link to={`/tenants/${tenant.id}`}>{tenant.name}</Link> : '—'}
