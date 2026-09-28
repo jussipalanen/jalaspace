@@ -197,15 +197,23 @@ export interface SpaceDeletionCheck {
   allowed: boolean
   leaseCount: number
   maintenanceCount: number
+  applicationCount: number
 }
 
-/** A space can only be deleted when no lease or maintenance task refers to it. */
+/** A space can only be deleted when no lease, maintenance task or application refers to it. */
 export function checkSpaceDeletion(
   spaceId: string,
   leases: readonly { spaceId: string }[],
   maintenance: readonly { spaceId: string | null }[],
+  applications: readonly { spaceId: string }[],
 ): SpaceDeletionCheck {
   const leaseCount = leases.filter((lease) => lease.spaceId === spaceId).length
   const maintenanceCount = maintenance.filter((task) => task.spaceId === spaceId).length
-  return { allowed: leaseCount === 0 && maintenanceCount === 0, leaseCount, maintenanceCount }
+  const applicationCount = applications.filter((application) => application.spaceId === spaceId).length
+  return {
+    allowed: leaseCount === 0 && maintenanceCount === 0 && applicationCount === 0,
+    leaseCount,
+    maintenanceCount,
+    applicationCount,
+  }
 }

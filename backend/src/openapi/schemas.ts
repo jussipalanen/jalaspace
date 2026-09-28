@@ -10,6 +10,7 @@ import {
   type FieldSpec,
 } from '../ai/ask.ts'
 import { LANGUAGES, SUGGESTION_DESCRIPTION_MAX_LENGTH } from '../ai/suggestions.ts'
+import { APPLICATION_MESSAGE_MAX_LENGTH, APPLICATION_STATUS_CHANGES, APPLICATION_STATUSES } from '../domain/applications.ts'
 import { FIELD_ERROR_CODES } from '../domain/common.ts'
 import { MONTHLY_RENT_MAX_CENTS } from '../domain/leases.ts'
 import {
@@ -242,6 +243,51 @@ const leaseInput = object(
   'The status (upcoming, active, ended) is derived from the dates and not stored. Both dates count as days of the lease; "today" is the server\'s UTC date.',
 )
 
+const statusChanges = Object.entries(APPLICATION_STATUS_CHANGES)
+  .filter(([, next]) => next.length > 0)
+  .map(([from, next]) => `\`${from}\` → ${next.map((status) => `\`${status}\``).join(', ')}`)
+  .join('; ')
+
+const applicationInput = object(
+  {
+    spaceId: id('The space applied for; it must exist (`notFound`). Fixed once the application exists.', 'space-helsinki-kallio-11'),
+    applicantType: oneOf(TENANT_TYPES),
+    name: requiredText(TENANT_NAME_MAX_LENGTH, { example: 'Lotta Esimerkki' }),
+    contactPerson: nullable(
+      text(TENANT_CONTACT_MAX_LENGTH, { description: 'Only companies have one; `null` for people and when empty.' }),
+    ),
+    email: {
+      type: 'string',
+      format: 'email',
+      maxLength: TENANT_EMAIL_MAX_LENGTH,
+      pattern: EMAIL_PATTERN.source,
+      description: 'Need not be unique: one applicant may apply for several spaces.',
+      example: 'lotta.esimerkki@example.com',
+    },
+    phone: nullable({
+      type: 'string',
+      minLength: TENANT_PHONE_MIN_LENGTH,
+      maxLength: TENANT_PHONE_MAX_LENGTH,
+      pattern: PHONE_PATTERN.source,
+      description: 'Digits, spaces, `+`, `-` and parentheses; `null` when empty.',
+    }),
+    desiredStartDate: date('When the applicant would like to move in.'),
+    message: text(APPLICATION_MESSAGE_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
+    status: {
+      ...oneOf(
+        APPLICATION_STATUSES,
+        `Ignored on create: a new application is always \`submitted\`. Allowed changes: ${statusChanges}; the others are final (\`invalid_status_change\`).`,
+      ),
+      default: 'submitted',
+    },
+    tenantId: nullable(
+      id('The tenant an approved application became; required with `approved` and must exist (`notFound`), `null` otherwise.'),
+    ),
+  },
+  ['spaceId', 'applicantType', 'name', 'email', 'desiredStartDate'],
+  'A rental application for a space. The applicant\'s details follow the tenant rules.',
+)
+
 const suggestionRequest = object(
   {
     title: text(MAINTENANCE_TITLE_MAX_LENGTH, { example: 'kitchen sink leak' }),
@@ -384,6 +430,15 @@ export const SCHEMAS: Record<string, Schema> = {
   Tenant: entity(tenantInput),
   LeaseInput: leaseInput,
   Lease: entity(leaseInput),
+  ApplicationInput: applicationInput,
+  Application: entity(applicationInput, {
+    decidedAt: {
+      type: ['string', 'null'],
+      format: 'date-time',
+      readOnly: true,
+      description: 'Set by the server when the application is approved, rejected or withdrawn; `null` while it is open.',
+    },
+  }),
   SuggestionRequest: suggestionRequest,
   AskRequest: askRequest,
   AskAnswer: askAnswer,
