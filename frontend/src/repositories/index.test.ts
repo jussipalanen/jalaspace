@@ -29,4 +29,18 @@ describe('createDataLayer with the api provider', () => {
       { latitude: 62.6, longitude: 29.76, zoom: 18 },
     ])
   })
+
+  it('reads applications from an older API version without them as empty, but still fails to write them', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test')
+    vi.stubGlobal(
+      'fetch',
+      vi.fn<typeof fetch>(async () => Response.json({ error: { code: 'not_found' } }, { status: 404 })),
+    )
+    const { applications } = createDataLayer('api')
+
+    expect(await applications.getAll()).toEqual([])
+    await expect(
+      applications.create({ id: 'a', createdAt: '', updatedAt: '' } as never),
+    ).rejects.toMatchObject({ code: 'not_found' })
+  })
 })

@@ -245,22 +245,30 @@ describe('space rows and filters', () => {
 })
 
 describe('checkSpaceDeletion', () => {
-  it('blocks deleting a space that has leases or maintenance tasks', () => {
-    expect(checkSpaceDeletion('space-joensuu-center-16', seed.leases, seed.maintenance)).toEqual({
+  it('blocks deleting a space that has leases, maintenance tasks or applications', () => {
+    expect(checkSpaceDeletion('space-joensuu-center-16', seed.leases, seed.maintenance, seed.applications)).toEqual({
       allowed: false,
       leaseCount: 0,
       maintenanceCount: 1,
+      applicationCount: 0,
     })
-    expect(checkSpaceDeletion('space-joensuu-center-5', seed.leases, seed.maintenance).allowed).toBe(
-      false,
-    )
+    expect(
+      checkSpaceDeletion('space-joensuu-center-5', seed.leases, seed.maintenance, seed.applications).allowed,
+    ).toBe(false)
+    expect(checkSpaceDeletion('space-kuopio-harbour-17', [], [], seed.applications)).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      maintenanceCount: 0,
+      applicationCount: 1,
+    })
   })
 
   it('allows deleting a space nothing refers to', () => {
-    expect(checkSpaceDeletion('new-space', seed.leases, seed.maintenance)).toEqual({
+    expect(checkSpaceDeletion('new-space', seed.leases, seed.maintenance, seed.applications)).toEqual({
       allowed: true,
       leaseCount: 0,
       maintenanceCount: 0,
+      applicationCount: 0,
     })
   })
 })
