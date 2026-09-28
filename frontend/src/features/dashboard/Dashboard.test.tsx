@@ -16,6 +16,31 @@ function figure(label: string) {
 }
 
 describe('Dashboard', () => {
+  it('shows the open applications and the latest applications after signing in', async () => {
+    await seedDemoData()
+    renderRoute('/')
+
+    await screen.findByRole('region', { name: 'Key figures' })
+    expect(figure('Open applications')).toHaveTextContent('Open applications5New 3 In review 2')
+    expect(figure('Open applications')).toHaveAttribute('href', '/applications?status=open')
+
+    const latest = screen.getByRole('region', { name: 'Latest applications' })
+    const items = within(latest).getAllByRole('listitem')
+    expect(items).toHaveLength(5)
+    expect(within(items[0]!).getByRole('link', { name: 'Consulting Esimerkki Oy' })).toHaveAttribute(
+      'href',
+      '/applications/application-6',
+    )
+    expect(items[0]).toHaveTextContent('A 201 · Joensuu Center · Received')
+    expect(items[0]).toHaveTextContent('Submitted')
+    expect(within(latest).getByRole('link', { name: 'View all applications' })).toHaveAttribute('href', '/applications')
+
+    const available = screen.getByRole('region', { name: 'Available spaces' })
+    expect(within(available).getByText(/2 applications/)).toBeInTheDocument()
+    const activity = screen.getByRole('region', { name: 'Recent activity' })
+    expect(within(activity).getAllByText('Application received:').length).toBeGreaterThan(0)
+  })
+
   it('shows key figures calculated from the demo data', async () => {
     await seedDemoData()
     renderRoute('/')

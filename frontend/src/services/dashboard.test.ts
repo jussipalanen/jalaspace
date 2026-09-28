@@ -8,7 +8,7 @@ const today = toIsoDate(now)
 const seed = createSeedData(now)
 const summary = buildDashboardSummary(seed, today)
 
-const empty = { properties: [], spaces: [], tenants: [], leases: [], maintenance: [] }
+const empty = { properties: [], spaces: [], tenants: [], leases: [], maintenance: [], applications: [] }
 
 describe('buildDashboardSummary', () => {
   it('calculates the key figures from the seed data', () => {
@@ -22,7 +22,29 @@ describe('buildDashboardSummary', () => {
       openMaintenanceCount: 10,
       spaceBreakdown: { occupied: 58, available: 6, reserved: 1, maintenance: 3 },
       openMaintenanceByPriority: { high: 4, medium: 4, low: 2 },
+      openApplicationCount: 5,
+      openApplicationsByStatus: { submitted: 3, in_review: 2 },
     })
+  })
+
+  it('lists the latest applications, newest first, with their space and property', () => {
+    expect(summary.latestApplications).toHaveLength(DASHBOARD_LIST_LIMIT)
+    const created = summary.latestApplications.map((item) => item.application.createdAt)
+    expect(created).toEqual(created.toSorted().reverse())
+    expect(summary.latestApplications[0]).toMatchObject({
+      application: { name: 'Consulting Esimerkki Oy', status: 'submitted' },
+      space: { name: 'A 201' },
+      property: { name: 'Joensuu Center' },
+    })
+  })
+
+  it('counts the open applications of each available space', () => {
+    const count = (name: string) =>
+      summary.availableSpaces.find((item) => item.space.name === name)?.openApplicationCount
+    expect(count('A 11')).toBe(2)
+    expect(count('A 201')).toBe(1)
+    // The only application for A 302 was rejected.
+    expect(count('A 302')).toBe(0)
   })
 
   it('splits every space into exactly one state and every open task into one priority', () => {
@@ -112,11 +134,31 @@ describe('buildDashboardSummary', () => {
     expect(dates.every((date) => date <= today)).toBe(true)
 
     expect(activity[0]).toMatchObject({
+      type: 'application_received',
+      details: 'Consulting Esimerkki Oy, A 201, Joensuu Center',
+      href: '/applications/application-6',
+    })
+    expect(activity.every((item) => item.href.startsWith('/'))).toBe(true)
+
+    // Without applications, maintenance and lease events fill the list.
+    const withoutApplications = buildDashboardSummary({ ...seed, applications: [] }, today).recentActivity
+    expect(withoutApplications[0]).toMatchObject({
       type: 'maintenance_completed',
       details: 'Roof snow removal, Tampere Hervanta Logistics',
     })
-    expect(activity.some((item) => item.type === 'lease_ended')).toBe(true)
-    expect(activity.every((item) => item.href.startsWith('/'))).toBe(true)
+    expect(withoutApplications.some((item) => item.type === 'lease_ended')).toBe(true)
+  })
+
+  it('reports approved applications on their decision date', () => {
+    const approved = buildDashboardSummary(
+      { ...empty, spaces: seed.spaces, properties: seed.properties, applications: seed.applications },
+      today,
+    ).recentActivity.find((item) => item.type === 'application_approved')
+    const application = seed.applications.find((item) => item.status === 'approved')!
+    expect(approved).toMatchObject({
+      date: toIsoDate(new Date(application.decidedAt!)),
+      href: `/applications/${application.id}`,
+    })
   })
 
   it('sorts property names with the given locale', () => {
