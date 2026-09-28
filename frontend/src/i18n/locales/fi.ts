@@ -183,7 +183,17 @@ export const fi: Messages = {
         other: '{occupied} / {count} tilasta vuokrattu',
       },
       openMaintenance: 'Avoimet huollot',
-      highPriority: { one: '{count} kiireellinen', other: '{count} kiireellistä' },
+      openApplications: 'Avoimet hakemukset',
+      applicationStates: {
+        submitted: 'Uudet',
+        in_review: 'Käsittelyssä',
+      },
+      spaceStates: {
+        occupied: 'Vuokrattu',
+        available: 'Vapaa',
+        reserved: 'Varattu',
+        maintenance: 'Huollossa',
+      },
     },
     recentMaintenance: {
       title: 'Viimeisimmät huoltotehtävät',
@@ -195,6 +205,13 @@ export const fi: Messages = {
       empty: 'Kaikki tilat ovat vuokrattuina tai huollossa.',
       reservedFrom: 'Varattu {date} alkaen',
       floor: '{floor}. krs',
+      applications: { one: '{count} hakemus', other: '{count} hakemusta' },
+    },
+    latestApplications: {
+      title: 'Uusimmat hakemukset',
+      empty: 'Ei vielä hakemuksia.',
+      received: 'Vastaanotettu {date}',
+      viewAll: 'Näytä kaikki hakemukset',
     },
     activity: {
       title: 'Viimeaikaiset tapahtumat',
@@ -203,6 +220,8 @@ export const fi: Messages = {
         maintenance_completed: 'Huoltotehtävä valmistui',
         lease_started: 'Vuokrasopimus alkoi',
         lease_ended: 'Vuokrasopimus päättyi',
+        application_received: 'Hakemus vastaanotettu',
+        application_approved: 'Hakemus hyväksytty',
       },
     },
     viewAll: 'Näytä kaikki',
@@ -410,7 +429,7 @@ export const fi: Messages = {
       hint: 'Vapaaehtoinen. Hae osoitteella ja tarkenna sitten vetämällä nastaa tai napsauttamalla karttaa.',
       search: {
         label: 'Hae osoitteella',
-        hint: 'Hakee Suomesta, esim. Siltakatu 12, 80100 Joensuu.',
+        hint: 'Hakee Suomesta: katuosoite, postinumero ja paikkakunta.',
         submit: 'Hae',
         searching: 'Haetaan…',
         privacy: 'Hakemasi osoite lähetetään OpenStreetMapille.',
@@ -445,8 +464,8 @@ export const fi: Messages = {
       hints: {
         postalCode: '5 numeroa, esim. 80100',
         description: 'Vapaaehtoinen, enintään {max} merkkiä',
-        latitude: 'Asteina, esim. 62.601579',
-        longitude: 'Asteina, esim. 29.762079',
+        latitude: 'Asteina, esim. 62.6013',
+        longitude: 'Asteina, esim. 29.7636',
       },
       save: 'Tallenna kiinteistö',
       saving: 'Tallennetaan…',
@@ -1197,7 +1216,7 @@ export const fi: Messages = {
       },
       hints: {
         name: 'Enintään {max} merkkiä',
-        phone: 'Esimerkiksi +358 40 123 4567',
+        phone: 'Esimerkiksi +358 50 123 4567',
         notes: 'Enintään {max} merkkiä',
       },
       save: 'Tallenna vuokralainen',

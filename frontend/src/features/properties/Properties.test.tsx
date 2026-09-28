@@ -15,7 +15,7 @@ vi.mock('../../services/addressSearch', async (importOriginal) => ({
 }))
 
 const OULU: AddressMatch = {
-  label: '3, Kauppurienkatu, Keskusta, Oulu, 90100, Suomi / Finland',
+  label: '3, Esimerkkitori, Keskusta, Oulu, 90100, Suomi / Finland',
   location: { latitude: 65.012089, longitude: 25.465077 },
 }
 
@@ -48,7 +48,7 @@ describe('properties', () => {
       'Tampere Hervanta Logistics',
     ])
     const joensuu = rows()[1]!
-    expect(joensuu).toHaveTextContent('Siltakatu 12, 80100 Joensuu')
+    expect(joensuu).toHaveTextContent('Esimerkkikatu 12, 80100 Joensuu')
     expect(joensuu).toHaveTextContent('Mixed use')
     expect(joensuu).toHaveTextContent('2286%3')
     expect(screen.getByText('4 properties')).toBeInTheDocument()
@@ -97,7 +97,7 @@ describe('properties', () => {
 
     await fillForm(user, {
       Name: 'Oulu Tech Campus',
-      'Street address': 'Kauppurienkatu 3',
+      'Street address': 'Esimerkkitori 3',
       'Postal code': '90100',
       City: 'Oulu',
     })
@@ -179,28 +179,28 @@ describe('properties', () => {
     renderRoute('/properties/property-joensuu-center')
 
     expect(await screen.findByRole('region', { name: 'Map of Joensuu Center' })).toBeInTheDocument()
-    expect(screen.getByText('62.601579, 29.762079')).toBeInTheDocument()
+    expect(screen.getByText('62.6013, 29.7636')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Open in OpenStreetMap' })).toHaveAttribute(
       'href',
-      'https://www.openstreetmap.org/?mlat=62.601579&mlon=29.762079#map=17/62.601579/29.762079',
+      'https://www.openstreetmap.org/?mlat=62.6013&mlon=29.7636#map=15/62.6013/29.7636',
     )
   })
 
   it('sets the location by searching the address and choosing a match', async () => {
     const user = userEvent.setup()
-    searchAddress.mockResolvedValue([OULU, { ...OULU, label: 'Kauppurienkatu, Oulu' }])
+    searchAddress.mockResolvedValue([OULU, { ...OULU, label: 'Esimerkkitori, Oulu' }])
     const { router } = renderRoute('/properties/new')
 
     await fillForm(user, {
       Name: 'Oulu Tech Campus',
-      'Street address': 'Kauppurienkatu 3',
+      'Street address': 'Esimerkkitori 3',
       'Postal code': '90100',
       City: 'Oulu',
     })
     const search = screen.getByRole('searchbox', { name: 'Search address' })
-    expect(search).toHaveValue('Kauppurienkatu 3, 90100 Oulu')
+    expect(search).toHaveValue('Esimerkkitori 3, 90100 Oulu')
     await user.click(screen.getByRole('button', { name: 'Search' }))
-    expect(searchAddress).toHaveBeenCalledWith('Kauppurienkatu 3, 90100 Oulu', 'en')
+    expect(searchAddress).toHaveBeenCalledWith('Esimerkkitori 3, 90100 Oulu', 'en')
 
     const matches = await screen.findByRole('list', { name: 'Matches' })
     await user.click(within(matches).getByRole('button', { name: OULU.label }))

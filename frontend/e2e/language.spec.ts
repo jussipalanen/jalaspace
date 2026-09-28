@@ -48,9 +48,7 @@ test.describe('language', () => {
 
       const figures = page.getByRole('region', { name: 'Tunnusluvut' })
       await expect(figures.getByRole('link', { name: /^Käyttöaste/ })).toContainText('85 %')
-      await expect(figures.getByRole('link', { name: /^Avoimet huollot/ })).toContainText(
-        '4 kiireellistä',
-      )
+      await expect(figures.getByRole('link', { name: /^Avoimet huollot/ })).toContainText('Korkea 4')
     })
   })
 

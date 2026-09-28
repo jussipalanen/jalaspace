@@ -179,7 +179,7 @@ Editable fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/properties \
   -H 'content-type: application/json' \
-  -d '{"name":"Joensuu Center","type":"mixed_use","address":"Siltakatu 12","postalCode":"80100","city":"Joensuu"}'
+  -d '{"name":"Joensuu Center","type":"mixed_use","address":"Esimerkkikatu 12","postalCode":"80100","city":"Joensuu"}'
 ```
 
 A property that still has spaces or maintenance tasks cannot be deleted, so no data is left pointing to it:
@@ -258,7 +258,7 @@ Editable fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/tenants \
   -H 'content-type: application/json' \
-  -d '{"type":"company","name":"Lakeside Bakery Oy","contactPerson":"Maija Salo","email":"info@lakeside-bakery.example"}'
+  -d '{"type":"company","name":"Bakery Esimerkki Oy","contactPerson":"Maija Esimerkki","email":"info@bakery-esimerkki.example"}'
 ```
 
 A tenant that still has leases (current, upcoming or past) or approved applications cannot be deleted:
@@ -284,7 +284,7 @@ Fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/leases \
   -H 'content-type: application/json' \
-  -d '{"tenantId":"tenant-aurora-yoga","spaceId":"space-kuopio-harbour-10","startDate":"2026-10-01","endDate":null,"monthlyRentCents":125050}'
+  -d '{"tenantId":"tenant-yoga-studio-esimerkki","spaceId":"space-kuopio-harbour-10","startDate":"2026-10-01","endDate":null,"monthlyRentCents":125050}'
 ```
 
 - **Status is derived, not stored:** `upcoming` before the start date, `ended` after the end date, otherwise `active`. Both dates count as days of the lease, and "today" is the server's UTC date.

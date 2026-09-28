@@ -12,7 +12,7 @@ const TILE = Buffer.from(
 const OULU_MATCH = {
   lat: '65.0120890',
   lon: '25.4650770',
-  display_name: '3, Kauppurienkatu, Keskusta, Oulu, 90100, Suomi / Finland',
+  display_name: '3, Esimerkkitori, Keskusta, Oulu, 90100, Suomi / Finland',
 }
 
 /** Answers the map tile and address search requests; returns the searches made. */
@@ -32,7 +32,7 @@ async function createProperty(page: Page, name: string) {
   await page.goto('/properties/new')
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Type').selectOption('Office')
-  await page.getByLabel('Street address').fill('Kauppurienkatu 3')
+  await page.getByLabel('Street address').fill('Esimerkkitori 3')
   await page.getByLabel('Postal code').fill('90100')
   await page.getByLabel('City').fill('Oulu')
   await page.getByRole('button', { name: 'Save property' }).click()
@@ -60,14 +60,14 @@ test.describe('properties', () => {
     const searches = await mockOpenStreetMap(page)
     await page.goto('/properties/new')
     await page.getByLabel('Name').fill('Oulu Tech Campus')
-    await page.getByLabel('Street address').fill('Kauppurienkatu 3')
+    await page.getByLabel('Street address').fill('Esimerkkitori 3')
     await page.getByLabel('Postal code').fill('90100')
     await page.getByLabel('City').fill('Oulu')
 
     await page.getByRole('button', { name: 'Search', exact: true }).click()
     await page.getByRole('list', { name: 'Matches' }).getByRole('button', { name: OULU_MATCH.display_name }).click()
     expect(searches).toHaveLength(1)
-    expect(searches[0]!.searchParams.get('q')).toBe('Kauppurienkatu 3, 90100 Oulu')
+    expect(searches[0]!.searchParams.get('q')).toBe('Esimerkkitori 3, 90100 Oulu')
     expect(searches[0]!.searchParams.get('countrycodes')).toBe('fi')
     await expect(page.getByLabel('Latitude')).toHaveValue('65.012089')
     await expect(page.getByLabel('Longitude')).toHaveValue('25.465077')

@@ -213,12 +213,12 @@ describe('applications', () => {
     const user = userEvent.setup()
     const data = createDataLayer('localStorage')
     const application = (await data.applications.getById('application-5'))!
-    await data.applications.update({ ...application, email: 'info@nordic-pixel.example' })
+    await data.applications.update({ ...application, email: 'info@software-esimerkki.example' })
     const { unmount } = renderRoute('/applications/application-5')
 
     await user.click(within(await screen.findByRole('region', { name: 'Status' })).getByRole('button', { name: 'Approve' }))
     expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Nordic Pixel Oy (info@nordic-pixel.example) is already a tenant, so the application is linked to them.',
+      'Software Esimerkki Oy (info@software-esimerkki.example) is already a tenant, so the application is linked to them.',
     )
     unmount()
 

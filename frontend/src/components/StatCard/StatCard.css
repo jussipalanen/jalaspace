@@ -11,6 +11,20 @@
   border-color: var(--color-border-strong);
 }
 
+.stat-card__body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.stat-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
 .stat-card__label {
   font-size: var(--text-sm);
   font-weight: 500;

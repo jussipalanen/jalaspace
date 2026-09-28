@@ -28,7 +28,7 @@ describe('demo data API', () => {
     expect(await count(base, '/tenants')).toBe(31)
     expect(await count(base, '/leases')).toBe(62)
     // Demo tenants have leases, so they cannot be deleted.
-    expect((await fetch(`${base}/api/tenants/tenant-nordic-pixel`, { method: 'DELETE' })).status).toBe(409)
+    expect((await fetch(`${base}/api/tenants/tenant-software-esimerkki`, { method: 'DELETE' })).status).toBe(409)
 
     await fetch(`${base}/api/leases/lease-1`, { method: 'DELETE' })
     await fetch(`${base}/api/maintenance/maintenance-2`, { method: 'DELETE' })

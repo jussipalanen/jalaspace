@@ -8,10 +8,10 @@ import { serve } from '../test/serve.ts'
 
 const input = {
   type: 'company',
-  name: 'Nordic Pixel Oy',
+  name: 'Software Esimerkki Oy',
   contactPerson: 'Aleksi Esimerkki',
-  email: 'info@nordic-pixel.example',
-  phone: '+358 40 123 4567',
+  email: 'info@software-esimerkki.example',
+  phone: '+358 50 123 4567',
   notes: 'Software development company.',
 }
 
@@ -46,7 +46,7 @@ describe('tenants API', () => {
   it('creates a tenant with a server-assigned id and timestamps', async () => {
     const response = await send('POST', '/tenants', {
       ...input,
-      name: '  Nordic Pixel Oy ',
+      name: '  Software Esimerkki Oy ',
       id: 'client-chosen',
       createdAt: '2000-01-01T00:00:00.000Z',
     })
@@ -81,7 +81,7 @@ describe('tenants API', () => {
   it('rejects an email another tenant uses, ignoring case', async () => {
     await create()
 
-    const response = await send('POST', '/tenants', { ...input, email: 'INFO@nordic-pixel.example' })
+    const response = await send('POST', '/tenants', { ...input, email: 'INFO@software-esimerkki.example' })
 
     expect(response.status).toBe(400)
     expect(await response.json()).toEqual({ error: { code: 'validation_failed', fields: { email: 'duplicate' } } })
@@ -100,7 +100,7 @@ describe('tenants API', () => {
     const created = await create()
     // Make sure the update gets a later timestamp.
     await new Promise((resolve) => setTimeout(resolve, 5))
-    const changes = { ...input, name: 'Nordic Pixel Ltd', email: 'Info@Nordic-Pixel.example', phone: null }
+    const changes = { ...input, name: 'Software Esimerkki Ltd', email: 'Info@Software-Esimerkki.example', phone: null }
 
     const response = await send('PUT', `/tenants/${created.id}`, { ...changes, id: 'other' })
 
@@ -113,7 +113,7 @@ describe('tenants API', () => {
 
   it('does not change a tenant when the update is invalid', async () => {
     const created = await create()
-    const other = await create({ email: 'info@lumo-florist.example' })
+    const other = await create({ email: 'info@florist-esimerkki.example' })
 
     const response = await send('PUT', `/tenants/${other.id}`, { ...input, email: created.email })
 
