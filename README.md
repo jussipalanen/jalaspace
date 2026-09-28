@@ -224,6 +224,9 @@ Screenshots: [desktop list](docs/screenshots/maintenance-desktop.png) · [mobile
 <details>
 <summary><h2>Applications</h2></summary>
 
+A badge next to **Applications** in the sidebar shows how many applications are new (Submitted); it goes
+down as soon as one is handled, and over 100 it shows "+100".
+
 Open **Applications** (`/applications`, under Leasing in the sidebar) to see rental applications from
 people looking for a space, newest first, with the space applied for, the desired start date and the status.
 Filter by status (or all open ones) and property, and search by name, contact person or email. Filters stay in the URL.
