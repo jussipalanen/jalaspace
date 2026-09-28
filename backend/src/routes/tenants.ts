@@ -59,8 +59,14 @@ export function tenantsRouter(store: Store, now: () => Date = () => new Date()):
     if (!(await store.tenants.get(id))) throw new ApiError(404, 'not_found')
 
     // Checked with the current data on every delete, like properties and spaces.
-    const check = checkTenantDeletion(id, await store.leases.list())
-    if (!check.allowed) throw new ApiError(409, 'tenant_in_use', { leaseCount: check.leaseCount })
+    const [leases, applications] = await Promise.all([store.leases.list(), store.applications.list()])
+    const check = checkTenantDeletion(id, leases, applications)
+    if (!check.allowed) {
+      throw new ApiError(409, 'tenant_in_use', {
+        leaseCount: check.leaseCount,
+        applicationCount: check.applicationCount,
+      })
+    }
 
     await store.tenants.delete(id)
     response.status(204).end()
