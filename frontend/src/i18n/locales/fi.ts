@@ -181,7 +181,12 @@ export const fi: Messages = {
         other: '{occupied} / {count} tilasta vuokrattu',
       },
       openMaintenance: 'Avoimet huollot',
-      highPriority: { one: '{count} kiireellinen', other: '{count} kiireellistä' },
+      spaceStates: {
+        occupied: 'Vuokrattu',
+        available: 'Vapaa',
+        reserved: 'Varattu',
+        maintenance: 'Huollossa',
+      },
     },
     recentMaintenance: {
       title: 'Viimeisimmät huoltotehtävät',

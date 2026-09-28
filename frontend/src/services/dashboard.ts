@@ -1,6 +1,6 @@
 import type { IsoDate } from '../types/common'
 import type { Lease } from '../types/lease'
-import type { MaintenanceTask } from '../types/maintenance'
+import type { MaintenancePriority, MaintenanceTask } from '../types/maintenance'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 import type { Tenant } from '../types/tenant'
@@ -26,7 +26,21 @@ export interface DashboardStats {
   occupancyPercent: number | null
   /** Tasks that are not completed (open or in progress). */
   openMaintenanceCount: number
-  highPriorityOpenCount: number
+  /** Every space in exactly one state, so the counts add up to `spaceCount`. */
+  spaceBreakdown: SpaceBreakdown
+  /** Open maintenance tasks by priority; they add up to `openMaintenanceCount`. */
+  openMaintenanceByPriority: Record<MaintenancePriority, number>
+}
+
+/**
+ * Spaces by state for the Dashboard chart. `available` and `reserved` split the
+ * available spaces: reserved ones have an upcoming lease (Available spaces).
+ */
+export interface SpaceBreakdown {
+  occupied: number
+  available: number
+  reserved: number
+  maintenance: number
 }
 
 export interface MaintenanceSummary {
@@ -91,13 +105,33 @@ export function buildDashboardSummary(
   const tenantsById = indexById(input.tenants)
 
   const unfinishedTasks = input.maintenance.filter(isOpenMaintenance)
+  const countPriority = (priority: MaintenancePriority) =>
+    unfinishedTasks.filter((task) => task.priority === priority).length
+
+  const upcomingStartBySpace = new Map<string, IsoDate>()
+  for (const lease of input.leases) {
+    if (getLeaseStatus(lease, today) !== 'upcoming') continue
+    const current = upcomingStartBySpace.get(lease.spaceId)
+    if (!current || lease.startDate < current) upcomingStartBySpace.set(lease.spaceId, lease.startDate)
+  }
+
+  const countStatus = (status: Space['status']) => input.spaces.filter((space) => space.status === status).length
+  const reserved = input.spaces.filter(
+    (space) => space.status === 'available' && upcomingStartBySpace.has(space.id),
+  ).length
 
   const stats: DashboardStats = {
     propertyCount: input.properties.length,
     cityCount: new Set(input.properties.map((p) => p.city.trim().toLowerCase())).size,
     ...calculateOccupancy(input.spaces),
     openMaintenanceCount: unfinishedTasks.length,
-    highPriorityOpenCount: unfinishedTasks.filter((task) => task.priority === 'high').length,
+    spaceBreakdown: {
+      occupied: countStatus('occupied'),
+      available: countStatus('available') - reserved,
+      reserved,
+      maintenance: countStatus('maintenance'),
+    },
+    openMaintenanceByPriority: { high: countPriority('high'), medium: countPriority('medium'), low: countPriority('low') },
   }
 
   const recentMaintenance = input.maintenance
@@ -108,13 +142,6 @@ export function buildDashboardSummary(
       property: propertiesById.get(task.propertyId) ?? null,
       space: task.spaceId ? (spacesById.get(task.spaceId) ?? null) : null,
     }))
-
-  const upcomingStartBySpace = new Map<string, IsoDate>()
-  for (const lease of input.leases) {
-    if (getLeaseStatus(lease, today) !== 'upcoming') continue
-    const current = upcomingStartBySpace.get(lease.spaceId)
-    if (!current || lease.startDate < current) upcomingStartBySpace.set(lease.spaceId, lease.startDate)
-  }
 
   const availableSpaces = input.spaces
     .filter((space) => space.status === 'available')

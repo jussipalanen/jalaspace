@@ -1,6 +1,7 @@
+/* Wide enough for a figure and its chart side by side: four, two or one per row. */
 .dashboard__stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }

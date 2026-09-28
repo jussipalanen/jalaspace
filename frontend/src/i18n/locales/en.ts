@@ -182,7 +182,12 @@ export const en = {
         other: '{occupied} of {count} spaces occupied',
       },
       openMaintenance: 'Open maintenance',
-      highPriority: { one: '{count} high priority', other: '{count} high priority' },
+      spaceStates: {
+        occupied: 'Occupied',
+        available: 'Available',
+        reserved: 'Reserved',
+        maintenance: 'In maintenance',
+      },
     },
     recentMaintenance: {
       title: 'Recent maintenance',
