@@ -22,6 +22,7 @@ export interface Entity {
  * Error code for one invalid field. The frontend translates it per field.
  * `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`
  * compare the input with the stored data, e.g. a space's property must exist.
+ * `past` is a date that must be today or later.
  */
 export const FIELD_ERROR_CODES = [
   'required',
@@ -33,6 +34,7 @@ export const FIELD_ERROR_CODES = [
   'overlap',
   'maintenance',
   'beforeStart',
+  'past',
 ] as const
 
 export type FieldErrorCode = (typeof FIELD_ERROR_CODES)[number]

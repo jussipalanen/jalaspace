@@ -3,11 +3,14 @@ import { Router } from 'express'
 import {
   canChangeApplicationStatus,
   checkApplicationReferences,
+  checkNewApplication,
+  isSpaceOpenForApplications,
   parseApplicationInput,
   resolveDecidedAt,
   type Application,
   type ApplicationInput,
 } from '../domain/applications.ts'
+import { toIsoDate } from '../domain/leases.ts'
 import { ApiError } from '../errors.ts'
 import type { Store } from '../store/store.ts'
 
@@ -57,7 +60,19 @@ export function applicationsRouter(store: Store, now: () => Date = () => new Dat
       status: 'submitted',
       tenantId: null,
     })
-    const timestamp = now().toISOString()
+    const time = now()
+    const today = toIsoDate(time)
+    const [applications, space, leases] = await Promise.all([
+      store.applications.list(),
+      store.spaces.get(input.spaceId),
+      store.leases.list(),
+    ])
+    const errors = checkNewApplication(input, { applications, today })
+    if (Object.keys(errors).length > 0) throw new ApiError(400, 'validation_failed', { fields: errors })
+    // Checked on every send: the space may have been let or reserved while the form was open.
+    if (!space || !isSpaceOpenForApplications(space, leases, today)) throw new ApiError(409, 'space_unavailable')
+
+    const timestamp = time.toISOString()
     const application: Application = {
       id: randomUUID(),
       ...input,

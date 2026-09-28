@@ -271,7 +271,7 @@ const applicationInput = object(
       pattern: PHONE_PATTERN.source,
       description: 'Digits, spaces, `+`, `-` and parentheses; `null` when empty.',
     }),
-    desiredStartDate: date('When the applicant would like to move in.'),
+    desiredStartDate: date('When the applicant would like to move in; on create, today or later (`past`).'),
     message: text(APPLICATION_MESSAGE_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
     status: {
       ...oneOf(
