@@ -885,6 +885,18 @@ Recent activity is derived from entity dates (maintenance completed, lease start
 
 Calculations belong in a pure, tested service (`services/dashboard.ts`), not in components.
 
+The key figures have small ring charts (`components/RingChart`, inline SVG, no chart library):
+
+```text
+Spaces             occupied, available, reserved, in maintenance (adds up to all spaces)
+Occupancy          a meter: occupied spaces of all spaces
+Open maintenance   high, medium, low priority (adds up to the open tasks)
+```
+
+* each ring is decorative (`aria-hidden`); the card's text and legend state the same numbers, so no value is told by colour alone
+* chart colours are the `--color-chart-*` tokens, checked with the dataviz palette validator: space states are categorical, priorities one hue from light (low) to dark (high)
+* the segments grow once when the Dashboard opens; no animation with `prefers-reduced-motion: reduce`
+
 ---
 
 # Properties
