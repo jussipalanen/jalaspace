@@ -5,6 +5,24 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.20.0](https://github.com/jussipalanen/jalaspace/compare/v0.19.0...v0.20.0) (2026-09-28)
+
+
+### Added
+
+* **applications:** approve applications into tenants and leases ([#149](https://github.com/jussipalanen/jalaspace/issues/149)) ([0ae952f](https://github.com/jussipalanen/jalaspace/commit/0ae952fd0b88b16d314a23ba295c65d62686132f))
+* **applications:** let people apply for available spaces through a public form ([#148](https://github.com/jussipalanen/jalaspace/issues/148)) ([dde895d](https://github.com/jussipalanen/jalaspace/commit/dde895dc2a24dd9c22d6810f117915cb72ea5a1d))
+* **applications:** review rental applications for spaces ([#146](https://github.com/jussipalanen/jalaspace/issues/146)) ([9036ac4](https://github.com/jussipalanen/jalaspace/commit/9036ac45844e37d92daebba0e7e65465914aa354))
+* **applications:** show the number of new applications in the sidebar ([#155](https://github.com/jussipalanen/jalaspace/issues/155)) ([77d34df](https://github.com/jussipalanen/jalaspace/commit/77d34df31abacc760b6dc129d1f1760f6ba7cffa))
+* **dashboard:** show the JalaSpace logo at the top of the Dashboard ([#151](https://github.com/jussipalanen/jalaspace/issues/151)) ([37b4428](https://github.com/jussipalanen/jalaspace/commit/37b44280435c82ad2dc5e44bc5901130964e981f))
+* **dashboard:** show the key figures as ring charts ([#152](https://github.com/jussipalanen/jalaspace/issues/152)) ([3771001](https://github.com/jussipalanen/jalaspace/commit/3771001813e402709105625b6cf110db0e73e3eb))
+* **dashboard:** show the latest applications on the Dashboard ([#153](https://github.com/jussipalanen/jalaspace/issues/153)) ([adb61a0](https://github.com/jussipalanen/jalaspace/commit/adb61a0b5770bd73ca4dfe3f5cb7ebff17a9b0a3))
+
+
+### Fixed
+
+* **data:** use only fictional names, addresses and phone numbers in the demo data ([#150](https://github.com/jussipalanen/jalaspace/issues/150)) ([d76d3c9](https://github.com/jussipalanen/jalaspace/commit/d76d3c9be8af584be6a2d93821a54dec785617c7))
+
 ## [0.19.0](https://github.com/jussipalanen/jalaspace/compare/v0.18.0...v0.19.0) (2026-09-26)
 
 
