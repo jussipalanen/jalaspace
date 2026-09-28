@@ -55,7 +55,12 @@ export function DeleteTenantDialog({ open, tenant, deletion, onClose, onBlocked 
       >
         <p>{t('tenants.delete.blockedDescription')}</p>
         <ul>
-          <li>{t('tenants.delete.blockedLeases', { count: deletion.leaseCount })}</li>
+          {deletion.leaseCount > 0 && (
+            <li>{t('tenants.delete.blockedLeases', { count: deletion.leaseCount })}</li>
+          )}
+          {deletion.applicationCount > 0 && (
+            <li>{t('tenants.delete.blockedApplications', { count: deletion.applicationCount })}</li>
+          )}
         </ul>
       </ConfirmDialog>
     )

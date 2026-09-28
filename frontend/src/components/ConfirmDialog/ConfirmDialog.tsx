@@ -13,6 +13,8 @@ interface ConfirmDialogProps {
     busyLabel: string
     busy: boolean
     onConfirm: () => void
+    /** `primary` for actions that are not destructive, e.g. approving (default: `danger`). */
+    tone?: 'danger' | 'primary'
   }
   error?: string | null
 }
@@ -77,7 +79,7 @@ export function ConfirmDialog({
         {confirm && (
           <button
             type="button"
-            className="button button--danger"
+            className={`button button--${confirm.tone ?? 'danger'}`}
             onClick={confirm.onConfirm}
             disabled={confirm.busy}
           >

@@ -62,3 +62,31 @@
 .tenant-details__notes {
   white-space: pre-line;
 }
+
+.tenant-applications {
+  margin: 0;
+  padding: 0 var(--space-5);
+  list-style: none;
+}
+
+.tenant-applications__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-4) 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.tenant-applications__item:first-child {
+  border-top: 0;
+}
+
+.tenant-applications__item > a {
+  font-weight: 600;
+}
+
+.tenant-applications__meta {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}

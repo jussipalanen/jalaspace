@@ -1,3 +1,4 @@
+import type { Application } from '../types/application'
 import type { IsoDate, IsoDateTime } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { Property } from '../types/property'
@@ -225,12 +226,21 @@ export function filterTenantRows(rows: TenantRow[], filters: TenantFilters, loca
 export interface TenantDeletionCheck {
   allowed: boolean
   leaseCount: number
+  applicationCount: number
 }
 
-/** A tenant can only be deleted when no lease, current, upcoming or past, refers to it. */
-export function checkTenantDeletion(tenantId: string, leases: Lease[]): TenantDeletionCheck {
+/**
+ * A tenant can only be deleted when no lease, current, upcoming or past, and
+ * no approved application refers to it.
+ */
+export function checkTenantDeletion(
+  tenantId: string,
+  leases: Lease[],
+  applications: Pick<Application, 'tenantId'>[],
+): TenantDeletionCheck {
   const leaseCount = leases.filter((lease) => lease.tenantId === tenantId).length
-  return { allowed: leaseCount === 0, leaseCount }
+  const applicationCount = applications.filter((application) => application.tenantId === tenantId).length
+  return { allowed: leaseCount === 0 && applicationCount === 0, leaseCount, applicationCount }
 }
 
 /**
