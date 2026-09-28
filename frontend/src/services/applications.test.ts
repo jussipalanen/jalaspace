@@ -5,6 +5,9 @@ import type { Lease } from '../types/lease'
 import {
   applyApplicationStatus,
   buildApplicationRows,
+  buildNewApplication,
+  filterOpenSpaces,
+  listOpenSpaces,
   canChangeApplicationStatus,
   filterApplicationRows,
   isSpaceOpenForApplications,
@@ -22,7 +25,7 @@ const values: ApplicationFormValues = {
   contactPerson: '',
   email: 'lotta.esimerkki@example.com',
   phone: '+358501234565',
-  desiredStartDate: '2026-11-01',
+  desiredStartDate: '1.11.2026',
   message: '',
 }
 
@@ -30,6 +33,7 @@ const application = (overrides: Partial<Application> = {}): Application => ({
   id: 'application-x',
   spaceId: 'space-1',
   ...values,
+  desiredStartDate: '2026-11-01',
   contactPerson: null,
   phone: null,
   status: 'submitted',
@@ -105,7 +109,7 @@ describe('application form validation', () => {
         contactPerson: 'x'.repeat(101),
         email: 'lotta@',
         phone: 'call me',
-        desiredStartDate: '2026-02-30',
+        desiredStartDate: '30.2.2026',
         message: 'x'.repeat(2001),
       }),
     ).toEqual({
@@ -120,6 +124,79 @@ describe('application form validation', () => {
       email: 'required',
       desiredStartDate: 'required',
     })
+  })
+})
+
+describe('new applications', () => {
+  const context = { spaceId: 'space-1', today: '2026-09-22', applications: [] }
+
+  it('start today or later', () => {
+    expect(validateApplicationForm({ ...values, desiredStartDate: '22.9.2026' }, context)).toEqual({})
+    expect(validateApplicationForm({ ...values, desiredStartDate: '21.9.2026' }, context)).toEqual({
+      desiredStartDate: 'past',
+    })
+    // Without the context, e.g. for stored applications, the date is only checked for its format.
+    expect(validateApplicationForm({ ...values, desiredStartDate: '21.9.2026' })).toEqual({})
+  })
+
+  it('allow one open application per email and space, ignoring case', () => {
+    const open = application({ email: 'LOTTA.esimerkki@example.com', status: 'in_review' })
+    expect(validateApplicationForm(values, { ...context, applications: [open] })).toEqual({ email: 'duplicate' })
+    expect(
+      validateApplicationForm(values, { ...context, applications: [{ ...open, status: 'rejected' }] }),
+    ).toEqual({})
+    expect(validateApplicationForm(values, { ...context, applications: [{ ...open, spaceId: 'space-2' }] })).toEqual(
+      {},
+    )
+  })
+
+  it('are built from trimmed form values, submitted and without a tenant', () => {
+    expect(
+      buildNewApplication(
+        { ...values, name: ' Lotta Esimerkki ', contactPerson: 'ignored for a person', phone: ' ', message: ' Hi ' },
+        'space-1',
+        now,
+        'application-new',
+      ),
+    ).toEqual({
+      id: 'application-new',
+      spaceId: 'space-1',
+      applicantType: 'person',
+      name: 'Lotta Esimerkki',
+      contactPerson: null,
+      email: 'lotta.esimerkki@example.com',
+      phone: null,
+      desiredStartDate: '2026-11-01',
+      message: 'Hi',
+      status: 'submitted',
+      decidedAt: null,
+      tenantId: null,
+      createdAt: now,
+      updatedAt: now,
+    })
+  })
+})
+
+describe('open spaces', () => {
+  const open = listOpenSpaces(seed.spaces, seed.properties, seed.leases, '2026-09-22', 'en-GB')
+
+  it('list the available spaces without the reserved one, by city, property and name', () => {
+    expect(open.map(({ space, property }) => `${property.city}: ${space.name}`)).toEqual([
+      'Helsinki: A 11',
+      'Joensuu: A 201',
+      'Kuopio: B 103',
+      'Kuopio: B 204',
+      'Kuopio: B 305',
+      'Tampere: Storage 2',
+    ])
+  })
+
+  it('filter by city and space type', () => {
+    expect(filterOpenSpaces(open, { city: 'Kuopio', type: '' })).toHaveLength(3)
+    expect(filterOpenSpaces(open, { city: '', type: 'storage' }).map(({ space }) => space.name)).toEqual([
+      'Storage 2',
+    ])
+    expect(filterOpenSpaces(open, { city: 'Helsinki', type: 'office' })).toEqual([])
   })
 })
 

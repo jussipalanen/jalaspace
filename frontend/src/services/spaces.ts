@@ -1,3 +1,4 @@
+import { isSpaceOpenForApplications } from './applications'
 import type { Application } from '../types/application'
 import type { IsoDate, IsoDateTime } from '../types/common'
 import type { Lease } from '../types/lease'
@@ -229,6 +230,8 @@ export interface SpaceRow {
   space: Space
   property: Property | null
   tenant: Tenant | null
+  /** Available and not reserved, so it can be applied for. */
+  openForApplications: boolean
 }
 
 export interface SpaceFilters {
@@ -279,6 +282,7 @@ export function buildSpaceRows(
         space,
         property: propertiesById.get(space.propertyId) ?? null,
         tenant: lease ? (tenantsById.get(lease.tenantId) ?? null) : null,
+        openForApplications: isSpaceOpenForApplications(space, leases, today),
       }
     })
     .toSorted(

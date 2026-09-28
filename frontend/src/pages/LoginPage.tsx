@@ -1,5 +1,5 @@
-import { Navigate, useLocation } from 'react-router'
-import { LogoMark } from '../components/icons'
+import { Link, Navigate, useLocation } from 'react-router'
+import { ChevronRightIcon, LogoMark } from '../components/icons'
 import { isSharedData } from '../config/dataProvider'
 import { LanguageSwitcher } from '../components/LanguageSwitcher/LanguageSwitcher'
 import { LoginForm } from '../features/auth/LoginForm'
@@ -45,6 +45,16 @@ export function LoginPage() {
           <p className="login-page__subtitle">{t('auth.subtitle')}</p>
           <LoginForm />
         </div>
+
+        <section className="card login-page__apply" aria-labelledby="login-apply-title">
+          <h2 id="login-apply-title" className="login-page__apply-title">
+            {t('apply.loginLink.title')}
+          </h2>
+          <Link to="/apply" className="login-page__apply-link">
+            {t('apply.loginLink.text')}
+            <ChevronRightIcon width={16} height={16} />
+          </Link>
+        </section>
 
         <p className="login-page__notice">
           {t(isSharedData() ? 'auth.noticeShared' : 'auth.notice')}

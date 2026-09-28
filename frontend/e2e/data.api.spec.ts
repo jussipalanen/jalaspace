@@ -131,6 +131,39 @@ test.describe('api data provider', () => {
     expect(application.decidedAt).not.toBeNull()
   })
 
+  test('a visitor applies through the public form, stored on the API', async ({ page, request }) => {
+    await page.goto('/apply/space-kuopio-harbour-3')
+    await expectPageHeading(page, 'Apply for B 103')
+    await expect(page.getByText(/visible to everyone who uses this demo/)).toBeVisible()
+
+    const date = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    await page.getByRole('textbox', { name: /^Full name/ }).fill('Liisa Esimerkki')
+    await page.getByRole('textbox', { name: /^Email/ }).fill('liisa.esimerkki@example.com')
+    await page
+      .getByRole('textbox', { name: /^Desired start date/ })
+      .fill(`${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`)
+    await page.getByRole('checkbox', { name: /I understand this is a demo/ }).check()
+    await page.getByRole('button', { name: 'Send application' }).click()
+    await expectPageHeading(page, 'Application sent')
+
+    const applications = await getJson<{ name: string; spaceId: string; status: string }[]>(request, '/applications')
+    expect(applications.find((application) => application.name === 'Liisa Esimerkki')).toMatchObject({
+      spaceId: 'space-kuopio-harbour-3',
+      status: 'submitted',
+    })
+    // A reserved space cannot be applied for through the API either.
+    const reserved = await request.post(api('/applications'), {
+      data: {
+        spaceId: 'space-joensuu-center-12',
+        applicantType: 'person',
+        name: 'Liisa Esimerkki',
+        email: 'liisa.esimerkki@example.com',
+        desiredStartDate: date.toISOString().slice(0, 10),
+      },
+    })
+    expect(reserved.status()).toBe(409)
+  })
+
   test('Reset demo data in Settings restores the API data', async ({ page, request }) => {
     expect((await request.delete(api('/maintenance/maintenance-1'))).status()).toBe(204)
 

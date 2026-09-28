@@ -128,6 +128,8 @@ interface Collection {
   singular: string
   schema: string
   input: keyof typeof EXAMPLES
+  /** What `POST` refuses besides invalid input and a full collection, if anything. */
+  createConflict?: { code: ErrorCode; description: string }
   /** What `PUT` refuses besides invalid input, if anything. */
   updateConflict?: { code: ErrorCode; description: string; details: object }
   /** What `DELETE` refuses, if anything. */
@@ -210,13 +212,18 @@ const COLLECTIONS: Collection[] = [
     singular: 'application',
     schema: 'Application',
     input: 'ApplicationInput',
+    createConflict: {
+      code: 'space_unavailable',
+      description: 'the space cannot be applied for: it is let, in maintenance or reserved by an upcoming lease.',
+    },
     updateConflict: {
       code: 'invalid_status_change',
       description: 'The status rules do not allow this change, e.g. from a final status.',
       details: { from: 'rejected', to: 'in_review' },
     },
     notes: {
-      create: 'A new application is always `submitted`, without a tenant.',
+      create:
+        'A new application is always `submitted`, without a tenant. The desired start must be today or later (`past`), and an email can have one open application per space (`duplicate`).',
       update: 'Change the status with an update; the server sets `decidedAt`. The stored space is kept.',
       delete: 'Nothing refers to an application, so it can always be deleted.',
     },
@@ -259,9 +266,13 @@ function collectionOperations(c: Collection, limits: CollectionLimits): Record<s
           headers: { Location: { description: 'URL of the new resource.', schema: { type: 'string' } } },
         },
         400: validationError,
-        409: error(`The collection is full: at most ${limit} ${c.tag.toLowerCase()}.`, ['limit_reached'], {
-          limit_reached: { limit },
-        }),
+        409: error(
+          [`The collection is full: at most ${limit} ${c.tag.toLowerCase()}.`, c.createConflict?.description]
+            .filter(Boolean)
+            .join(' Or: '),
+          ['limit_reached', ...(c.createConflict ? [c.createConflict.code] : [])],
+          { limit_reached: { limit } },
+        ),
         413: tooLarge,
         429: writeLimited,
         500: internalError,

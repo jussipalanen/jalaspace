@@ -6,6 +6,7 @@ import { BuildingIcon, PencilIcon, PlusIcon, TrashIcon } from '../components/ico
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { StatCard } from '../components/StatCard/StatCard'
 import { StatusBadge } from '../components/StatusBadge/StatusBadge'
+import { ApplicationFormLink } from '../features/applications/ApplicationFormLink'
 import { DeletePropertyDialog } from '../features/properties/DeletePropertyDialog'
 import { PropertyLocationCard } from '../features/properties/PropertyLocationCard'
 import { usePropertyDetails } from '../features/properties/usePropertyData'
@@ -55,7 +56,7 @@ function PropertyDetailsView({
 }) {
   const { t, locale } = useTranslation()
   const [deleteOpen, setDeleteOpen] = useState(false)
-  const { property, metrics, spaces, tenantsBySpace, openMaintenance, deletion } = details
+  const { property, metrics, spaces, tenantsBySpace, openForApplications, openMaintenance, deletion } = details
 
   return (
     <>
@@ -139,7 +140,7 @@ function PropertyDetailsView({
         {spaces.length === 0 ? (
           <p className="card section__empty">{t('properties.detail.noSpaces')}</p>
         ) : (
-          <SpaceTable spaces={spaces} tenantsBySpace={tenantsBySpace} />
+          <SpaceTable spaces={spaces} tenantsBySpace={tenantsBySpace} openForApplications={openForApplications} />
         )}
       </section>
 
@@ -218,9 +219,11 @@ function PropertyDetailsView({
 function SpaceTable({
   spaces: rows,
   tenantsBySpace,
+  openForApplications,
 }: {
   spaces: Space[]
   tenantsBySpace: Record<string, Tenant>
+  openForApplications: ReadonlySet<string>
 }) {
   const { t, locale } = useTranslation()
   const columns = {
@@ -283,9 +286,14 @@ function SpaceTable({
                   {space.rooms ?? '—'}
                 </td>
                 <td data-label={columns.status}>
-                  <StatusBadge tone={spaceStatusTones[space.status]}>
-                    {t(`space.status.${space.status}`)}
-                  </StatusBadge>
+                  <span className="space-status">
+                    <StatusBadge tone={spaceStatusTones[space.status]}>
+                      {t(`space.status.${space.status}`)}
+                    </StatusBadge>
+                    {openForApplications.has(space.id) && (
+                      <ApplicationFormLink space={space} className="space-status__form-link" />
+                    )}
+                  </span>
                 </td>
                 <td data-label={columns.tenant}>
                   {tenantsBySpace[space.id] ? (

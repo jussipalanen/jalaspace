@@ -226,3 +226,19 @@ a.data-table__primary:hover {
 .data-table__secondary-inline {
   color: var(--color-text-muted);
 }
+
+/* A space's status with, when it can be applied for, a link to its public application form. */
+.space-status {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.space-status__form-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}

@@ -223,7 +223,13 @@ Filter by status (or all open ones) and property, and search by name, contact pe
 - An open application whose space has been let, reserved or taken into maintenance meanwhile is flagged.
 - A space with applications cannot be deleted. Deleting an application requires confirmation.
 
-Screenshots: [desktop list](docs/screenshots/applications-desktop.png) · [mobile application details](docs/screenshots/applications-mobile.png).
+People looking for a space apply without signing in: **Browse available spaces and apply** below the
+sign-in form opens `/apply`, which lists the spaces that can be applied for as cards (filter by city and type).
+Each space has its own form with the address, key facts, features and a map. The manager can open the form
+from the Applications page and from each available space on the Spaces list and property page.
+The form reminds that this is a demo: do not enter real personal information.
+
+Screenshots: [desktop list](docs/screenshots/applications-desktop.png) · [mobile application details](docs/screenshots/applications-mobile.png) · [available spaces](docs/screenshots/apply-desktop.png) · [application form](docs/screenshots/apply-form-desktop.png) · [mobile form](docs/screenshots/apply-mobile.png) · [sign-in page](docs/screenshots/apply-login.png).
 
 </details>
 

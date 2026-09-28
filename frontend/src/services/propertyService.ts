@@ -1,3 +1,4 @@
+import { isSpaceOpenForApplications } from './applications'
 import type { DataLayer } from '../repositories'
 import { EntityNotFoundError } from '../repositories/Repository'
 import type { MaintenanceTask } from '../types/maintenance'
@@ -54,6 +55,8 @@ export interface PropertyDetails {
   spaces: Space[]
   /** The current tenant of each occupied space, by space id. */
   tenantsBySpace: Record<string, Tenant>
+  /** Spaces that can be applied for: available and not reserved. */
+  openForApplications: ReadonlySet<string>
   openMaintenance: MaintenanceTask[]
   deletion: PropertyDeletionCheck
 }
@@ -89,6 +92,9 @@ export async function loadPropertyDetails(
     metrics: { ...calculateOccupancy(spaces), openMaintenanceCount: openMaintenance.length },
     spaces,
     tenantsBySpace,
+    openForApplications: new Set(
+      spaces.filter((space) => isSpaceOpenForApplications(space, leases, today)).map((space) => space.id),
+    ),
     openMaintenance,
     deletion: checkPropertyDeletion(id, allSpaces, allMaintenance),
   }
