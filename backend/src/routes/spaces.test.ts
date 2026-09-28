@@ -4,7 +4,7 @@ import type { Property } from '../domain/properties.ts'
 import type { Space } from '../domain/spaces.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
-import { lease, maintenanceTask } from '../test/fixtures.ts'
+import { application, lease, maintenanceTask } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const property = (id: string): Property => ({
@@ -207,17 +207,18 @@ describe('spaces API', () => {
     expect((await send('GET', `/units/${created.id}`)).status).toBe(404)
   })
 
-  it('refuses to delete a space that still has leases or maintenance tasks', async () => {
+  it('refuses to delete a space that still has leases, maintenance tasks or applications', async () => {
     const created = await create()
     await store.leases.insert(lease({ id: 'lease-1', spaceId: created.id, endDate: '2021-12-31' }))
     await store.leases.insert(lease({ id: 'lease-2', spaceId: created.id, startDate: '2022-01-01' }))
     await store.maintenance.insert(maintenanceTask({ id: 'task-1', spaceId: created.id }))
+    await store.applications.insert(application({ id: 'application-1', spaceId: created.id, status: 'rejected' }))
 
     const response = await send('DELETE', `/units/${created.id}`)
 
     expect(response.status).toBe(409)
     expect(await response.json()).toEqual({
-      error: { code: 'space_in_use', leaseCount: 2, maintenanceCount: 1 },
+      error: { code: 'space_in_use', leaseCount: 2, maintenanceCount: 1, applicationCount: 1 },
     })
     expect(await store.spaces.get(created.id)).toEqual(created)
   })

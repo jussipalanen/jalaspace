@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createMemoryStore } from '../store/memoryStore.ts'
-import { lease, maintenanceTask } from '../test/fixtures.ts'
+import { application, lease, maintenanceTask } from '../test/fixtures.ts'
+import {
+  checkApplicationReferences,
+  isOpenApplication,
+  isSpaceOpenForApplications,
+  parseApplicationInput,
+} from './applications.ts'
 import { createDemoData, resetDemoData } from './demoData.ts'
 import { checkLeaseReferences, getLeaseStatus, parseLeaseInput, reconcileSpaceStatuses, toIsoDate } from './leases.ts'
 import { checkMaintenanceReferences, parseMaintenanceInput } from './maintenance.ts'
@@ -208,6 +214,53 @@ describe('demo data', () => {
     for (const tenant of tenants) expect(checkTenantDeletion(tenant.id, leases).allowed).toBe(false)
   })
 
+  it('has the 7 demo applications of the frontend seed', () => {
+    const { applications } = createDemoData(now)
+    const count = (status: string) => applications.filter((item) => item.status === status).length
+
+    expect(applications.map(({ id }) => id)).toEqual(Array.from({ length: 7 }, (_, index) => `application-${index + 1}`))
+    expect(count('submitted')).toBe(3)
+    expect(count('in_review')).toBe(2)
+    expect(count('rejected')).toBe(1)
+    expect(count('withdrawn')).toBe(1)
+    expect(applications[0]).toEqual({
+      id: 'application-1',
+      spaceId: 'space-joensuu-center-12',
+      applicantType: 'company',
+      name: 'Pilates Studio Esimerkki Oy',
+      contactPerson: 'Emma Esimerkki',
+      email: 'info@pilates-studio-esimerkki.example',
+      phone: '+358501234561',
+      desiredStartDate: '2026-10-22',
+      message: 'We are looking for a bright studio for group classes of up to 12 people.',
+      status: 'rejected',
+      tenantId: null,
+      decidedAt: '2026-08-23T10:30:00.000Z',
+      createdAt: '2026-08-13T10:30:00.000Z',
+      updatedAt: '2026-08-23T10:30:00.000Z',
+    })
+  })
+
+  it('has applications that pass the same validation as data sent by clients', () => {
+    const { applications, spaces } = createDemoData(now)
+    for (const item of applications) {
+      const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, decidedAt, ...input } = item
+      expect(parseApplicationInput(input)).toEqual({ ok: true, values: input })
+      const spaceExists = spaces.some(({ id }) => id === item.spaceId)
+      expect(checkApplicationReferences(input, { spaceExists, tenantExists: false })).toEqual({})
+      expect(decidedAt === null).toBe(isOpenApplication(item))
+    }
+  })
+
+  it('only has open applications for spaces that can be applied for', () => {
+    const { applications, spaces, leases } = createDemoData(now)
+    const today = toIsoDate(now)
+    for (const item of applications.filter(isOpenApplication)) {
+      const space = spaces.find(({ id }) => id === item.spaceId)!
+      expect(isSpaceOpenForApplications(space, leases, today), item.id).toBe(true)
+    }
+  })
+
   it('replaces all data with the demo data on reset', async () => {
     const store = createMemoryStore()
     const demo = createDemoData(now)
@@ -216,6 +269,7 @@ describe('demo data', () => {
     await store.maintenance.insert(maintenanceTask({ id: 'task-mine', propertyId: 'mine' }))
     await store.leases.insert(lease({ id: 'lease-mine', tenantId: 'tenant-mine', spaceId: 'space-mine' }))
     await store.tenants.insert({ ...demo.tenants[0]!, id: 'tenant-mine', email: 'mine@example.com' })
+    await store.applications.insert(application({ id: 'application-mine', spaceId: 'space-mine' }))
 
     await resetDemoData(store, now)
 
@@ -224,5 +278,6 @@ describe('demo data', () => {
     expect(await store.maintenance.list()).toEqual(demo.maintenance)
     expect(await store.tenants.list()).toEqual(demo.tenants)
     expect(await store.leases.list()).toEqual(demo.leases)
+    expect(await store.applications.list()).toEqual(demo.applications)
   })
 })
