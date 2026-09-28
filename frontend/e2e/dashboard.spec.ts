@@ -8,11 +8,25 @@ const figure = (page: Page, label: string) =>
   page.getByRole('region', { name: 'Key figures' }).getByRole('link', { name: new RegExp(`^${label}`) })
 
 test.describe('dashboard', () => {
+  test('draws the figures as rings that grow once, and not at all with reduced motion', async ({ page }) => {
+    await page.goto('/')
+    const segments = page.getByRole('region', { name: 'Key figures' }).locator('.ring-chart__segment')
+    // Spaces 4, occupancy 1, maintenance 3: one arc per non-empty segment.
+    await expect(segments).toHaveCount(8)
+    expect(await segments.first().evaluate((arc) => getComputedStyle(arc).animationName)).toBe('ring-chart-grow')
+
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.reload()
+    await expect(segments).toHaveCount(8)
+    expect(await segments.first().evaluate((arc) => getComputedStyle(arc).animationName)).toBe('none')
+  })
+
   test('shows figures and lists from the seeded demo data', async ({ page }) => {
     await page.goto('/')
 
     await expect(figure(page, 'Properties')).toContainText('4')
-    await expect(figure(page, 'Spaces')).toContainText('7 available')
+    await expect(figure(page, 'Spaces')).toContainText('Available 6')
+    await expect(figure(page, 'Spaces')).toContainText('Reserved 1')
     await expect(figure(page, 'Occupancy')).toContainText('85%')
     await expect(figure(page, 'Open maintenance')).toContainText('10')
 
@@ -41,7 +55,8 @@ test.describe('dashboard', () => {
   test('recalculates the figures when the data changes', async ({ page }) => {
     await page.goto('/')
     await expect(occupancy(page)).toContainText('85%')
-    await expect(figure(page, 'Spaces')).toContainText('7 available')
+    await expect(figure(page, 'Spaces')).toContainText('Available 6')
+    await expect(figure(page, 'Spaces')).toContainText('Reserved 1')
 
     // A 1's lease ends yesterday. On the next start the app frees the space,
     // and the figures follow.
@@ -59,7 +74,7 @@ test.describe('dashboard', () => {
     await page.reload()
 
     await expect(occupancy(page)).toContainText('84%')
-    await expect(figure(page, 'Spaces')).toContainText('8 available')
+    await expect(figure(page, 'Spaces')).toContainText('Available 7')
     await expect(page.getByRole('link', { name: 'View all 8' })).toBeVisible()
   })
 })

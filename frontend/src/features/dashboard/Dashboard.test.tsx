@@ -22,9 +22,9 @@ describe('Dashboard', () => {
 
     await screen.findByRole('region', { name: 'Key figures' })
     expect(figure('Properties')).toHaveTextContent('Properties4In 4 cities')
-    expect(figure('Spaces')).toHaveTextContent('Spaces687 available')
+    expect(figure('Spaces')).toHaveTextContent('Spaces68Occupied 58 Available 6 Reserved 1 In maintenance 3')
     expect(figure('Occupancy')).toHaveTextContent('Occupancy85%58 of 68 spaces occupied')
-    expect(figure('Open maintenance')).toHaveTextContent('Open maintenance104 high priority')
+    expect(figure('Open maintenance')).toHaveTextContent('Open maintenance10High 4 Medium 4 Low 2')
     expect(figure('Properties')).toHaveAttribute('href', '/properties')
   })
 

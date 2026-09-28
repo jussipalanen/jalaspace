@@ -20,8 +20,20 @@ describe('buildDashboardSummary', () => {
       occupiedSpaceCount: 58,
       occupancyPercent: 85,
       openMaintenanceCount: 10,
-      highPriorityOpenCount: 4,
+      spaceBreakdown: { occupied: 58, available: 6, reserved: 1, maintenance: 3 },
+      openMaintenanceByPriority: { high: 4, medium: 4, low: 2 },
     })
+  })
+
+  it('splits every space into exactly one state and every open task into one priority', () => {
+    const { spaceBreakdown, openMaintenanceByPriority } = summary.stats
+    expect(Object.values(spaceBreakdown).reduce((sum, count) => sum + count, 0)).toBe(summary.stats.spaceCount)
+    expect(Object.values(openMaintenanceByPriority).reduce((sum, count) => sum + count, 0)).toBe(
+      summary.stats.openMaintenanceCount,
+    )
+    // Reserved spaces are available spaces with an upcoming lease, as in the Available spaces list.
+    expect(spaceBreakdown.available + spaceBreakdown.reserved).toBe(summary.stats.availableSpaceCount)
+    expect(spaceBreakdown.reserved).toBe(summary.availableSpaces.filter((item) => item.reservedFrom).length)
   })
 
   it('follows the data instead of fixed numbers', () => {
@@ -39,7 +51,8 @@ describe('buildDashboardSummary', () => {
     expect(stats.occupancyPercent).toBe(96)
     expect(stats.availableSpaceCount).toBe(0)
     expect(stats.openMaintenanceCount).toBe(0)
-    expect(stats.highPriorityOpenCount).toBe(0)
+    expect(stats.spaceBreakdown).toEqual({ occupied: 65, available: 0, reserved: 0, maintenance: 3 })
+    expect(stats.openMaintenanceByPriority).toEqual({ high: 0, medium: 0, low: 0 })
   })
 
   it('counts cities case-insensitively', () => {
