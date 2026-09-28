@@ -8,17 +8,15 @@ const markerClass: Record<ActivityType, string> = {
   maintenance_completed: 'activity__marker--success',
   lease_started: 'activity__marker--lease',
   lease_ended: 'activity__marker--muted',
+  application_received: 'activity__marker--application',
+  application_approved: 'activity__marker--success',
 }
 
 export function RecentActivity({ items }: { items: ActivityItem[] }) {
   const { t } = useTranslation()
 
   return (
-    <DashboardPanel
-      id="recent-activity-title"
-      title={t('dashboard.activity.title')}
-      className="dashboard-panel--wide"
-    >
+    <DashboardPanel id="recent-activity-title" title={t('dashboard.activity.title')}>
       {items.length === 0 ? (
         <PanelEmpty>{t('dashboard.activity.empty')}</PanelEmpty>
       ) : (
