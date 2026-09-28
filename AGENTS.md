@@ -41,6 +41,7 @@ The application should allow users to manage:
 * units and spaces
 * tenants
 * leases
+* rental applications
 * maintenance tasks
 * basic dashboard statistics
 
@@ -562,6 +563,7 @@ Primary domain areas:
 Dashboard
 Properties
 Spaces
+Applications
 Tenants
 Leases
 Maintenance
@@ -686,6 +688,7 @@ jalaspace_units
 jalaspace_tenants
 jalaspace_leases
 jalaspace_maintenance
+jalaspace_applications
 jalaspace_session
 jalaspace_profile
 jalaspace_profile_image
@@ -784,6 +787,9 @@ Initial routes:
 /properties/:id
 
 /units
+
+/applications
+/applications/:id
 
 /tenants
 /tenants/:id
@@ -953,6 +959,52 @@ features    sauna, balcony, furnished, parking, accessible, loading_dock, kitche
 * features are a fixed list of codes, translated in the UI, stored without duplicates in the order above
 * the rooms filter offers 1–4 rooms exactly and 5 or more; the features filter requires every chosen feature
 * the API treats missing `rooms` and `features` as `null` and `[]`, so older clients keep working
+
+---
+
+# Applications
+
+Rental applications from people looking for a space. The property manager reviews them on the Applications page (`/applications`, in the Leasing section of the sidebar).
+
+```ts
+export type ApplicationStatus = 'submitted' | 'in_review' | 'approved' | 'rejected' | 'withdrawn'
+
+export interface Application extends Entity {
+  spaceId: string
+  applicantType: TenantType          // 'person' | 'company'
+  name: string
+  contactPerson: string | null       // companies only
+  email: string
+  phone: string | null
+  desiredStartDate: IsoDate
+  message: string
+  status: ApplicationStatus          // stored: it records a decision, not dates
+  decidedAt: IsoDateTime | null      // set when approved, rejected or withdrawn
+  tenantId: string | null            // the tenant an approved application became
+}
+```
+
+Implement:
+
+* list, newest first
+* status filter (one status, or open = submitted and in review), property filter and search (name, contact person, email), kept in the URL (`?status=`, `?property=`, `?q=`)
+* detail page with status actions
+* delete
+
+Rules:
+
+* the applicant's details follow the tenant rules (`services/tenants.ts`), except that the email need not be unique: one applicant may apply for several spaces
+* `desiredStartDate` is required; `message` is optional, at most 2000 characters
+* an application collects contact details only; never ask for personal identity codes, income or credit information
+* status changes: `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`; `approved`, `rejected` and `withdrawn` are final
+* rejecting and marking as withdrawn require confirmation; `decidedAt` is set when a decision is made
+* an approved application refers to the tenant it became (`tenantId`), which must exist
+* a space can be applied for while it is available and not reserved (no upcoming lease); an open application whose space no longer can be applied for is flagged on its detail page
+* a space with applications cannot be deleted (see Deleting related data); nothing refers to an application, so it can always be deleted
+* a new application created through the API is always `submitted`, without a tenant; the API refuses other status changes with `409 invalid_status_change`
+* the rules live in `services/applications.ts` (pure) and `services/applicationService.ts`, and match `backend/src/domain/applications.ts`; change them together
+* applications contain personal details: never log their contents
+* seed data: open applications only on spaces that can be applied for; frontend and backend seeds are identical
 
 ---
 

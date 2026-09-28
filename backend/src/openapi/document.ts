@@ -104,6 +104,18 @@ export const EXAMPLES = {
     endDate: null,
     monthlyRentCents: 125050,
   },
+  ApplicationInput: {
+    spaceId: 'space-helsinki-kallio-11',
+    applicantType: 'person',
+    name: 'Lotta Esimerkki',
+    contactPerson: null,
+    email: 'lotta.esimerkki@example.com',
+    phone: '+358501234565',
+    desiredStartDate: '2026-11-01',
+    message: 'We are looking for a home in Kallio.',
+    status: 'submitted',
+    tenantId: null,
+  },
   SuggestionRequest: { title: 'kitchen sink leak', description: '', language: 'en' },
   AskRequest: { question: 'available three-room apartment with a sauna', today: '2026-09-24' },
 } as const
@@ -116,6 +128,8 @@ interface Collection {
   singular: string
   schema: string
   input: keyof typeof EXAMPLES
+  /** What `PUT` refuses besides invalid input, if anything. */
+  updateConflict?: { code: ErrorCode; description: string; details: object }
   /** What `DELETE` refuses, if anything. */
   inUse?: { code: ErrorCode; description: string; details: object }
   notes?: { create?: string; update?: string; delete?: string }
@@ -144,8 +158,8 @@ const COLLECTIONS: Collection[] = [
     input: 'SpaceInput',
     inUse: {
       code: 'space_in_use',
-      description: 'The space still has leases or maintenance tasks.',
-      details: { leaseCount: 1, maintenanceCount: 2 },
+      description: 'The space still has leases, maintenance tasks or applications.',
+      details: { leaseCount: 1, maintenanceCount: 2, applicationCount: 0 },
     },
     notes: {
       update: 'The status follows the leases, whatever the client sends.',
@@ -187,6 +201,24 @@ const COLLECTIONS: Collection[] = [
       create: "Afterwards the space is occupied exactly when it has an active lease.",
       update: 'Changes only the period and the rent; the stored tenant and space are kept. The space status follows.',
       delete: 'Cancels the lease; the space status follows.',
+    },
+  },
+  {
+    tag: 'Applications',
+    limitKey: 'applications',
+    path: '/api/applications',
+    singular: 'application',
+    schema: 'Application',
+    input: 'ApplicationInput',
+    updateConflict: {
+      code: 'invalid_status_change',
+      description: 'The status rules do not allow this change, e.g. from a final status.',
+      details: { from: 'rejected', to: 'in_review' },
+    },
+    notes: {
+      create: 'A new application is always `submitted`, without a tenant.',
+      update: 'Change the status with an update; the server sets `decidedAt`. The stored space is kept.',
+      delete: 'Nothing refers to an application, so it can always be deleted.',
     },
   },
 ]
@@ -247,6 +279,13 @@ function collectionOperations(c: Collection, limits: CollectionLimits): Record<s
         200: ok(`The updated ${c.singular}`, ref(c.schema)),
         400: validationError,
         404: notFound,
+        ...(c.updateConflict
+          ? {
+              409: error(c.updateConflict.description, [c.updateConflict.code], {
+                [c.updateConflict.code]: c.updateConflict.details,
+              }),
+            }
+          : {}),
         413: tooLarge,
         429: writeLimited,
         500: internalError,
@@ -357,6 +396,7 @@ const TAGS = [
   { name: 'Ask', description: 'Questions about the app and its data, answered with AI.' },
   { name: 'Tenants', description: 'Companies and people who rent spaces.' },
   { name: 'Leases', description: 'Tenants renting spaces for a period.' },
+  { name: 'Applications', description: 'Rental applications for spaces, from people looking for a space.' },
   { name: 'Demo data', description: 'Restoring the demo dataset.' },
 ]
 

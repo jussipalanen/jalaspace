@@ -1,3 +1,4 @@
+import type { Application } from '../types/application'
 import type { Entity } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { MaintenanceTask } from '../types/maintenance'
@@ -25,6 +26,7 @@ export type SpaceRepository = Repository<Space>
 export type TenantRepository = Repository<Tenant>
 export type LeaseRepository = Repository<Lease>
 export type MaintenanceRepository = Repository<MaintenanceTask>
+export type ApplicationRepository = Repository<Application>
 
 export class EntityNotFoundError extends Error {
   constructor(id: string) {

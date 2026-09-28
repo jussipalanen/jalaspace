@@ -1,4 +1,10 @@
 import { describe, expect, it } from 'vitest'
+import {
+  isOpenApplication,
+  isSpaceOpenForApplications,
+  toApplicationForm,
+  validateApplicationForm,
+} from '../../services/applications'
 import { getLeaseStatus } from '../../services/leases'
 import { toLocation, toPropertyForm, validatePropertyForm } from '../../services/properties'
 import { normalizeFeatures, toSpaceForm, validateSpaceForm } from '../../services/spaces'
@@ -19,6 +25,7 @@ describe('seed data', () => {
     expect(data.tenants).toHaveLength(31)
     expect(data.leases).toHaveLength(62)
     expect(data.maintenance).toHaveLength(14)
+    expect(data.applications).toHaveLength(7)
   })
 
   it('has a mix of space statuses', () => {
@@ -99,6 +106,25 @@ describe('seed data', () => {
   it('keeps every tenant connected to at least one lease', () => {
     const leasedTenants = new Set(data.leases.map((lease) => lease.tenantId))
     for (const tenant of data.tenants) expect(leasedTenants, tenant.name).toContain(tenant.id)
+  })
+
+  it('has applications that the app accepts, open ones only for spaces that can be applied for', () => {
+    const spaceById = new Map(data.spaces.map((s) => [s.id, s]))
+    for (const application of data.applications) {
+      expect(validateApplicationForm(toApplicationForm(application)), application.id).toEqual({})
+      const space = spaceById.get(application.spaceId)
+      expect(space, application.id).toBeDefined()
+      if (isOpenApplication(application)) {
+        expect(isSpaceOpenForApplications(space!, data.leases, today), application.id).toBe(true)
+        expect(application.decidedAt).toBeNull()
+      } else {
+        expect(application.decidedAt).toMatch(ISO_DATE_TIME)
+      }
+      expect(application.tenantId).toBeNull()
+    }
+    const statuses = data.applications.map((application) => application.status)
+    expect(statuses.filter((s) => s === 'submitted')).toHaveLength(3)
+    expect(statuses.filter((s) => s === 'in_review')).toHaveLength(2)
   })
 
   it('sets completedAt only for completed maintenance tasks', () => {

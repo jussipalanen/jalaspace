@@ -211,6 +211,23 @@ Screenshots: [desktop list](docs/screenshots/maintenance-desktop.png) · [mobile
 </details>
 
 <details>
+<summary><h2>Applications</h2></summary>
+
+Open **Applications** (`/applications`, under Leasing in the sidebar) to see rental applications from
+people looking for a space, newest first, with the space applied for, the desired start date and the status.
+Filter by status (or all open ones) and property, and search by name, contact person or email. Filters stay in the URL.
+
+- An application's page shows the applicant's contact details, the space and property, and the message.
+- **Start review**, **Reject** and **Mark as withdrawn** record the decision; rejecting and withdrawing ask
+  for confirmation and cannot be undone. Statuses: Submitted, In review, Approved, Rejected, Withdrawn.
+- An open application whose space has been let, reserved or taken into maintenance meanwhile is flagged.
+- A space with applications cannot be deleted. Deleting an application requires confirmation.
+
+Screenshots: [desktop list](docs/screenshots/applications-desktop.png) · [mobile application details](docs/screenshots/applications-mobile.png).
+
+</details>
+
+<details>
 <summary><h2>Tenants</h2></summary>
 
 Open **Tenants** (`/tenants`) to see companies and people, sorted by name, with their contact details and current spaces.
@@ -338,8 +355,8 @@ React UI → custom hook → Repository interface → LocalStorageRepository   (
   | `api` | On the JalaSpace API, shared by every browser; needs `VITE_API_URL` | The public demo on Vercel, Docker Compose |
 
 - **`api` provider:** the API assigns ids and timestamps and checks the business rules again. The browser does not seed data; the API starts with its own demo data. The signed-in session, profile, profile image, password and language stay in the browser in both modes.
-- **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_session` and `jalaspace_seed_version`.
-- **Seed data:** on the first visit the app seeds a demo portfolio: 4 properties, 68 spaces, 31 tenants, 62 leases and 14 maintenance tasks. Dates are relative to today, so the demo always has current, upcoming and past activity. Later visits keep your changes.
+- **Storage keys:** `jalaspace_properties`, `jalaspace_units`, `jalaspace_tenants`, `jalaspace_leases`, `jalaspace_maintenance`, `jalaspace_applications`, `jalaspace_session` and `jalaspace_seed_version`.
+- **Seed data:** on the first visit the app seeds a demo portfolio: 4 properties, 68 spaces, 31 tenants, 62 leases, 14 maintenance tasks and 7 applications. Dates are relative to today, so the demo always has current, upcoming and past activity. Later visits keep your changes.
 - **Reset:** **Settings → Demo data → Reset demo data** (after confirmation) clears all JalaSpace data except the signed-in session and the language, restores the seed and restores the default demo profile. With the `api` provider it asks the API to restore its demo data (`POST /api/demo/reset`), which affects everyone who uses that API.
 - **Data conventions:**
   - Timestamps are ISO strings (`2026-09-22T10:30:00.000Z`), and calendar dates are date-only strings (`2026-09-22`).

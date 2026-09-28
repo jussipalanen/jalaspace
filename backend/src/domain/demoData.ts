@@ -1,4 +1,6 @@
 import type { Store } from '../store/store.ts'
+import type { Application } from './applications.ts'
+import { applicationSeeds } from './demoApplications.ts'
 import { maintenanceSeeds } from './demoMaintenance.ts'
 import { tenantSeeds } from './demoTenants.ts'
 import type { Lease } from './leases.ts'
@@ -251,6 +253,7 @@ export interface DemoData {
   maintenance: MaintenanceTask[]
   tenants: Tenant[]
   leases: Lease[]
+  applications: Application[]
 }
 
 function createSpaces(seed: PropertySeed, propertyId: string, createdAt: string): Space[] {
@@ -295,7 +298,7 @@ export function createDemoData(now: Date = new Date()): DemoData {
 
   const today = dateIn(0)
 
-  const data: DemoData = { properties: [], spaces: [], maintenance: [], tenants: [], leases: [] }
+  const data: DemoData = { properties: [], spaces: [], maintenance: [], tenants: [], leases: [], applications: [] }
   const spacesByProperty = new Map<string, Space[]>()
 
   const addLease = (space: Space, tenantKey: string, startDate: string, endDate: string | null) => {
@@ -371,6 +374,22 @@ export function createDemoData(now: Date = new Date()): DemoData {
     const createdAt = daysAgo(700 - index * 20)
     return { id: `tenant-${key}`, ...fields, phone: null, createdAt, updatedAt: createdAt }
   })
+
+  data.applications = applicationSeeds.map((seed, index) => {
+    const { property, spaceIndex, desiredStartInDays, createdDaysAgo, updatedDaysAgo, ...fields } = seed
+    const updatedAt = daysAgo(updatedDaysAgo ?? createdDaysAgo)
+    const decided = seed.status !== 'submitted' && seed.status !== 'in_review'
+    return {
+      id: `application-${index + 1}`,
+      spaceId: `space-${property}-${spaceIndex + 1}`,
+      ...fields,
+      desiredStartDate: dateIn(desiredStartInDays),
+      tenantId: null,
+      decidedAt: decided ? updatedAt : null,
+      createdAt: daysAgo(createdDaysAgo),
+      updatedAt,
+    }
+  })
   return data
 }
 
@@ -382,6 +401,7 @@ export async function resetDemoData(store: Store, now: Date = new Date()): Promi
     store.maintenance.clear(),
     store.tenants.clear(),
     store.leases.clear(),
+    store.applications.clear(),
   ])
   const data = createDemoData(now)
   for (const property of data.properties) await store.properties.insert(property)
@@ -389,4 +409,5 @@ export async function resetDemoData(store: Store, now: Date = new Date()): Promi
   for (const task of data.maintenance) await store.maintenance.insert(task)
   for (const lease of data.leases) await store.leases.insert(lease)
   for (const tenant of data.tenants) await store.tenants.insert(tenant)
+  for (const application of data.applications) await store.applications.insert(application)
 }

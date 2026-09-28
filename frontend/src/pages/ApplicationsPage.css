@@ -1,0 +1,30 @@
+.application-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.application-filters .field + .field {
+  margin-top: 0;
+}
+
+.application-filters__search .search-field {
+  max-width: none;
+}
+
+@media (max-width: 767.98px) {
+  .application-filters {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .application-filters__search {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 479.98px) {
+  .application-filters {
+    grid-template-columns: 1fr;
+  }
+}

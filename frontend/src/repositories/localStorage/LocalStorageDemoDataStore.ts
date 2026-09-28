@@ -18,6 +18,7 @@ export class LocalStorageDemoDataStore implements DemoDataStore {
     writeJson(STORAGE_KEYS.tenants, data.tenants)
     writeJson(STORAGE_KEYS.leases, data.leases)
     writeJson(STORAGE_KEYS.maintenance, data.maintenance)
+    writeJson(STORAGE_KEYS.applications, data.applications)
     // Written last, so an interrupted seed is retried on the next visit.
     writeJson(STORAGE_KEYS.seedVersion, seedVersion)
   }

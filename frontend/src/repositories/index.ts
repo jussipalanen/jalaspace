@@ -2,6 +2,7 @@ import { getApiUrl } from '../config/api'
 import { getDataProvider, type DataProvider } from '../config/dataProvider'
 import { ApiDemoDataStore } from './api/ApiDemoDataStore'
 import { ApiRepository } from './api/ApiRepository'
+import { ApiRequestError } from './api/apiRequest'
 import type { DemoDataStore } from './DemoDataStore'
 import { STORAGE_KEYS } from './localStorage/keys'
 import { LocalStorageDemoDataStore } from './localStorage/LocalStorageDemoDataStore'
@@ -10,6 +11,7 @@ import { LocalStorageProfileRepository } from './localStorage/LocalStorageProfil
 import { LocalStorageSessionRepository } from './localStorage/LocalStorageSessionRepository'
 import type { ProfileRepository } from './ProfileRepository'
 import type {
+  ApplicationRepository,
   LeaseRepository,
   MaintenanceRepository,
   PropertyRepository,
@@ -28,6 +30,7 @@ export interface DataLayer {
   tenants: TenantRepository
   leases: LeaseRepository
   maintenance: MaintenanceRepository
+  applications: ApplicationRepository
   /** Seeding and reset support; `null` for providers that manage their own data. */
   demoData: DemoDataStore | null
 }
@@ -48,6 +51,22 @@ function withPropertyDefaults(entity: Entity): Property {
   }
 }
 
+/**
+ * Reads a collection that an older API version does not have yet as empty,
+ * e.g. while a deployment of the frontend is live before the API's. Writes
+ * still fail, so nothing is lost silently.
+ */
+class NewApiRepository<T extends Entity> extends ApiRepository<T> {
+  override async getAll(): Promise<T[]> {
+    try {
+      return await super.getAll()
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) return []
+      throw error
+    }
+  }
+}
+
 /** Single place that maps a data provider to its repository implementations. */
 export function createDataLayer(provider: DataProvider): DataLayer {
   switch (provider) {
@@ -58,6 +77,7 @@ export function createDataLayer(provider: DataProvider): DataLayer {
         tenants: new LocalStorageRepository(STORAGE_KEYS.tenants),
         leases: new LocalStorageRepository(STORAGE_KEYS.leases),
         maintenance: new LocalStorageRepository(STORAGE_KEYS.maintenance),
+        applications: new LocalStorageRepository(STORAGE_KEYS.applications),
         demoData: new LocalStorageDemoDataStore(),
       }
     case 'api': {
@@ -72,6 +92,7 @@ export function createDataLayer(provider: DataProvider): DataLayer {
         tenants: new ApiRepository(apiUrl, '/tenants'),
         leases: new ApiRepository(apiUrl, '/leases'),
         maintenance: new ApiRepository(apiUrl, '/maintenance'),
+        applications: new NewApiRepository(apiUrl, '/applications'),
         demoData: new ApiDemoDataStore(apiUrl),
       }
     }

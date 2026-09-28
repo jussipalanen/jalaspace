@@ -15,6 +15,7 @@ import {
 } from './limits.ts'
 import { buildOpenApiDocument } from './openapi/document.ts'
 import { listRoutes } from './openapi/routes.ts'
+import { applicationsRouter } from './routes/applications.ts'
 import { askRouter } from './routes/ask.ts'
 import { demoRouter } from './routes/demo.ts'
 import { docsRouter } from './routes/docs.ts'
@@ -93,6 +94,7 @@ export function createApp({
   api.use(maintenanceRouter(store))
   api.use(tenantsRouter(store))
   api.use(leasesRouter(store))
+  api.use(applicationsRouter(store))
   api.use(suggestionsRouter({ suggester, rateLimiter: suggestionRateLimiter, logError }))
   api.use(askRouter({ interpreter, rateLimiter: suggestionRateLimiter, logError }))
   if (demoData) api.use(demoRouter(store))

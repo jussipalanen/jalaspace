@@ -84,6 +84,15 @@ export function UsersIcon(props: IconProps) {
   )
 }
 
+export function InboxIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 13.5 6 5.5A1.5 1.5 0 0 1 7.4 4.5h9.2A1.5 1.5 0 0 1 18 5.5l2.5 8" />
+      <path d="M3.5 13.5V18A1.5 1.5 0 0 0 5 19.5h14a1.5 1.5 0 0 0 1.5-1.5v-4.5h-5l-1 2h-5l-1-2z" />
+    </Icon>
+  )
+}
+
 export function FileTextIcon(props: IconProps) {
   return (
     <Icon {...props}>
