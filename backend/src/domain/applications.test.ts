@@ -3,6 +3,7 @@ import { lease } from '../test/fixtures.ts'
 import {
   canChangeApplicationStatus,
   checkApplicationReferences,
+  checkNewApplication,
   isSpaceOpenForApplications,
   parseApplicationInput,
   resolveDecidedAt,
@@ -128,5 +129,35 @@ describe('spaces open for applications', () => {
     expect(isSpaceOpenForApplications(space, [lease({ id: 'l', startDate: '2026-10-01' })], today)).toBe(false)
     expect(isSpaceOpenForApplications({ ...space, status: 'occupied' }, [], today)).toBe(false)
     expect(isSpaceOpenForApplications({ ...space, status: 'maintenance' }, [], today)).toBe(false)
+  })
+})
+
+describe('new applications', () => {
+  const input = {
+    spaceId: 'space-1',
+    applicantType: 'person' as const,
+    name: 'Lotta Esimerkki',
+    contactPerson: null,
+    email: 'lotta.esimerkki@example.com',
+    phone: null,
+    desiredStartDate: '2026-09-22',
+    message: '',
+    status: 'submitted' as const,
+    tenantId: null,
+  }
+  const today = '2026-09-22'
+
+  it('start today or later', () => {
+    expect(checkNewApplication(input, { applications: [], today })).toEqual({})
+    expect(checkNewApplication({ ...input, desiredStartDate: '2026-09-21' }, { applications: [], today })).toEqual({
+      desiredStartDate: 'past',
+    })
+  })
+
+  it('allow one open application per email and space, ignoring case', () => {
+    const open = { spaceId: 'space-1', email: 'Lotta.Esimerkki@example.com', status: 'in_review' as const }
+    expect(checkNewApplication(input, { applications: [open], today })).toEqual({ email: 'duplicate' })
+    expect(checkNewApplication(input, { applications: [{ ...open, status: 'rejected' }], today })).toEqual({})
+    expect(checkNewApplication(input, { applications: [{ ...open, spaceId: 'space-2' }], today })).toEqual({})
   })
 })
