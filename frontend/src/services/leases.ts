@@ -93,13 +93,13 @@ export interface LeaseFormErrors {
 
 export function emptyLeaseForm(
   today: IsoDate,
-  preset: Partial<Pick<LeaseFormValues, 'tenantId' | 'propertyId' | 'spaceId'>> = {},
+  preset: Partial<Pick<LeaseFormValues, 'tenantId' | 'propertyId' | 'spaceId'>> & { startDate?: IsoDate } = {},
 ): LeaseFormValues {
   return {
     tenantId: preset.tenantId ?? '',
     propertyId: preset.propertyId ?? '',
     spaceId: preset.spaceId ?? '',
-    startDate: formatDate(today),
+    startDate: formatDate(preset.startDate ?? today),
     endDate: '',
     monthlyRent: '',
   }

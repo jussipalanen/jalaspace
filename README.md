@@ -218,6 +218,9 @@ people looking for a space, newest first, with the space applied for, the desire
 Filter by status (or all open ones) and property, and search by name, contact person or email. Filters stay in the URL.
 
 - An application's page shows the applicant's contact details, the space and property, and the message.
+- **Approve** creates a tenant from the applicant (or links the existing tenant with the same email) and opens
+  the lease form with the tenant, space and desired start filled in; the lease is created when you save it.
+  After approving, the other open applications for the space can be rejected together.
 - **Start review**, **Reject** and **Mark as withdrawn** record the decision; rejecting and withdrawing ask
   for confirmation and cannot be undone. Statuses: Submitted, In review, Approved, Rejected, Withdrawn.
 - An open application whose space has been let, reserved or taken into maintenance meanwhile is flagged.
@@ -229,7 +232,7 @@ Each space has its own form with the address, key facts, features and a map. The
 from the Applications page and from each available space on the Spaces list and property page.
 The form reminds that this is a demo: do not enter real personal information.
 
-Screenshots: [desktop list](docs/screenshots/applications-desktop.png) · [mobile application details](docs/screenshots/applications-mobile.png) · [available spaces](docs/screenshots/apply-desktop.png) · [application form](docs/screenshots/apply-form-desktop.png) · [mobile form](docs/screenshots/apply-mobile.png) · [sign-in page](docs/screenshots/apply-login.png).
+Screenshots: [desktop list](docs/screenshots/applications-desktop.png) · [mobile application details](docs/screenshots/applications-mobile.png) · [approving](docs/screenshots/application-approve.png) · [approved](docs/screenshots/application-approved.png) · [available spaces](docs/screenshots/apply-desktop.png) · [application form](docs/screenshots/apply-form-desktop.png) · [mobile form](docs/screenshots/apply-mobile.png) · [sign-in page](docs/screenshots/apply-login.png).
 
 </details>
 
@@ -246,7 +249,8 @@ Search by name, contact person or email, and filter by type. Filters stay in the
 - **Remove from space** moves the tenant out: a running lease ends yesterday and the space becomes
   Available, and a lease that has not started yet is cancelled. To schedule a later move-out,
   use **Edit lease** and set an end date.
-- A tenant with leases, including past ones, cannot be deleted, so the lease history is kept.
+- A tenant with leases, including past ones, or with an approved application cannot be deleted, so the history is kept.
+  The tenant's page links to their approved applications.
 - An occupied space's page links to its tenant (view and edit), and a property's spaces table shows each space's current tenant.
 
 Screenshots: [desktop list](docs/screenshots/tenants-desktop.png) · [mobile tenant details](docs/screenshots/tenants-mobile.png).

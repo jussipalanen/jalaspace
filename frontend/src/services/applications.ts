@@ -3,7 +3,7 @@ import type { IsoDate, IsoDateTime } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { Property } from '../types/property'
 import type { Space, SpaceType } from '../types/space'
-import type { TenantType } from '../types/tenant'
+import type { Tenant, TenantType } from '../types/tenant'
 import { parseDisplayDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import { generateId } from '../utils/id'
@@ -17,6 +17,7 @@ import {
   TENANT_NAME_MAX_LENGTH,
   TENANT_PHONE_MAX_LENGTH,
   TENANT_PHONE_MIN_LENGTH,
+  type TenantFormValues,
 } from './tenants'
 
 // The rules match the API (backend/src/domain/applications.ts). The applicant's
@@ -325,4 +326,31 @@ export function filterApplicationRows(
       )
     )
   })
+}
+
+/** The tenant who already uses the applicant's email (ignoring case), if any; approving reuses them. */
+export function findTenantForApplication(
+  application: Pick<Application, 'email'>,
+  tenants: Tenant[],
+): Tenant | null {
+  return tenants.find((tenant) => normalizeEmail(tenant.email) === normalizeEmail(application.email)) ?? null
+}
+
+/** A new tenant's details from an approved application; the message is not copied. */
+export function toTenantFormFromApplication(application: Application): TenantFormValues {
+  return {
+    type: application.applicantType,
+    name: application.name,
+    contactPerson: application.contactPerson ?? '',
+    email: application.email,
+    phone: application.phone ?? '',
+    notes: '',
+  }
+}
+
+/** The other open applications for the same space, e.g. to reject them after one was approved. */
+export function otherOpenApplications(application: Application, applications: Application[]): Application[] {
+  return applications
+    .filter((other) => other.id !== application.id && other.spaceId === application.spaceId && isOpenApplication(other))
+    .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
 }

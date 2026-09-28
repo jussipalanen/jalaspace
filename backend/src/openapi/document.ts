@@ -188,8 +188,8 @@ const COLLECTIONS: Collection[] = [
     input: 'TenantInput',
     inUse: {
       code: 'tenant_in_use',
-      description: 'The tenant still has leases (current, upcoming or past).',
-      details: { leaseCount: 2 },
+      description: 'The tenant still has leases (current, upcoming or past) or approved applications.',
+      details: { leaseCount: 2, applicationCount: 1 },
     },
   },
   {

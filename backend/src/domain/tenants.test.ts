@@ -110,9 +110,23 @@ describe('tenant email', () => {
 })
 
 describe('tenant deletion', () => {
-  it('is allowed only when no lease refers to the tenant', () => {
+  it('is allowed only when no lease or application refers to the tenant', () => {
     const leases = [{ tenantId: 'tenant-1' }, { tenantId: 'tenant-1' }, { tenantId: 'tenant-2' }]
-    expect(checkTenantDeletion('tenant-1', leases)).toEqual({ allowed: false, leaseCount: 2 })
-    expect(checkTenantDeletion('tenant-3', leases)).toEqual({ allowed: true, leaseCount: 0 })
+    const applications = [{ tenantId: 'tenant-4' }, { tenantId: null }]
+    expect(checkTenantDeletion('tenant-1', leases, applications)).toEqual({
+      allowed: false,
+      leaseCount: 2,
+      applicationCount: 0,
+    })
+    expect(checkTenantDeletion('tenant-4', leases, applications)).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      applicationCount: 1,
+    })
+    expect(checkTenantDeletion('tenant-3', leases, applications)).toEqual({
+      allowed: true,
+      leaseCount: 0,
+      applicationCount: 0,
+    })
   })
 })

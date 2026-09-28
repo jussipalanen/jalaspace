@@ -5,6 +5,7 @@ import { flashState } from '../components/FlashMessage/flash'
 import { PencilIcon, PlusIcon, TrashIcon } from '../components/icons'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { StatusBadge } from '../components/StatusBadge/StatusBadge'
+import { ApplicationStatusBadge } from '../features/applications/ApplicationStatusBadge'
 import { DeleteTenantDialog } from '../features/tenants/DeleteTenantDialog'
 import { RemoveFromSpaceDialog } from '../features/tenants/RemoveFromSpaceDialog'
 import { TenantNotFound } from '../features/tenants/TenantNotFound'
@@ -42,7 +43,7 @@ export function TenantDetailPage() {
 function TenantDetailsView({ details, onChanged }: { details: TenantDetails; onChanged: () => void }) {
   const { t, locale } = useTranslation()
   const navigate = useNavigate()
-  const { tenant, leases, deletion } = details
+  const { tenant, leases, applications, deletion } = details
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [removing, setRemoving] = useState<TenantLease | null>(null)
   const spacesHeading = useRef<HTMLHeadingElement>(null)
@@ -219,6 +220,32 @@ function TenantDetailsView({ details, onChanged }: { details: TenantDetails; onC
           <PastLeaseTable entries={leases.past} />
         )}
       </section>
+
+      {applications.length > 0 && (
+        <section className="section" aria-labelledby="tenant-applications-title">
+          <div className="section__header">
+            <h2 id="tenant-applications-title" className="section__title">
+              {t('tenants.detail.applications')}
+            </h2>
+          </div>
+          <ul className="card tenant-applications">
+            {applications.map(({ application, space, property }) => (
+              <li key={application.id} className="tenant-applications__item">
+                <Link to={`/applications/${application.id}`}>
+                  {t('tenants.detail.applicationFor', {
+                    space: space?.name ?? t('applications.unknownSpace'),
+                  })}
+                </Link>
+                {property && <span className="tenant-applications__meta">{property.name}</span>}
+                <span className="tenant-applications__meta">
+                  {t('tenants.detail.applicationDecided', { date: formatDate(application.decidedAt ?? application.updatedAt) })}
+                </span>
+                <ApplicationStatusBadge status={application.status} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <DeleteTenantDialog
         open={deleteOpen}

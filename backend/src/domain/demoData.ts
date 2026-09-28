@@ -376,7 +376,7 @@ export function createDemoData(now: Date = new Date()): DemoData {
   })
 
   data.applications = applicationSeeds.map((seed, index) => {
-    const { property, spaceIndex, desiredStartInDays, createdDaysAgo, updatedDaysAgo, ...fields } = seed
+    const { property, spaceIndex, desiredStartInDays, createdDaysAgo, updatedDaysAgo, tenant, ...fields } = seed
     const updatedAt = daysAgo(updatedDaysAgo ?? createdDaysAgo)
     const decided = seed.status !== 'submitted' && seed.status !== 'in_review'
     return {
@@ -384,7 +384,7 @@ export function createDemoData(now: Date = new Date()): DemoData {
       spaceId: `space-${property}-${spaceIndex + 1}`,
       ...fields,
       desiredStartDate: dateIn(desiredStartInDays),
-      tenantId: null,
+      tenantId: tenant ? `tenant-${tenant}` : null,
       decidedAt: decided ? updatedAt : null,
       createdAt: daysAgo(createdDaysAgo),
       updatedAt,

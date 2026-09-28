@@ -1,5 +1,6 @@
 import type { DataLayer } from '../repositories'
 import { EntityNotFoundError } from '../repositories/Repository'
+import type { Application } from '../types/application'
 import type { IsoDate } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { Property } from '../types/property'
@@ -7,6 +8,7 @@ import type { Space } from '../types/space'
 import type { Tenant } from '../types/tenant'
 import { toIsoDate } from '../utils/date'
 import { hasErrors } from '../utils/validation'
+import { buildApplicationRows, type ApplicationRow } from './applications'
 import { syncSpaceStatus } from './leaseService'
 import {
   applyTenantChanges,
@@ -21,7 +23,7 @@ import {
   type TenantLeases,
 } from './tenants'
 
-type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'leases' | 'tenants'>
+type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'leases' | 'tenants' | 'applications'>
 
 export class TenantValidationError extends Error {
   readonly errors: TenantFormErrors
@@ -37,7 +39,7 @@ export class TenantDeletionBlockedError extends Error {
   readonly check: TenantDeletionCheck
 
   constructor(check: TenantDeletionCheck) {
-    super('Tenant still has leases')
+    super('Tenant still has leases or applications')
     this.name = 'TenantDeletionBlockedError'
     this.check = check
   }
@@ -48,21 +50,25 @@ export interface TenantData {
   leases: Lease[]
   spaces: Space[]
   properties: Property[]
+  applications: Application[]
 }
 
 export async function loadTenantData(data: Repositories): Promise<TenantData> {
-  const [tenants, leases, spaces, properties] = await Promise.all([
+  const [tenants, leases, spaces, properties, applications] = await Promise.all([
     data.tenants.getAll(),
     data.leases.getAll(),
     data.spaces.getAll(),
     data.properties.getAll(),
+    data.applications.getAll(),
   ])
-  return { tenants, leases, spaces, properties }
+  return { tenants, leases, spaces, properties, applications }
 }
 
 export interface TenantDetails {
   tenant: Tenant
   leases: TenantLeases
+  /** Approved applications that became this tenant, newest first. */
+  applications: ApplicationRow[]
   deletion: TenantDeletionCheck
 }
 
@@ -77,7 +83,12 @@ export function getTenantDetails(
   return {
     tenant,
     leases: groupTenantLeases(id, tenantData.leases, tenantData.spaces, tenantData.properties, today),
-    deletion: checkTenantDeletion(id, tenantData.leases),
+    applications: buildApplicationRows(
+      tenantData.applications.filter((application) => application.tenantId === id),
+      tenantData.spaces,
+      tenantData.properties,
+    ),
+    deletion: checkTenantDeletion(id, tenantData.leases, tenantData.applications),
   }
 }
 
@@ -110,7 +121,8 @@ export async function updateTenant(
 
 /** Deletes a tenant after re-checking, with current data, that no lease refers to it. */
 export async function deleteTenant(data: Repositories, id: string): Promise<void> {
-  const check = checkTenantDeletion(id, await data.leases.getAll())
+  const [leases, applications] = await Promise.all([data.leases.getAll(), data.applications.getAll()])
+  const check = checkTenantDeletion(id, leases, applications)
   if (!check.allowed) throw new TenantDeletionBlockedError(check)
   await data.tenants.delete(id)
 }

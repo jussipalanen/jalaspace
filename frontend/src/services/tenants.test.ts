@@ -125,12 +125,22 @@ describe('tenant leases and rows', () => {
 })
 
 describe('deleting tenants', () => {
-  it('is blocked while any lease, even a past one, refers to the tenant', () => {
-    expect(checkTenantDeletion('tenant-old-town-books', seed.leases)).toEqual({
+  it('is blocked while any lease, even a past one, or an approved application refers to the tenant', () => {
+    expect(checkTenantDeletion('tenant-old-town-books', seed.leases, seed.applications)).toEqual({
       allowed: false,
       leaseCount: 1,
+      applicationCount: 0,
     })
-    expect(checkTenantDeletion('tenant-new', seed.leases)).toEqual({ allowed: true, leaseCount: 0 })
+    expect(checkTenantDeletion('tenant-new', [], [{ tenantId: 'tenant-new' }])).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      applicationCount: 1,
+    })
+    expect(checkTenantDeletion('tenant-new', seed.leases, seed.applications)).toEqual({
+      allowed: true,
+      leaseCount: 0,
+      applicationCount: 0,
+    })
   })
 })
 

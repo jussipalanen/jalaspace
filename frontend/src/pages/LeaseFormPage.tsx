@@ -10,7 +10,7 @@ import { useDataLayer } from '../hooks/useDataLayer'
 import { useTranslation } from '../i18n/useTranslation'
 import { createLease, updateLease, type LeaseData } from '../services/leaseService'
 import { emptyLeaseForm, toLeaseForm, type LeaseFormValues } from '../services/leases'
-import { toIsoDate } from '../utils/date'
+import { isIsoDate, toIsoDate } from '../utils/date'
 
 /** Only same-app paths, so a link cannot send the user to another site. */
 function safeReturnTo(value: string | null): string | null {
@@ -44,13 +44,16 @@ export function NewLeasePage() {
   const { data } = state
   const today = toIsoDate(new Date())
   const returnTo = safeReturnTo(searchParams.get('returnTo'))
-  // Preselect the tenant or space when coming from their pages (?tenant=…, ?space=…).
+  // Preselect the tenant, space or start date when coming from their pages
+  // (?tenant=…, ?space=…, ?startDate=…, e.g. from an approved application).
   const tenantId = searchParams.get('tenant') ?? ''
   const space = data.spaces.find((item) => item.id === searchParams.get('space'))
+  const startDate = searchParams.get('startDate') ?? ''
   const initialValues = emptyLeaseForm(today, {
     tenantId: data.tenants.some((tenant) => tenant.id === tenantId) ? tenantId : '',
     propertyId: space?.propertyId,
     spaceId: space?.id,
+    startDate: isIsoDate(startDate) ? startDate : undefined,
   })
 
   const save = async (values: LeaseFormValues) => {

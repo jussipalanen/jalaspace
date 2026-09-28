@@ -14,8 +14,12 @@ import { useTranslation } from '../i18n/useTranslation'
 import { ApiRequestError } from '../repositories/api/apiRequest'
 import {
   ApplicationStatusChangeError,
+  approveApplication,
   changeApplicationStatus,
   getApplicationDetails,
+  leaseFormPath,
+  rejectApplications,
+  SpaceUnavailableError,
   type ApplicationDetails,
 } from '../services/applicationService'
 import type { ApplicationStatus } from '../types/application'
@@ -25,30 +29,26 @@ import { formatDate } from '../utils/format'
 import './MaintenanceDetailPage.css'
 import './ApplicationDetailPage.css'
 
-type StatusAction = 'review' | 'reject' | 'withdraw'
+type StatusAction = 'approve' | 'review' | 'reject' | 'withdraw'
 
-const ACTION_STATUS: Record<StatusAction, ApplicationStatus> = {
+/** The status changes made directly; approving also creates or links a tenant. */
+const ACTION_STATUS: Record<Exclude<StatusAction, 'approve'>, ApplicationStatus> = {
   review: 'in_review',
   reject: 'rejected',
   withdraw: 'withdrawn',
 }
 
-/**
- * The status changes offered for each status; the first one is the main
- * action. Approving comes with turning the application into a tenant and a lease.
- */
+/** The status changes offered for each status; the first one is the main action. */
 const ACTIONS_BY_STATUS: Record<ApplicationStatus, StatusAction[]> = {
-  submitted: ['review', 'reject', 'withdraw'],
-  in_review: ['reject', 'withdraw'],
+  submitted: ['review', 'approve', 'reject', 'withdraw'],
+  in_review: ['approve', 'reject', 'withdraw'],
   approved: [],
   rejected: [],
   withdrawn: [],
 }
 
-/** Decisions cannot be undone, so they are confirmed first. */
-type ConfirmedAction = Exclude<StatusAction, 'review'>
-
-const isConfirmed = (action: StatusAction): action is ConfirmedAction => action !== 'review'
+/** Decisions cannot be undone, so they are confirmed first; so is rejecting the other applications. */
+type ConfirmedAction = Exclude<StatusAction, 'review'> | 'rejectOthers'
 
 /** The status was changed elsewhere meanwhile: in another tab, or by someone else on the shared API. */
 const isConflict = (error: unknown) =>
@@ -74,18 +74,33 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const getDataLayer = useDataLayer()
-  const { space, property } = details
+  const { space, property, tenant, hasLease } = details
   // Status changes update the application in place, without reloading the page.
   const [application, setApplication] = useState(details.application)
-  const [pending, setPending] = useState<StatusAction | null>(null)
+  const [otherOpen, setOtherOpen] = useState(details.otherOpen)
+  const [pending, setPending] = useState<StatusAction | 'rejectOthers' | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<ConfirmedAction | null>(null)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const statusHeading = useRef<HTMLHeadingElement>(null)
   // Only an open application waits for the space; a decided one keeps its history.
-  const spaceUnavailable = details.spaceUnavailable && ACTIONS_BY_STATUS[application.status].length > 0
+  const isOpen = ACTIONS_BY_STATUS[application.status].length > 0
+  const spaceUnavailable = details.spaceUnavailable && isOpen
+  // A space that was let, reserved or taken into maintenance cannot be approved for.
+  const actions = ACTIONS_BY_STATUS[application.status].filter((action) => action !== 'approve' || !spaceUnavailable)
 
-  const changeStatus = async (action: StatusAction) => {
+  const showError = (error: unknown, fallback: string) => {
+    setConfirming(null)
+    setStatusError(
+      isConflict(error)
+        ? t('applications.detail.statusConflict')
+        : error instanceof SpaceUnavailableError
+          ? t('applications.detail.spaceUnavailable')
+          : saveErrorMessage(error, t, fallback),
+    )
+  }
+
+  const changeStatus = async (action: Exclude<StatusAction, 'approve'>) => {
     setPending(action)
     setStatusError(null)
     try {
@@ -99,15 +114,52 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
       // The clicked button is replaced, so keep keyboard focus in the status section.
       statusHeading.current?.focus()
     } catch (error) {
-      setConfirming(null)
-      setStatusError(
-        isConflict(error)
-          ? t('applications.detail.statusConflict')
-          : saveErrorMessage(error, t, t('applications.detail.statusError')),
-      )
+      showError(error, t('applications.detail.statusError'))
     } finally {
       setPending(null)
     }
+  }
+
+  // Approving continues to the lease form; the lease is created only when it is saved there.
+  const approve = async () => {
+    setPending('approve')
+    setStatusError(null)
+    try {
+      const result = await approveApplication(getDataLayer(), application.id)
+      navigate(leaseFormPath(result.application), {
+        state: flashState(t('applications.flash.approved', { name: result.application.name })),
+      })
+    } catch (error) {
+      showError(error, t('applications.detail.statusError'))
+      setPending(null)
+    }
+  }
+
+  const rejectOthers = async () => {
+    setPending('rejectOthers')
+    setStatusError(null)
+    try {
+      const count = await rejectApplications(
+        getDataLayer(),
+        otherOpen.map((other) => other.id),
+      )
+      setOtherOpen([])
+      setConfirming(null)
+      navigate(`/applications/${application.id}`, {
+        replace: true,
+        state: flashState(t('applications.flash.rejectedAll', { count })),
+      })
+    } catch (error) {
+      showError(error, t('applications.detail.statusError'))
+    } finally {
+      setPending(null)
+    }
+  }
+
+  const confirm = (action: ConfirmedAction) => {
+    if (action === 'approve') void approve()
+    else if (action === 'rejectOthers') void rejectOthers()
+    else void changeStatus(action)
   }
 
   const describeStatus = () => {
@@ -119,6 +171,8 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
 
   const location = [space?.name ?? t('applications.unknownSpace'), property?.name].filter(Boolean)
   const notSet = <span className="application-details__muted">{t('applications.detail.notSet')}</span>
+  const approved = application.status === 'approved'
+  const spaceName = space?.name ?? t('applications.unknownSpace')
 
   return (
     <>
@@ -146,20 +200,33 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
             <ApplicationStatusBadge status={application.status} />
           </div>
           <p className="maintenance-status__description">{describeStatus()}</p>
+          {approved && tenant && (
+            <p className="maintenance-status__description">
+              {t('applications.detail.tenant')}: <Link to={`/tenants/${tenant.id}`}>{tenant.name}</Link>
+            </p>
+          )}
         </div>
-        {ACTIONS_BY_STATUS[application.status].length > 0 && (
+        {actions.length > 0 && (
           <div className="maintenance-status__actions">
-            {ACTIONS_BY_STATUS[application.status].map((action, index) => (
+            {actions.map((action, index) => (
               <button
                 key={action}
                 type="button"
                 className={`button ${index === 0 ? 'button--primary' : 'button--secondary'}`}
                 disabled={pending !== null}
-                onClick={() => (isConfirmed(action) ? setConfirming(action) : void changeStatus(action))}
+                onClick={() => (action === 'review' ? void changeStatus(action) : setConfirming(action))}
               >
                 {pending === action ? t('applications.detail.busy') : t(`applications.detail.actions.${action}`)}
               </button>
             ))}
+          </div>
+        )}
+        {approved && !hasLease && (
+          <div className="alert alert--info maintenance-status__error application-lease">
+            <span>{t('applications.detail.leaseMissing')}</span>
+            <Link to={leaseFormPath(application)} className="button button--primary">
+              {t('applications.detail.createLease')}
+            </Link>
           </div>
         )}
         {spaceUnavailable && (
@@ -171,6 +238,37 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
           </div>
         )}
       </section>
+
+      {approved && otherOpen.length > 0 && (
+        <section className="card maintenance-details application-others" aria-labelledby="application-others-title">
+          <div className="application-others__header">
+            <div>
+              <h2 id="application-others-title" className="section__title">
+                {t('applications.detail.otherOpen.title')}
+              </h2>
+              <p className="maintenance-status__description">
+                {t('applications.detail.otherOpen.description', { count: otherOpen.length, space: spaceName })}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="button button--secondary"
+              disabled={pending !== null}
+              onClick={() => setConfirming('rejectOthers')}
+            >
+              {pending === 'rejectOthers' ? t('applications.detail.busy') : t('applications.detail.otherOpen.rejectAll')}
+            </button>
+          </div>
+          <ul className="application-others__list">
+            {otherOpen.map((other) => (
+              <li key={other.id}>
+                <Link to={`/applications/${other.id}`}>{other.name}</Link>
+                <ApplicationStatusBadge status={other.status} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="application-details">
         <section className="card maintenance-details" aria-labelledby="application-applicant-title">
@@ -229,7 +327,47 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
         </p>
       </section>
 
-      {confirming && (
+      {confirming === 'approve' && (
+        <ConfirmDialog
+          open
+          title={t('applications.confirm.approveTitle', { name: application.name })}
+          cancelLabel={t('applications.confirm.cancel')}
+          onCancel={() => setConfirming(null)}
+          confirm={{
+            label: t('applications.confirm.approveConfirm'),
+            busyLabel: t('applications.confirm.busy'),
+            busy: pending !== null,
+            onConfirm: () => confirm('approve'),
+            tone: 'primary',
+          }}
+        >
+          <p>
+            {tenant
+              ? t('applications.confirm.approveExisting', { tenant: tenant.name, email: tenant.email })
+              : t('applications.confirm.approveNew', { name: application.name })}
+          </p>
+          <p>{t('applications.confirm.approveNext')}</p>
+        </ConfirmDialog>
+      )}
+
+      {confirming === 'rejectOthers' && (
+        <ConfirmDialog
+          open
+          title={t('applications.confirm.rejectAllTitle', { count: otherOpen.length, space: spaceName })}
+          cancelLabel={t('applications.confirm.cancel')}
+          onCancel={() => setConfirming(null)}
+          confirm={{
+            label: t('applications.confirm.rejectAllConfirm'),
+            busyLabel: t('applications.confirm.busy'),
+            busy: pending !== null,
+            onConfirm: () => confirm('rejectOthers'),
+          }}
+        >
+          <p>{t('applications.confirm.rejectAllDescription')}</p>
+        </ConfirmDialog>
+      )}
+
+      {(confirming === 'reject' || confirming === 'withdraw') && (
         <ConfirmDialog
           open
           title={t(`applications.confirm.${confirming}Title`, { name: application.name })}
@@ -239,7 +377,7 @@ function ApplicationDetailsView({ details }: { details: ApplicationDetails }) {
             label: t(`applications.confirm.${confirming}Confirm`),
             busyLabel: t('applications.confirm.busy'),
             busy: pending !== null,
-            onConfirm: () => void changeStatus(confirming),
+            onConfirm: () => confirm(confirming),
           }}
         >
           <p>{t(`applications.confirm.${confirming}Description`)}</p>

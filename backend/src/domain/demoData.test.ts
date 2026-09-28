@@ -211,18 +211,19 @@ describe('demo data', () => {
 
   it('gives every demo tenant a lease, so none can be deleted', () => {
     const { tenants, leases } = createDemoData(now)
-    for (const tenant of tenants) expect(checkTenantDeletion(tenant.id, leases).allowed).toBe(false)
+    for (const tenant of tenants) expect(checkTenantDeletion(tenant.id, leases, []).allowed).toBe(false)
   })
 
-  it('has the 7 demo applications of the frontend seed', () => {
+  it('has the 8 demo applications of the frontend seed', () => {
     const { applications } = createDemoData(now)
     const count = (status: string) => applications.filter((item) => item.status === status).length
 
-    expect(applications.map(({ id }) => id)).toEqual(Array.from({ length: 7 }, (_, index) => `application-${index + 1}`))
+    expect(applications.map(({ id }) => id)).toEqual(Array.from({ length: 8 }, (_, index) => `application-${index + 1}`))
     expect(count('submitted')).toBe(3)
     expect(count('in_review')).toBe(2)
     expect(count('rejected')).toBe(1)
     expect(count('withdrawn')).toBe(1)
+    expect(count('approved')).toBe(1)
     expect(applications[0]).toEqual({
       id: 'application-1',
       spaceId: 'space-joensuu-center-12',
@@ -242,12 +243,13 @@ describe('demo data', () => {
   })
 
   it('has applications that pass the same validation as data sent by clients', () => {
-    const { applications, spaces } = createDemoData(now)
+    const { applications, spaces, tenants } = createDemoData(now)
     for (const item of applications) {
       const { id: _id, createdAt: _createdAt, updatedAt: _updatedAt, decidedAt, ...input } = item
       expect(parseApplicationInput(input)).toEqual({ ok: true, values: input })
       const spaceExists = spaces.some(({ id }) => id === item.spaceId)
-      expect(checkApplicationReferences(input, { spaceExists, tenantExists: false })).toEqual({})
+      const tenantExists = tenants.some(({ id }) => id === item.tenantId)
+      expect(checkApplicationReferences(input, { spaceExists, tenantExists })).toEqual({})
       expect(decidedAt === null).toBe(isOpenApplication(item))
     }
   })
@@ -258,6 +260,17 @@ describe('demo data', () => {
     for (const item of applications.filter(isOpenApplication)) {
       const space = spaces.find(({ id }) => id === item.spaceId)!
       expect(isSpaceOpenForApplications(space, leases, today), item.id).toBe(true)
+    }
+  })
+
+  it('gives every approved application a tenant with a lease for its space', () => {
+    const { applications, leases } = createDemoData(now)
+    const approved = applications.filter((item) => item.status === 'approved')
+    expect(approved).toHaveLength(1)
+    for (const item of approved) {
+      expect(leases.some((lease) => lease.tenantId === item.tenantId && lease.spaceId === item.spaceId), item.id).toBe(
+        true,
+      )
     }
   })
 

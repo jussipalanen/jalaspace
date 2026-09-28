@@ -20,6 +20,8 @@ export interface ApplicationSeed {
   createdDaysAgo: number
   /** When the review started or the decision was made; missing when nothing has happened since. */
   updatedDaysAgo?: number
+  /** The tenant key an approved application became; its lease is in the lease seed. */
+  tenant?: string
 }
 
 // All names are fictional: every person has the placeholder last name Esimerkki
@@ -28,7 +30,7 @@ export interface ApplicationSeed {
 // reserved by an upcoming lease.
 export const applicationSeeds: ApplicationSeed[] = [
   {
-    // A 302 was reserved for Aurora Yoga Studio in the meantime.
+    // Rejected: A 302 went to Aurora Yoga Studio (the approved application below).
     property: 'joensuu-center',
     spaceIndex: 11,
     applicantType: 'company',
@@ -122,5 +124,21 @@ export const applicationSeeds: ApplicationSeed[] = [
     message: 'We are a family of two adults and one child looking for a home in Kallio.',
     status: 'submitted',
     createdDaysAgo: 1,
+  },
+  {
+    // Approved into the tenant whose upcoming lease reserves A 302.
+    property: 'joensuu-center',
+    spaceIndex: 11,
+    applicantType: 'company',
+    name: 'Aurora Yoga Studio Oy',
+    contactPerson: 'Veera Esimerkki',
+    email: 'info@aurora-yoga.example',
+    phone: '+358501234567',
+    desiredStartInDays: 45,
+    message: 'A yoga studio for small groups, open in the evenings and at weekends.',
+    status: 'approved',
+    createdDaysAgo: 16,
+    updatedDaysAgo: 12,
+    tenant: 'aurora-yoga',
   },
 ]

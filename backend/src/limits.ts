@@ -20,7 +20,7 @@ export const createWriteRateLimiter = (perMinute = DEFAULT_WRITE_RATE_LIMIT) =>
 export const createResetRateLimiter = (perHour = DEFAULT_RESET_RATE_LIMIT) =>
   new RateLimiter({ limit: perHour, windowMs: HOUR_MS })
 
-/** Maximum stored records per collection, far above the demo data (4, 68, 14, 31, 62 and 7). */
+/** Maximum stored records per collection, far above the demo data (4, 68, 14, 31, 62 and 8). */
 export interface CollectionLimits {
   properties: number
   spaces: number

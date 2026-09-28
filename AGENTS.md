@@ -1006,6 +1006,13 @@ Rules:
 * status changes: `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`; `approved`, `rejected` and `withdrawn` are final
 * rejecting and marking as withdrawn require confirmation; `decidedAt` is set when a decision is made
 * an approved application refers to the tenant it became (`tenantId`), which must exist
+* approving (for `submitted` and `in_review` applications, while the space can still be applied for; checked again when confirming):
+  * reuses the tenant with the applicant's email, ignoring case, without changing it; otherwise creates a tenant from the applicant's details (type, name, contact person, email, phone; the message is not copied); the confirmation says which
+  * then marks the application approved with that tenant, and opens the lease form with the tenant, the space and the desired start filled in (`/leases/new?tenant=…&space=…&startDate=…&returnTo=/applications/:id`)
+  * never creates a lease: the manager saves it in the lease form; an approved application without a lease for its space offers **Create lease**
+  * is two writes (tenant, then application); if the second fails, approving again reuses the tenant found by email, so no duplicate is created
+* after approving, the other open applications for the space are listed with **Reject all** (confirmed); they are never rejected automatically
+* a tenant that an application refers to cannot be deleted; the tenant page lists its approved applications
 * a space can be applied for while it is available and not reserved (no upcoming lease); an open application whose space no longer can be applied for is flagged on its detail page
 * a space with applications cannot be deleted (see Deleting related data); nothing refers to an application, so it can always be deleted
 * a new application created through the API is always `submitted`, without a tenant; the API refuses other status changes with `409 invalid_status_change`
