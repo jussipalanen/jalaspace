@@ -9,7 +9,7 @@ import { serve } from './test/serve.ts'
 const property = {
   name: 'Oulu Office House',
   type: 'office',
-  address: 'Kauppurienkatu 3',
+  address: 'Esimerkkitori 3',
   postalCode: '90100',
   city: 'Oulu',
 }

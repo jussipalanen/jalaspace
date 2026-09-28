@@ -10,7 +10,7 @@ function makeProperty(overrides: Partial<Property> = {}): Property {
   return {
     id: crypto.randomUUID(),
     name: 'Joensuu Center',
-    address: 'Siltakatu 12',
+    address: 'Esimerkkikatu 12',
     postalCode: '80100',
     city: 'Joensuu',
     type: 'mixed_use',

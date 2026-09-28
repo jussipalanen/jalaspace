@@ -18,7 +18,7 @@ import {
 const valid: PropertyFormValues = {
   name: 'Oulu Tech Campus',
   type: 'office',
-  address: 'Kauppurienkatu 3',
+  address: 'Esimerkkitori 3',
   postalCode: '90100',
   city: 'Oulu',
   description: '',
@@ -119,9 +119,9 @@ describe('property location in the form', () => {
   })
 
   it('builds the address search from the address fields', () => {
-    expect(addressSearchText(valid)).toBe('Kauppurienkatu 3, 90100 Oulu')
-    expect(addressSearchText({ address: ' Kauppurienkatu 3 ', postalCode: '', city: ' Oulu ' })).toBe(
-      'Kauppurienkatu 3, Oulu',
+    expect(addressSearchText(valid)).toBe('Esimerkkitori 3, 90100 Oulu')
+    expect(addressSearchText({ address: ' Esimerkkitori 3 ', postalCode: '', city: ' Oulu ' })).toBe(
+      'Esimerkkitori 3, Oulu',
     )
     expect(addressSearchText({ address: '', postalCode: '', city: '' })).toBe('')
   })
@@ -199,7 +199,7 @@ describe('matchesPropertySearch', () => {
     '2026-09-22T10:30:00.000Z',
   )
 
-  it.each(['', '  ', 'ähtäri', 'ÄHTÄRI', 'logistics', '63700', 'kauppurienkatu', 'ähtäri 637'])(
+  it.each(['', '  ', 'ähtäri', 'ÄHTÄRI', 'logistics', '63700', 'esimerkkitori', 'ähtäri 637'])(
     'matches "%s"',
     (query) => {
       expect(matchesPropertySearch(property, query, 'fi-FI')).toBe(true)

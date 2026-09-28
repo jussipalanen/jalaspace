@@ -61,7 +61,7 @@ describe('public application form', () => {
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Apply for A 11' })).toBeInTheDocument()
     const summary = screen.getByRole('complementary', { name: /A 11/ })
-    expect(summary).toHaveTextContent('Fleminginkatu 15, 00500 Helsinki')
+    expect(summary).toHaveTextContent('Esimerkkikuja 15, 00500 Helsinki')
     expect(screen.getByText(/This is a demo/)).toBeInTheDocument()
 
     await user.type(screen.getByRole('textbox', { name: /^Email/ }), 'lotta@')

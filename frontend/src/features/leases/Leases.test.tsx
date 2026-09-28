@@ -22,18 +22,18 @@ describe('leases', () => {
     await screen.findByRole('table')
     expect(rows()).toHaveLength(62)
     expect(screen.getByText('62 leases')).toBeInTheDocument()
-    const aurora = rows()[0]!
-    expect(within(aurora).getByRole('link', { name: 'Aurora Yoga Studio Oy' })).toHaveAttribute(
+    const yogaStudio = rows()[0]!
+    expect(within(yogaStudio).getByRole('link', { name: 'Yoga Studio Esimerkki Oy' })).toHaveAttribute(
       'href',
-      '/tenants/tenant-aurora-yoga',
+      '/tenants/tenant-yoga-studio-esimerkki',
     )
-    expect(within(aurora).getByRole('link', { name: 'A 302' })).toHaveAttribute(
+    expect(within(yogaStudio).getByRole('link', { name: 'A 302' })).toHaveAttribute(
       'href',
       '/units/space-joensuu-center-12/edit',
     )
-    expect(aurora).toHaveTextContent(/From \d+\.\d+\.\d{4}, open.ended/)
-    expect(aurora).toHaveTextContent('Upcoming')
-    expect(within(aurora).getByRole('link', { name: 'Edit: Aurora Yoga Studio Oy, A 302' })).toHaveAttribute(
+    expect(yogaStudio).toHaveTextContent(/From \d+\.\d+\.\d{4}, open.ended/)
+    expect(yogaStudio).toHaveTextContent('Upcoming')
+    expect(within(yogaStudio).getByRole('link', { name: 'Edit: Yoga Studio Esimerkki Oy, A 302' })).toHaveAttribute(
       'href',
       '/leases/lease-59/edit',
     )

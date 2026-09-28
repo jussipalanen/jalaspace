@@ -4,7 +4,7 @@ import { checkPropertyDeletion, parsePropertyInput } from './properties.ts'
 const valid = {
   name: 'Joensuu Center',
   type: 'mixed_use',
-  address: 'Siltakatu 12',
+  address: 'Esimerkkikatu 12',
   postalCode: '80100',
   city: 'Joensuu',
   description: 'City-centre building.',
@@ -13,7 +13,7 @@ const valid = {
 /** The parsed values of `valid`: a request without a location stores none. */
 const parsed = { ...valid, location: null }
 
-const location = { latitude: 62.601579, longitude: 29.762079, zoom: 17 }
+const location = { latitude: 62.6013, longitude: 29.7636, zoom: 17 }
 
 describe('property input', () => {
   it('accepts valid input and trims the text', () => {
@@ -90,7 +90,7 @@ describe('property location', () => {
   it('rounds the coordinates to 6 decimals', () => {
     const result = parsePropertyInput({
       ...valid,
-      location: { latitude: 62.60157949, longitude: 29.7620791234, zoom: 17 },
+      location: { latitude: 62.60130049, longitude: 29.7636001234, zoom: 17 },
     })
     expect(result).toEqual({ ok: true, values: { ...valid, location } })
   })
@@ -106,7 +106,7 @@ describe('property location', () => {
 
   it('uses zoom level 16 when the location has none', () => {
     for (const zoom of [undefined, null]) {
-      const result = parsePropertyInput({ ...valid, location: { latitude: 62.601579, longitude: 29.762079, zoom } })
+      const result = parsePropertyInput({ ...valid, location: { latitude: 62.601300, longitude: 29.763600, zoom } })
       expect(result).toEqual({ ok: true, values: { ...valid, location: { ...location, zoom: 16 } } })
     }
   })
@@ -124,7 +124,7 @@ describe('property location', () => {
     { latitude: 62 },
     { latitude: Number.NaN, longitude: 29 },
     [62, 29],
-    'Siltakatu 12',
+    'Esimerkkikatu 12',
     42,
   ])('rejects the location %j', (value) => {
     expect(parsePropertyInput({ ...valid, location: value })).toEqual({ ok: false, errors: { location: 'invalid' } })
