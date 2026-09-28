@@ -64,7 +64,7 @@ export const EXAMPLES = {
   PropertyInput: {
     name: 'Oulu Office House',
     type: 'office',
-    address: 'Kauppurienkatu 3',
+    address: 'Esimerkkitori 3',
     postalCode: '90100',
     city: 'Oulu',
     description: 'Office building near the market square.',
@@ -91,14 +91,14 @@ export const EXAMPLES = {
   },
   TenantInput: {
     type: 'company',
-    name: 'Lakeside Bakery Oy',
-    contactPerson: 'Maija Salo',
-    email: 'info@lakeside-bakery.example',
-    phone: '+358 40 123 4567',
+    name: 'Bakery Esimerkki Oy',
+    contactPerson: 'Maija Esimerkki',
+    email: 'info@bakery-esimerkki.example',
+    phone: '+358 50 123 4567',
     notes: '',
   },
   LeaseInput: {
-    tenantId: 'tenant-aurora-yoga',
+    tenantId: 'tenant-yoga-studio-esimerkki',
     spaceId: 'space-kuopio-harbour-10',
     startDate: '2026-10-01',
     endDate: null,

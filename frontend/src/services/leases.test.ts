@@ -177,7 +177,7 @@ describe('listing leases', () => {
     expect(rows).toHaveLength(62)
     const starts = rows.map((row) => row.lease.startDate)
     expect(starts).toEqual(starts.toSorted().reverse())
-    expect(rows[0]).toMatchObject({ status: 'upcoming', tenant: { name: 'Aurora Yoga Studio Oy' }, space: { name: 'A 302' } })
+    expect(rows[0]).toMatchObject({ status: 'upcoming', tenant: { name: 'Yoga Studio Esimerkki Oy' }, space: { name: 'A 302' } })
   })
 
   it('filters by status, property and search', () => {
@@ -185,6 +185,6 @@ describe('listing leases', () => {
     expect(filter({ status: 'ended' })).toHaveLength(3)
     expect(filter({ propertyId: 'property-tampere-hervanta' })).toHaveLength(10)
     expect(filter({ query: 'aino' }).map((row) => row.lease.id)).toEqual(['lease-45'])
-    expect(filter({ query: 'a 302' }).map((row) => row.tenant?.name)).toEqual(['Aurora Yoga Studio Oy'])
+    expect(filter({ query: 'a 302' }).map((row) => row.tenant?.name)).toEqual(['Yoga Studio Esimerkki Oy'])
   })
 })

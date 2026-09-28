@@ -15,7 +15,7 @@ import type { PropertyFormValues } from './properties'
 const values: PropertyFormValues = {
   name: 'Oulu Tech Campus',
   type: 'office',
-  address: 'Kauppurienkatu 3',
+  address: 'Esimerkkitori 3',
   postalCode: '90100',
   city: 'Oulu',
   description: 'Offices near the university.',

@@ -105,6 +105,17 @@ Click your name in the header to edit your profile (first name, last name and bi
 </details>
 
 <details>
+<summary><h2>Dashboard</h2></summary>
+
+The Dashboard (`/`) opens with the JalaSpace logo and the key figures: properties, spaces, occupancy and
+open maintenance, each linking to its list. Below are the recent maintenance tasks, the available spaces
+(flagged when reserved by an upcoming lease) and recent activity. All figures are calculated from the data.
+
+Screenshots: [desktop](docs/screenshots/dashboard-desktop.png) · [mobile](docs/screenshots/dashboard-mobile.png).
+
+</details>
+
+<details>
 <summary><h2>Ask JalaSpace</h2></summary>
 
 The Dashboard has an **Ask JalaSpace** card: ask in English or Finnish, and it shows where to go in the app or which records match.

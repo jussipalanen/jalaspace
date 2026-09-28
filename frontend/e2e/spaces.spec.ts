@@ -70,9 +70,9 @@ test.describe('spaces', () => {
     await page.goto('/units/space-joensuu-center-6/edit')
 
     await expect(page.getByText(/^Occupied under an active lease since /)).toBeVisible()
-    await expect(page.getByRole('link', { name: 'Nordic Pixel Oy', exact: true })).toHaveAttribute(
+    await expect(page.getByRole('link', { name: 'Software Esimerkki Oy', exact: true })).toHaveAttribute(
       'href',
-      '/tenants/tenant-nordic-pixel',
+      '/tenants/tenant-software-esimerkki',
     )
     await expect(page.getByLabel('Status', { exact: true })).toHaveCount(0)
     await page.getByLabel('Area (m²)').fill('75')

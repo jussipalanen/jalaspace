@@ -41,6 +41,19 @@ describe('Dashboard', () => {
     expect(within(activity).getAllByText('Application received:').length).toBeGreaterThan(0)
   })
 
+  it('shows the JalaSpace logo next to the heading, hidden from screen readers', async () => {
+    await seedDemoData()
+    const { container } = renderRoute('/')
+
+    expect(await screen.findByRole('heading', { level: 1, name: 'Dashboard' })).toBeInTheDocument()
+    const logo = container.querySelector('img.dashboard__logo')
+    expect(logo).toHaveAttribute('src', expect.stringContaining('jalaspace-logo'))
+    // Decorative: an empty alt text keeps it out of the accessibility tree.
+    expect(logo).toHaveAttribute('alt', '')
+    expect(logo).toHaveAttribute('width', '499')
+    expect(logo).toHaveAttribute('height', '128')
+  })
+
   it('shows key figures calculated from the demo data', async () => {
     await seedDemoData()
     renderRoute('/')

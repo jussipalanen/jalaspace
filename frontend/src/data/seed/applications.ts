@@ -30,7 +30,7 @@ export interface ApplicationSeed {
 // reserved by an upcoming lease.
 export const applicationSeeds: ApplicationSeed[] = [
   {
-    // Rejected: A 302 went to Aurora Yoga Studio (the approved application below).
+    // Rejected: A 302 went to Yoga Studio Esimerkki (the approved application below).
     property: 'joensuu-center',
     spaceIndex: 11,
     applicantType: 'company',
@@ -130,15 +130,15 @@ export const applicationSeeds: ApplicationSeed[] = [
     property: 'joensuu-center',
     spaceIndex: 11,
     applicantType: 'company',
-    name: 'Aurora Yoga Studio Oy',
+    name: 'Yoga Studio Esimerkki Oy',
     contactPerson: 'Veera Esimerkki',
-    email: 'info@aurora-yoga.example',
+    email: 'info@yoga-studio-esimerkki.example',
     phone: '+358501234567',
     desiredStartInDays: 45,
     message: 'A yoga studio for small groups, open in the evenings and at weekends.',
     status: 'approved',
     createdDaysAgo: 16,
     updatedDaysAgo: 12,
-    tenant: 'aurora-yoga',
+    tenant: 'yoga-studio-esimerkki',
   },
 ]

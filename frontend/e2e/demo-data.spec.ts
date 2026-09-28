@@ -15,7 +15,7 @@ test.describe('demo data', () => {
     expect(properties).toHaveLength(4)
     expect(await page.evaluate(readCollection, 'jalaspace_units')).toHaveLength(68)
     expect(await page.evaluate(readCollection, 'jalaspace_applications')).toHaveLength(8)
-    expect(await page.evaluate(() => localStorage.getItem('jalaspace_seed_version'))).toBe('6')
+    expect(await page.evaluate(() => localStorage.getItem('jalaspace_seed_version'))).toBe('7')
 
     // Simulate a user edit, then reload: the seed must not overwrite it.
     await page.evaluate(() => {

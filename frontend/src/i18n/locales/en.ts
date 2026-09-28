@@ -428,7 +428,7 @@ export const en = {
       hint: 'Optional. Search for the address, then drag the pin or click the map to fine-tune it.',
       search: {
         label: 'Search address',
-        hint: 'Searches in Finland, e.g. Siltakatu 12, 80100 Joensuu.',
+        hint: 'Searches in Finland: street address, postal code and city.',
         submit: 'Search',
         searching: 'Searching…',
         privacy: 'The address you search for is sent to OpenStreetMap.',
@@ -463,8 +463,8 @@ export const en = {
       hints: {
         postalCode: '5 digits, e.g. 80100',
         description: 'Optional, at most {max} characters',
-        latitude: 'Degrees, e.g. 62.601579',
-        longitude: 'Degrees, e.g. 29.762079',
+        latitude: 'Degrees, e.g. 62.6013',
+        longitude: 'Degrees, e.g. 29.7636',
       },
       save: 'Save property',
       saving: 'Saving…',
@@ -1216,7 +1216,7 @@ export const en = {
       },
       hints: {
         name: 'At most {max} characters',
-        phone: 'For example +358 40 123 4567',
+        phone: 'For example +358 50 123 4567',
         notes: 'At most {max} characters',
       },
       save: 'Save tenant',

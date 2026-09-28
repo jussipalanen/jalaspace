@@ -27,7 +27,7 @@ test.describe('leases', () => {
 
     await page.goto('/leases?status=upcoming')
     await expect(count(page)).toHaveText('1 lease')
-    await expect(page.getByRole('link', { name: 'Aurora Yoga Studio Oy', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'Yoga Studio Esimerkki Oy', exact: true })).toBeVisible()
   })
 
   test('creates a lease, schedules its end and keeps the space status in step', async ({ page }) => {

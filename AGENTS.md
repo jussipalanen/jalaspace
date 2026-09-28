@@ -2155,6 +2155,17 @@ Store money as integer euro cents (for example `monthlyRentCents`) to avoid floa
 Format it as euros only in the presentation layer.
 
 Seed data must follow the same business rules as data entered in the app.
+
+Demo data is fictional: seed data, test fixtures, API examples and UI hints never contain real person or company names, street addresses, phone numbers or emails.
+
+```text
+people          first name + the placeholder surname Esimerkki ("example"), e.g. Aino Esimerkki
+companies       <Descriptor> Esimerkki Oy, e.g. Software Esimerkki Oy
+emails          reserved domains only: …@example.com, …@<name>.example
+phone numbers   +358501234567, +358 50 123 4567 and similar
+addresses       fictional streets (Esimerkkikatu 12) in real cities, with a real postal code of the city
+map locations   a general spot near the city centre, never a specific building
+```
 Tests verify, for example, that a space is occupied exactly when it has an active lease.
 
 Business logic should not be buried inside presentation components.
