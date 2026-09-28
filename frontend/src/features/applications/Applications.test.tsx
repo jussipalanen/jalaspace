@@ -15,11 +15,43 @@ describe('applications', () => {
     await initializeDemoData(new LocalStorageDemoDataStore())
   })
 
-  it('is in the sidebar under Leasing', async () => {
+  it('is in the sidebar under Leasing, with the number of new applications', async () => {
     renderRoute('/')
 
     const navigation = await screen.findByRole('navigation', { name: 'Main navigation' })
-    expect(within(navigation).getByRole('link', { name: 'Applications' })).toHaveAttribute('href', '/applications')
+    const link = await within(navigation).findByRole('link', { name: 'Applications, 3 new' })
+    expect(link).toHaveAttribute('href', '/applications')
+    expect(within(link).getByText('3')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('lowers the number as soon as a new application is handled, and hides it at zero', async () => {
+    const user = userEvent.setup()
+    renderRoute('/applications/application-7')
+    const navigation = await screen.findByRole('navigation', { name: 'Main navigation' })
+    await within(navigation).findByRole('link', { name: 'Applications, 3 new' })
+
+    const status = await screen.findByRole('region', { name: 'Status' })
+    await user.click(within(status).getByRole('button', { name: 'Start review' }))
+    expect(await within(navigation).findByRole('link', { name: 'Applications, 2 new' })).toBeInTheDocument()
+
+    // Handling the last two makes the badge disappear.
+    const data = createDataLayer('localStorage')
+    await changeApplicationStatus(data, 'application-5', 'rejected')
+    await changeApplicationStatus(data, 'application-6', 'in_review')
+    await user.click(within(navigation).getByRole('link', { name: /^Applications/ }))
+    expect(await within(navigation).findByRole('link', { name: 'Applications' })).toBeInTheDocument()
+  })
+
+  it('shows +100 when more than 100 applications are new', async () => {
+    const data = createDataLayer('localStorage')
+    const template = (await data.applications.getById('application-7'))!
+    const many = Array.from({ length: 101 }, (_, index) => ({ ...template, id: `many-${index}` }))
+    window.localStorage.setItem('jalaspace_applications', JSON.stringify(many))
+    renderRoute('/', { language: 'fi' })
+
+    const navigation = await screen.findByRole('navigation', { name: 'Päävalikko' })
+    const link = await within(navigation).findByRole('link', { name: 'Hakemukset, yli 100 uutta' })
+    expect(within(link).getByText('+100')).toBeInTheDocument()
   })
 
   it('lists applications newest first with their space and status', async () => {

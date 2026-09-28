@@ -8,7 +8,7 @@ const count = (page: Page) => page.locator('.list-toolbar__count')
 test.describe('applications', () => {
   test('opens from the sidebar, filters survive a reload, and a decision is saved', async ({ page }) => {
     await page.goto('/')
-    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Applications' }).click()
+    await page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Applications, 3 new' }).click()
     await expectPageHeading(page, 'Applications')
     await expect(count(page)).toHaveText('8 applications')
 
@@ -26,6 +26,10 @@ test.describe('applications', () => {
     await status.getByRole('button', { name: 'Reject' }).click()
     await page.getByRole('dialog').getByRole('button', { name: 'Reject application' }).click()
     await expect(status).toContainText('Rejected')
+
+    // Lotta's application is no longer new, so the sidebar count goes down.
+    const navigation = page.getByRole('navigation', { name: 'Main navigation' })
+    await expect(navigation.getByRole('link', { name: 'Applications, 2 new' })).toBeVisible()
 
     await page.reload()
     await expect(page.getByRole('region', { name: 'Status' })).toContainText('Rejected')

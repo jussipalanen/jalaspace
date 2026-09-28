@@ -40,6 +40,10 @@ test.describe('public application form', () => {
 
     await page.getByRole('link', { name: 'For property managers: sign in' }).click()
     await signIn(page)
+    // The sidebar counts the new application.
+    await expect(
+      page.getByRole('navigation', { name: 'Main navigation' }).getByRole('link', { name: 'Applications, 4 new' }),
+    ).toBeVisible()
     await page.goto('/applications?status=submitted')
     await expect(page.getByRole('link', { name: 'Liisa Esimerkki' })).toBeVisible()
     await page.getByRole('link', { name: 'Liisa Esimerkki' }).click()

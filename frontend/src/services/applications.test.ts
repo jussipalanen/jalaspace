@@ -9,8 +9,10 @@ import {
   filterOpenSpaces,
   listOpenSpaces,
   canChangeApplicationStatus,
+  countNewApplications,
   filterApplicationRows,
   isSpaceOpenForApplications,
+  newApplicationsBadge,
   toApplicationForm,
   validateApplicationForm,
   type ApplicationFormValues,
@@ -226,5 +228,20 @@ describe('application rows', () => {
     ])
     expect(names({ status: '', propertyId: '', query: 'TAPIO' })).toEqual(['Consulting Esimerkki Oy'])
     expect(names({ status: '', propertyId: '', query: 'pilates-studio-esimerkki.example' })).toEqual(['Pilates Studio Esimerkki Oy'])
+  })
+})
+
+describe('new applications badge', () => {
+  it('counts only submitted applications', () => {
+    expect(countNewApplications(seed.applications)).toBe(3)
+    expect(countNewApplications([])).toBe(0)
+  })
+
+  it('is hidden at zero, shows the number up to 100 and +100 above that', () => {
+    expect(newApplicationsBadge(0)).toBeNull()
+    expect(newApplicationsBadge(3)).toBe('3')
+    expect(newApplicationsBadge(100)).toBe('100')
+    expect(newApplicationsBadge(101)).toBe('+100')
+    expect(newApplicationsBadge(5000)).toBe('+100')
   })
 })
