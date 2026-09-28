@@ -808,6 +808,13 @@ Unauthenticated users should be redirected to:
 /login
 ```
 
+Public routes, open without signing in (see Applications → Public application form):
+
+```text
+/apply
+/apply/:spaceId
+```
+
 ---
 
 # Frontend Development Order
@@ -1005,6 +1012,21 @@ Rules:
 * the rules live in `services/applications.ts` (pure) and `services/applicationService.ts`, and match `backend/src/domain/applications.ts`; change them together
 * applications contain personal details: never log their contents
 * seed data: open applications only on spaces that can be applied for; frontend and backend seeds are identical
+
+## Public application form
+
+The only pages used by people outside the property manager's team. They are public (no sign-in) and use their own layout (`layouts/PublicLayout.tsx`: logo, language switcher, a sign-in link; no sidebar).
+
+```text
+/apply            the spaces that can be applied for, as cards; city and space type filters in the URL
+/apply/:spaceId   the space (address, facts, features, map) and the application form
+```
+
+* entry points: a "Looking for a space?" block below the sign-in form, and "Application form" links for the manager (Applications page header, and each space that can be applied for on the Spaces list and the property page); the manager's links open a new tab
+* fields: applicant type, name, contact person (companies), email, phone (optional), desired start date (today or later), message (optional), and a required consent checkbox ("I understand this is a demo and have not entered real personal information")
+* when sending, the rules are checked again with current data, in the app and in `POST /api/applications`: the space can still be applied for (`409 space_unavailable`), the start is not in the past (`past`), and an email has at most one open application per space (`duplicate`)
+* a space that cannot be applied for shows a message and a link back to `/apply`, never the form; after sending, a success state with focus on its heading, never other applicants' data
+* personal data: the form tells users it is a demo and not to enter real personal information; in localStorage mode the application stays in this browser, in api mode it is visible to everyone who uses the demo until the nightly reset
 
 ---
 

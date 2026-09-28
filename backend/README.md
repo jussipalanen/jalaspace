@@ -100,6 +100,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 409    | `space_in_use`      | The space still has leases, maintenance tasks or applications |
   | 409    | `tenant_in_use`     | The tenant still has leases |
   | 409    | `invalid_status_change` | The application's status cannot change this way (with `from` and `to`) |
+  | 409    | `space_unavailable` | The space cannot be applied for: it is let, in maintenance or reserved |
   | 409    | `limit_reached`     | The collection is full, so nothing more can be created (with `limit`) |
   | 413    | `payload_too_large` | The request body is over the limit    |
   | 429    | `rate_limited`      | Too many writes, demo resets or AI requests from this client (with `Retry-After`), or the AI quota is used up |
@@ -108,7 +109,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 502    | `invalid_answer`    | The AI answered, but not with a usable answer to a question |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
-- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
+- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, `past`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
 
   ```json
   { "error": { "code": "validation_failed", "fields": { "name": "required", "postalCode": "invalid" } } }
@@ -151,7 +152,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
 | DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
 | GET    | `/api/applications`   | All rental applications                                        |
 | GET    | `/api/applications/:id` | One application, or `404 not_found`                          |
-| POST   | `/api/applications`   | `201` with the created, submitted application and a `Location` header |
+| POST   | `/api/applications`   | `201` with the created, submitted application and a `Location` header, or `409 space_unavailable` |
 | PUT    | `/api/applications/:id` | The updated application, `404 not_found`, or `409 invalid_status_change` |
 | DELETE | `/api/applications/:id` | `204`, or `404 not_found`                                    |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
@@ -317,6 +318,7 @@ curl -X POST http://localhost:3000/api/applications \
 ```
 
 - **A new application is always `submitted`**, without a tenant, whatever the client sends.
+- **Checked on every new application** (the public form sends them): the desired start is today or later (`past`), an email has at most one open application per space (`duplicate`), and the space can be applied for, i.e. it is available and not reserved by an upcoming lease; otherwise `409 space_unavailable`.
 - **Status changes are updates:** `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`. `approved`, `rejected` and `withdrawn` are final; other changes are refused with `409 invalid_status_change`. The server sets `decidedAt` when a decision is made.
 - Applications contain personal details, so their contents are never logged.
 - Nothing refers to an application, so it can always be deleted. A space with applications cannot be deleted.
