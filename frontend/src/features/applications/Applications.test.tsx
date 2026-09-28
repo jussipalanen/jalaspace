@@ -3,9 +3,10 @@ import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { createDataLayer } from '../../repositories'
 import { LocalStorageDemoDataStore } from '../../repositories/localStorage/LocalStorageDemoDataStore'
-import { changeApplicationStatus } from '../../services/applicationService'
+import { approveApplication, changeApplicationStatus } from '../../services/applicationService'
 import { initializeDemoData } from '../../services/demoDataService'
 import { renderRoute } from '../../test/renderRoute'
+import { formatDate } from '../../utils/format'
 
 const rows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
 
@@ -14,19 +15,51 @@ describe('applications', () => {
     await initializeDemoData(new LocalStorageDemoDataStore())
   })
 
-  it('is in the sidebar under Leasing', async () => {
+  it('is in the sidebar under Leasing, with the number of new applications', async () => {
     renderRoute('/')
 
     const navigation = await screen.findByRole('navigation', { name: 'Main navigation' })
-    expect(within(navigation).getByRole('link', { name: 'Applications' })).toHaveAttribute('href', '/applications')
+    const link = await within(navigation).findByRole('link', { name: 'Applications, 3 new' })
+    expect(link).toHaveAttribute('href', '/applications')
+    expect(within(link).getByText('3')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('lowers the number as soon as a new application is handled, and hides it at zero', async () => {
+    const user = userEvent.setup()
+    renderRoute('/applications/application-7')
+    const navigation = await screen.findByRole('navigation', { name: 'Main navigation' })
+    await within(navigation).findByRole('link', { name: 'Applications, 3 new' })
+
+    const status = await screen.findByRole('region', { name: 'Status' })
+    await user.click(within(status).getByRole('button', { name: 'Start review' }))
+    expect(await within(navigation).findByRole('link', { name: 'Applications, 2 new' })).toBeInTheDocument()
+
+    // Handling the last two makes the badge disappear.
+    const data = createDataLayer('localStorage')
+    await changeApplicationStatus(data, 'application-5', 'rejected')
+    await changeApplicationStatus(data, 'application-6', 'in_review')
+    await user.click(within(navigation).getByRole('link', { name: /^Applications/ }))
+    expect(await within(navigation).findByRole('link', { name: 'Applications' })).toBeInTheDocument()
+  })
+
+  it('shows +100 when more than 100 applications are new', async () => {
+    const data = createDataLayer('localStorage')
+    const template = (await data.applications.getById('application-7'))!
+    const many = Array.from({ length: 101 }, (_, index) => ({ ...template, id: `many-${index}` }))
+    window.localStorage.setItem('jalaspace_applications', JSON.stringify(many))
+    renderRoute('/', { language: 'fi' })
+
+    const navigation = await screen.findByRole('navigation', { name: 'Päävalikko' })
+    const link = await within(navigation).findByRole('link', { name: 'Hakemukset, yli 100 uutta' })
+    expect(within(link).getByText('+100')).toBeInTheDocument()
   })
 
   it('lists applications newest first with their space and status', async () => {
     renderRoute('/applications')
 
     await screen.findByRole('table')
-    expect(rows()).toHaveLength(7)
-    expect(screen.getByText('7 applications')).toBeInTheDocument()
+    expect(rows()).toHaveLength(8)
+    expect(screen.getByText('8 applications')).toBeInTheDocument()
     const lotta = rows().find((row) => row.textContent?.includes('Lotta Esimerkki'))!
     expect(within(lotta).getByRole('link', { name: 'Lotta Esimerkki' })).toHaveAttribute(
       'href',
@@ -53,7 +86,7 @@ describe('applications', () => {
     expect(rows()[0]).toHaveTextContent('Oskari Esimerkki')
 
     await user.click(screen.getByRole('button', { name: 'Clear filters' }))
-    expect(rows()).toHaveLength(7)
+    expect(rows()).toHaveLength(8)
   })
 
   it('shows the details of an application', async () => {
@@ -112,6 +145,107 @@ describe('applications', () => {
     expect(
       await screen.findByText('The application of Oskari Esimerkki was marked as withdrawn.'),
     ).toBeInTheDocument()
+  })
+
+  it('approves an application into a new tenant, opens the lease form and then offers to reject the others', async () => {
+    const user = userEvent.setup()
+    const { router } = renderRoute('/applications/application-4')
+    const data = createDataLayer('localStorage')
+    const desiredStart = (await data.applications.getById('application-4'))!.desiredStartDate
+
+    const status = await screen.findByRole('region', { name: 'Status' })
+    await user.click(within(status).getByRole('button', { name: 'Approve' }))
+    const dialog = screen.getByRole('dialog', { name: 'Approve the application of Oskari Esimerkki?' })
+    expect(dialog).toHaveTextContent('A new tenant, Oskari Esimerkki, is created from the application.')
+    expect(dialog).toHaveTextContent('The lease is created only when you save it.')
+    await user.click(within(dialog).getByRole('button', { name: 'Approve' }))
+
+    expect(
+      await screen.findByText('The application of Oskari Esimerkki was approved. Create the lease next.'),
+    ).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/leases/new')
+    expect(await screen.findByRole('combobox', { name: 'Tenant' })).toHaveDisplayValue('Oskari Esimerkki')
+    expect(screen.getByRole('combobox', { name: 'Space' })).toHaveDisplayValue(/^A 11/)
+    expect(screen.getByRole('textbox', { name: /^Start date/ })).toHaveValue(formatDate(desiredStart))
+    await user.type(screen.getByLabelText(/^Monthly rent/), '1100')
+    await user.click(screen.getByRole('button', { name: 'Save lease' }))
+
+    expect(await screen.findByText('The lease of A 11 for Oskari Esimerkki was created.')).toBeInTheDocument()
+    expect(router.state.location.pathname).toBe('/applications/application-4')
+    const approved = await screen.findByRole('region', { name: 'Status' })
+    expect(approved).toHaveTextContent('Approved')
+    expect(within(approved).getByRole('link', { name: 'Oskari Esimerkki' })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^\/tenants\//),
+    )
+    expect(within(approved).queryByRole('link', { name: 'Create lease' })).not.toBeInTheDocument()
+
+    const others = screen.getByRole('region', { name: 'Other applications for this space' })
+    expect(others).toHaveTextContent('1 other application for A 11 is still open.')
+    expect(within(others).getByRole('link', { name: 'Lotta Esimerkki' })).toHaveAttribute(
+      'href',
+      '/applications/application-7',
+    )
+    await user.click(within(others).getByRole('button', { name: 'Reject all' }))
+    await user.click(
+      within(screen.getByRole('dialog', { name: 'Reject the other application for A 11?' })).getByRole('button', {
+        name: 'Reject all',
+      }),
+    )
+    expect(await screen.findByText('1 application was rejected.')).toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Other applications for this space' })).not.toBeInTheDocument()
+    expect(await data.applications.getById('application-7')).toMatchObject({ status: 'rejected' })
+  })
+
+  it('offers to create the lease when an approved application has none yet', async () => {
+    await approveApplication(createDataLayer('localStorage'), 'application-6')
+    renderRoute('/applications/application-6')
+
+    const status = await screen.findByRole('region', { name: 'Status' })
+    expect(status).toHaveTextContent('The tenant has no lease for this space yet.')
+    expect(within(status).getByRole('link', { name: 'Create lease' })).toHaveAttribute(
+      'href',
+      expect.stringMatching(/^\/leases\/new\?tenant=.+&space=space-joensuu-center-5&startDate=\d{4}-\d{2}-\d{2}&returnTo=/),
+    )
+  })
+
+  it('names the existing tenant when approving reuses them, and hides Approve for a space that was let', async () => {
+    const user = userEvent.setup()
+    const data = createDataLayer('localStorage')
+    const application = (await data.applications.getById('application-5'))!
+    await data.applications.update({ ...application, email: 'info@software-esimerkki.example' })
+    const { unmount } = renderRoute('/applications/application-5')
+
+    await user.click(within(await screen.findByRole('region', { name: 'Status' })).getByRole('button', { name: 'Approve' }))
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'Software Esimerkki Oy (info@software-esimerkki.example) is already a tenant, so the application is linked to them.',
+    )
+    unmount()
+
+    const space = (await data.spaces.getById('space-helsinki-kallio-11'))!
+    await data.spaces.update({ ...space, status: 'maintenance' })
+    renderRoute('/applications/application-7')
+    const status = await screen.findByRole('region', { name: 'Status' })
+    expect(within(status).queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
+    expect(within(status).getByRole('button', { name: 'Start review' })).toBeInTheDocument()
+  })
+
+  it('lists the approved application on its tenant page and keeps the tenant from being deleted', async () => {
+    const user = userEvent.setup()
+    const { tenant } = await approveApplication(createDataLayer('localStorage'), 'application-6')
+    renderRoute(`/tenants/${tenant.id}`)
+
+    const section = await screen.findByRole('region', { name: 'Applications' })
+    expect(within(section).getByRole('link', { name: 'Application for A 201' })).toHaveAttribute(
+      'href',
+      '/applications/application-6',
+    )
+    expect(section).toHaveTextContent('Approved')
+
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    expect(screen.getByRole('dialog', { name: 'Consulting Esimerkki Oy cannot be deleted' })).toHaveTextContent(
+      '1 approved application',
+    )
   })
 
   it('explains when the status was already changed in another tab', async () => {
@@ -176,7 +310,7 @@ describe('applications', () => {
 
     await screen.findByRole('table')
     expect(screen.getByRole('heading', { level: 1, name: 'Hakemukset' })).toBeInTheDocument()
-    expect(screen.getByText('7 hakemusta')).toBeInTheDocument()
+    expect(screen.getByText('8 hakemusta')).toBeInTheDocument()
     expect(screen.getByRole('columnheader', { name: 'Toivottu alkamispäivä' })).toBeInTheDocument()
     expect(within(screen.getByRole('table')).getAllByText('Käsittelyssä')).toHaveLength(2)
   })

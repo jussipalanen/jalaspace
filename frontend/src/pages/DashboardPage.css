@@ -1,6 +1,19 @@
+.dashboard__logo {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+@media (max-width: 559.98px) {
+  .dashboard__logo {
+    height: 32px;
+  }
+}
+
+/* Wide enough for a figure and its chart side by side: five, three or one per row. */
 .dashboard__stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
   gap: var(--space-4);
   margin-bottom: var(--space-6);
 }
@@ -16,10 +29,6 @@
   flex-direction: column;
   min-width: 0;
   padding: var(--space-5);
-}
-
-.dashboard-panel--wide {
-  grid-column: 1 / -1;
 }
 
 .dashboard-panel__header {
@@ -137,6 +146,10 @@ a.dashboard-list__title:hover {
 
 .activity__marker--lease {
   background: var(--color-primary);
+}
+
+.activity__marker--application {
+  background: var(--color-chart-reserved);
 }
 
 .activity__marker--muted {

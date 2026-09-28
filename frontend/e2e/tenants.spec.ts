@@ -27,24 +27,24 @@ test.describe('tenants', () => {
     await expect(occupancy(page)).toContainText('85%')
 
     await page.goto('/tenants/new')
-    await page.getByRole('textbox', { name: 'Company name' }).fill('Pohjola Bakery Oy')
+    await page.getByRole('textbox', { name: 'Company name' }).fill('Bakery Esimerkki Oy')
     await page.getByRole('textbox', { name: 'Contact person' }).fill('Liisa Esimerkki')
-    await page.getByRole('textbox', { name: 'Email' }).fill('hello@pohjola-bakery.example')
+    await page.getByRole('textbox', { name: 'Email' }).fill('hello@bakery-esimerkki.example')
     await page.getByRole('button', { name: 'Save tenant' }).click()
-    await expect(page.getByText('Tenant Pohjola Bakery Oy was added.')).toBeVisible()
-    await expectPageHeading(page, 'Pohjola Bakery Oy')
+    await expect(page.getByText('Tenant Bakery Esimerkki Oy was added.')).toBeVisible()
+    await expectPageHeading(page, 'Bakery Esimerkki Oy')
 
     await page.getByRole('link', { name: 'Assign to space' }).click()
     await expectPageHeading(page, 'New lease')
     await expect(page.getByRole('combobox', { name: 'Tenant' }).locator('option:checked')).toHaveText(
-      'Pohjola Bakery Oy',
+      'Bakery Esimerkki Oy',
     )
     await page.getByRole('combobox', { name: 'Property' }).selectOption({ label: 'Kuopio Harbour Business Park' })
     await page.getByRole('combobox', { name: 'Space' }).selectOption({ label: 'B 204 (Available)' })
     await page.getByLabel('Monthly rent (€)').fill('1 250,50')
     await page.getByRole('button', { name: 'Save lease' }).click()
-    await expect(page.getByText('The lease of B 204 for Pohjola Bakery Oy was created.')).toBeVisible()
-    await expectPageHeading(page, 'Pohjola Bakery Oy')
+    await expect(page.getByText('The lease of B 204 for Bakery Esimerkki Oy was created.')).toBeVisible()
+    await expectPageHeading(page, 'Bakery Esimerkki Oy')
     await expect(page.getByRole('region', { name: 'Spaces' })).toContainText('€1,250.50 / month')
 
     await page.reload()
@@ -52,13 +52,13 @@ test.describe('tenants', () => {
     await page.goto('/units?property=property-kuopio-harbour&status=occupied')
     const row = page.getByRole('row').filter({ hasText: 'B 204' })
     await expect(row).toContainText('Occupied')
-    await expect(row.getByRole('link', { name: 'Pohjola Bakery Oy' })).toBeVisible()
+    await expect(row.getByRole('link', { name: 'Bakery Esimerkki Oy' })).toBeVisible()
     await page.goto('/')
     await expect(occupancy(page)).toContainText('87%')
 
     // The lease started today, so removing the tenant cancels it.
     await page.goto('/tenants')
-    await page.getByRole('link', { name: 'Pohjola Bakery Oy' }).click()
+    await page.getByRole('link', { name: 'Bakery Esimerkki Oy' }).click()
     await page.getByRole('button', { name: 'Remove from space B 204' }).click()
     await page.getByRole('dialog', { name: 'Cancel the lease of B 204?' }).getByRole('button', { name: 'Cancel lease' }).click()
     await expect(page.getByText('The upcoming lease of B 204 was cancelled.')).toBeVisible()
@@ -68,10 +68,10 @@ test.describe('tenants', () => {
 
     // With no leases left, the tenant can be deleted.
     await page.goto('/tenants')
-    await page.getByRole('link', { name: 'Pohjola Bakery Oy' }).click()
+    await page.getByRole('link', { name: 'Bakery Esimerkki Oy' }).click()
     await page.getByRole('button', { name: 'Delete', exact: true }).click()
-    await page.getByRole('dialog', { name: 'Delete Pohjola Bakery Oy?' }).getByRole('button', { name: 'Delete tenant' }).click()
-    await expect(page.getByText('Tenant Pohjola Bakery Oy was deleted.')).toBeVisible()
+    await page.getByRole('dialog', { name: 'Delete Bakery Esimerkki Oy?' }).getByRole('button', { name: 'Delete tenant' }).click()
+    await expect(page.getByText('Tenant Bakery Esimerkki Oy was deleted.')).toBeVisible()
     await expect(count(page)).toHaveText('31 tenants')
   })
 
@@ -94,9 +94,9 @@ test.describe('tenants', () => {
   })
 
   test('explains why a tenant with leases cannot be deleted', async ({ page }) => {
-    await page.goto('/tenants/tenant-old-town-books')
+    await page.goto('/tenants/tenant-bookshop-esimerkki')
     await page.getByRole('button', { name: 'Delete', exact: true }).click()
-    const dialog = page.getByRole('dialog', { name: 'Old Town Books Oy cannot be deleted' })
+    const dialog = page.getByRole('dialog', { name: 'Bookshop Esimerkki Oy cannot be deleted' })
     await expect(dialog).toContainText('1 lease')
     await page.keyboard.press('Escape')
     await expect(dialog).toBeHidden()

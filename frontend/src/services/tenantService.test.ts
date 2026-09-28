@@ -22,9 +22,9 @@ import type { TenantFormValues } from './tenants'
 
 const values: TenantFormValues = {
   type: 'company',
-  name: 'Pohjola Bakery Oy',
+  name: 'Bakery Esimerkki Oy',
   contactPerson: 'Liisa Esimerkki',
-  email: 'hello@pohjola-bakery.example',
+  email: 'hello@bakery-esimerkki.example',
   phone: '',
   notes: '',
 }
@@ -64,27 +64,27 @@ describe('tenant service', () => {
       TenantValidationError,
     )
     await expect(
-      createTenant(data, { ...values, email: 'INFO@nordic-pixel.example' }),
+      createTenant(data, { ...values, email: 'INFO@software-esimerkki.example' }),
     ).rejects.toMatchObject({ errors: { email: 'duplicate' } })
     expect(await data.tenants.getAll()).toHaveLength(31)
   })
 
   it('updates a tenant and allows keeping its own email', async () => {
     const data = createDataLayer('localStorage')
-    const updated = await updateTenant(data, 'tenant-nordic-pixel', {
+    const updated = await updateTenant(data, 'tenant-software-esimerkki', {
       ...values,
-      name: 'Nordic Pixel Group Oy',
-      email: 'info@nordic-pixel.example',
+      name: 'Software Group Esimerkki Oy',
+      email: 'info@software-esimerkki.example',
     })
-    expect(updated).toMatchObject({ id: 'tenant-nordic-pixel', name: 'Nordic Pixel Group Oy' })
+    expect(updated).toMatchObject({ id: 'tenant-software-esimerkki', name: 'Software Group Esimerkki Oy' })
     await expect(updateTenant(data, 'missing', values)).rejects.toBeInstanceOf(EntityNotFoundError)
   })
 
   it('refuses to delete a tenant with leases and deletes one without', async () => {
     const data = createDataLayer('localStorage')
-    const error = await deleteTenant(data, 'tenant-old-town-books').catch((e: unknown) => e)
+    const error = await deleteTenant(data, 'tenant-bookshop-esimerkki').catch((e: unknown) => e)
     expect(error).toBeInstanceOf(TenantDeletionBlockedError)
-    expect(await data.tenants.getById('tenant-old-town-books')).not.toBeNull()
+    expect(await data.tenants.getById('tenant-bookshop-esimerkki')).not.toBeNull()
 
     const created = await createTenant(data, values)
     await deleteTenant(data, created.id)
@@ -130,7 +130,7 @@ describe('tenant service', () => {
         spaceId: 'space-joensuu-center-6',
       }),
     ).rejects.toMatchObject({ errors: { spaceId: 'overlap' } })
-    // A 302 is reserved for Aurora Yoga later this year.
+    // A 302 is reserved for Yoga Studio Esimerkki later this year.
     const error = await assignTenantToSpace(data, 'tenant-aino-esimerkki', {
       ...assignment(),
       propertyId: 'property-joensuu-center',
@@ -163,7 +163,7 @@ describe('tenant service', () => {
 
   it('cancels a lease that has not started, removing it', async () => {
     const data = createDataLayer('localStorage')
-    // Aurora Yoga's lease of A 302 starts later this year.
+    // Yoga Studio Esimerkki's lease of A 302 starts later this year.
     const { action } = await removeTenantFromSpace(data, 'lease-59')
 
     expect(action).toBe('cancel')

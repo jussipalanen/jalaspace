@@ -63,7 +63,7 @@ describe('language switcher', () => {
       'Käyttöaste85 %58 / 68 tilasta vuokrattu',
     )
     expect(within(figures).getByRole('link', { name: /^Avoimet huollot/ })).toHaveTextContent(
-      '4 kiireellistä',
+      'Korkea 4 Keskitaso 4 Matala 2',
     )
     const maintenance = screen.getByRole('region', { name: 'Viimeisimmät huoltotehtävät' })
     expect(within(maintenance).getAllByText('Kiireellisyys: Korkea').length).toBeGreaterThan(0)

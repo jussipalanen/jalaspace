@@ -21,10 +21,10 @@ const today = '2026-09-22'
 const seed = createSeedData(new Date(now))
 const valid: TenantFormValues = {
   ...emptyTenantForm(),
-  name: 'Pohjola Bakery Oy',
+  name: 'Bakery Esimerkki Oy',
   contactPerson: 'Liisa Esimerkki',
-  email: 'hello@pohjola-bakery.example',
-  phone: '+358 40 123 4567',
+  email: 'hello@bakery-esimerkki.example',
+  phone: '+358 50 123 4567',
 }
 const validate = (values: TenantFormValues, editingId?: string) =>
   validateTenantForm(values, seed.tenants, editingId)
@@ -33,7 +33,7 @@ describe('validating the tenant form', () => {
   it('accepts valid values and an empty phone', () => {
     expect(validate(valid)).toEqual({})
     expect(validate({ ...valid, phone: '' })).toEqual({})
-    expect(validate({ ...valid, phone: '(013) 123-456' })).toEqual({})
+    expect(validate({ ...valid, phone: '(050) 123-4567' })).toEqual({})
   })
 
   it('requires a name and a valid email', () => {
@@ -45,8 +45,8 @@ describe('validating the tenant form', () => {
   })
 
   it('keeps emails unique, ignoring case, except for the tenant being edited', () => {
-    expect(validate({ ...valid, email: ' INFO@nordic-pixel.example ' })).toEqual({ email: 'duplicate' })
-    expect(validate({ ...valid, email: 'info@nordic-pixel.example' }, 'tenant-nordic-pixel')).toEqual({})
+    expect(validate({ ...valid, email: ' INFO@software-esimerkki.example ' })).toEqual({ email: 'duplicate' })
+    expect(validate({ ...valid, email: 'info@software-esimerkki.example' }, 'tenant-software-esimerkki')).toEqual({})
   })
 
   it('rejects phone numbers with letters or the wrong length', () => {
@@ -64,11 +64,11 @@ describe('validating the tenant form', () => {
 describe('building tenants', () => {
   it('trims values and stores empty optional fields as null', () => {
     const tenant = buildNewTenant(
-      { ...valid, name: ' Pohjola Bakery Oy ', phone: ' ', contactPerson: '', notes: ' Bakery ' },
+      { ...valid, name: ' Bakery Esimerkki Oy ', phone: ' ', contactPerson: '', notes: ' Bakery ' },
       now,
     )
     expect(tenant).toMatchObject({
-      name: 'Pohjola Bakery Oy',
+      name: 'Bakery Esimerkki Oy',
       contactPerson: null,
       phone: null,
       notes: 'Bakery',
@@ -84,9 +84,9 @@ describe('building tenants', () => {
     const tenant = buildNewTenant(valid, now)
     expect(toTenantForm(tenant)).toEqual(valid)
     const later = '2026-09-25T08:00:00.000Z'
-    expect(applyTenantChanges(tenant, { ...valid, name: 'Renamed Oy' }, later)).toMatchObject({
+    expect(applyTenantChanges(tenant, { ...valid, name: 'Renamed Esimerkki Oy' }, later)).toMatchObject({
       id: tenant.id,
-      name: 'Renamed Oy',
+      name: 'Renamed Esimerkki Oy',
       createdAt: now,
       updatedAt: later,
     })
@@ -95,21 +95,21 @@ describe('building tenants', () => {
 
 describe('tenant leases and rows', () => {
   it('groups leases into current, upcoming and past', () => {
-    const saimaa = groupTenantLeases('tenant-saimaa-design', seed.leases, seed.spaces, seed.properties, today)
-    expect(saimaa.current.map((entry) => entry.space?.name)).toEqual(['A 305', 'A 304'])
-    expect(saimaa.past.map((entry) => entry.space?.name)).toEqual(['A 201'])
-    expect(saimaa.past[0]?.property?.name).toBe('Joensuu Center')
+    const designStudio = groupTenantLeases('tenant-design-studio-esimerkki', seed.leases, seed.spaces, seed.properties, today)
+    expect(designStudio.current.map((entry) => entry.space?.name)).toEqual(['A 305', 'A 304'])
+    expect(designStudio.past.map((entry) => entry.space?.name)).toEqual(['A 201'])
+    expect(designStudio.past[0]?.property?.name).toBe('Joensuu Center')
 
-    const aurora = groupTenantLeases('tenant-aurora-yoga', seed.leases, seed.spaces, seed.properties, today)
-    expect(aurora.current).toEqual([])
-    expect(aurora.upcoming.map((entry) => entry.space?.name)).toEqual(['A 302'])
+    const yogaStudio = groupTenantLeases('tenant-yoga-studio-esimerkki', seed.leases, seed.spaces, seed.properties, today)
+    expect(yogaStudio.current).toEqual([])
+    expect(yogaStudio.upcoming.map((entry) => entry.space?.name)).toEqual(['A 302'])
   })
 
   it('sorts rows by name and filters by type and search', () => {
     const rows = buildTenantRows(seed.tenants, seed.leases, seed.spaces, seed.properties, today, 'fi-FI')
     expect(rows).toHaveLength(31)
-    expect(rows[0]?.tenant.name).toBe('Aino Esimerkki')
-    expect(rows.find((row) => row.tenant.id === 'tenant-aurora-yoga')?.nextUpcoming?.space?.name).toBe(
+    expect(rows.slice(0, 2).map((row) => row.tenant.name)).toEqual(['Accounting Esimerkki Oy', 'Aino Esimerkki'])
+    expect(rows.find((row) => row.tenant.id === 'tenant-yoga-studio-esimerkki')?.nextUpcoming?.space?.name).toBe(
       'A 302',
     )
 
@@ -118,19 +118,29 @@ describe('tenant leases and rows', () => {
     expect(filter('company', '')).toHaveLength(16)
     expect(filter('person', '')).toHaveLength(15)
     // Search matches the contact person and the email as well as the name.
-    expect(filter('', 'aleksi esimerkki')).toEqual(['tenant-nordic-pixel'])
-    expect(filter('', 'info@jarvi-coffee')).toEqual(['tenant-jarvi-coffee'])
-    expect(filter('person', 'nordic')).toEqual([])
+    expect(filter('', 'aleksi esimerkki')).toEqual(['tenant-software-esimerkki'])
+    expect(filter('', 'info@cafe-esimerkki')).toEqual(['tenant-cafe-esimerkki'])
+    expect(filter('person', 'software')).toEqual([])
   })
 })
 
 describe('deleting tenants', () => {
-  it('is blocked while any lease, even a past one, refers to the tenant', () => {
-    expect(checkTenantDeletion('tenant-old-town-books', seed.leases)).toEqual({
+  it('is blocked while any lease, even a past one, or an approved application refers to the tenant', () => {
+    expect(checkTenantDeletion('tenant-bookshop-esimerkki', seed.leases, seed.applications)).toEqual({
       allowed: false,
       leaseCount: 1,
+      applicationCount: 0,
     })
-    expect(checkTenantDeletion('tenant-new', seed.leases)).toEqual({ allowed: true, leaseCount: 0 })
+    expect(checkTenantDeletion('tenant-new', [], [{ tenantId: 'tenant-new' }])).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      applicationCount: 1,
+    })
+    expect(checkTenantDeletion('tenant-new', seed.leases, seed.applications)).toEqual({
+      allowed: true,
+      leaseCount: 0,
+      applicationCount: 0,
+    })
   })
 })
 

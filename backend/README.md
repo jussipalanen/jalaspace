@@ -98,8 +98,9 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 404    | `not_found`         | The route or resource does not exist  |
   | 409    | `property_in_use`   | The property still has spaces or maintenance tasks |
   | 409    | `space_in_use`      | The space still has leases, maintenance tasks or applications |
-  | 409    | `tenant_in_use`     | The tenant still has leases |
+  | 409    | `tenant_in_use`     | The tenant still has leases or approved applications |
   | 409    | `invalid_status_change` | The application's status cannot change this way (with `from` and `to`) |
+  | 409    | `space_unavailable` | The space cannot be applied for: it is let, in maintenance or reserved |
   | 409    | `limit_reached`     | The collection is full, so nothing more can be created (with `limit`) |
   | 413    | `payload_too_large` | The request body is over the limit    |
   | 429    | `rate_limited`      | Too many writes, demo resets or AI requests from this client (with `Retry-After`), or the AI quota is used up |
@@ -108,7 +109,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
   | 502    | `invalid_answer`    | The AI answered, but not with a usable answer to a question |
   | 503    | `ai_unavailable`    | No AI key is configured, or the AI provider failed or timed out |
 
-- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
+- An error may carry extra machine-readable details next to the code, never English text. Validation errors list a code per field, the same codes the frontend already translates (`required`, `tooLong`, `invalid`, `beforeStart`, `past`, and for rules that compare with the stored data `notFound`, `duplicate`, `maintenanceLinked`, `overlap` and `maintenance`):
 
   ```json
   { "error": { "code": "validation_failed", "fields": { "name": "required", "postalCode": "invalid" } } }
@@ -143,7 +144,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
 | GET    | `/api/tenants/:id`    | One tenant, or `404 not_found`                                 |
 | POST   | `/api/tenants`        | `201` with the created tenant and a `Location` header          |
 | PUT    | `/api/tenants/:id`    | The updated tenant, or `404 not_found`                         |
-| DELETE | `/api/tenants/:id`    | `204`, `404 not_found`, or `409 tenant_in_use` with the lease count |
+| DELETE | `/api/tenants/:id`    | `204`, `404 not_found`, or `409 tenant_in_use` with counts      |
 | GET    | `/api/leases`         | All leases                                                     |
 | GET    | `/api/leases/:id`     | One lease, or `404 not_found`                                  |
 | POST   | `/api/leases`         | `201` with the created lease and a `Location` header           |
@@ -151,7 +152,7 @@ Swagger UI loads from jsDelivr, pinned to one version with Subresource Integrity
 | DELETE | `/api/leases/:id`     | `204`, or `404 not_found`                                      |
 | GET    | `/api/applications`   | All rental applications                                        |
 | GET    | `/api/applications/:id` | One application, or `404 not_found`                          |
-| POST   | `/api/applications`   | `201` with the created, submitted application and a `Location` header |
+| POST   | `/api/applications`   | `201` with the created, submitted application and a `Location` header, or `409 space_unavailable` |
 | PUT    | `/api/applications/:id` | The updated application, `404 not_found`, or `409 invalid_status_change` |
 | DELETE | `/api/applications/:id` | `204`, or `404 not_found`                                    |
 | POST   | `/api/demo/reset`     | `204`; restores the demo data. Only with `SEED_DEMO_DATA=true` |
@@ -178,7 +179,7 @@ Editable fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/properties \
   -H 'content-type: application/json' \
-  -d '{"name":"Joensuu Center","type":"mixed_use","address":"Siltakatu 12","postalCode":"80100","city":"Joensuu"}'
+  -d '{"name":"Joensuu Center","type":"mixed_use","address":"Esimerkkikatu 12","postalCode":"80100","city":"Joensuu"}'
 ```
 
 A property that still has spaces or maintenance tasks cannot be deleted, so no data is left pointing to it:
@@ -257,13 +258,13 @@ Editable fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/tenants \
   -H 'content-type: application/json' \
-  -d '{"type":"company","name":"Lakeside Bakery Oy","contactPerson":"Maija Salo","email":"info@lakeside-bakery.example"}'
+  -d '{"type":"company","name":"Bakery Esimerkki Oy","contactPerson":"Maija Esimerkki","email":"info@bakery-esimerkki.example"}'
 ```
 
-A tenant that still has leases (current, upcoming or past) cannot be deleted:
+A tenant that still has leases (current, upcoming or past) or approved applications cannot be deleted:
 
 ```json
-{ "error": { "code": "tenant_in_use", "leaseCount": 2 } }
+{ "error": { "code": "tenant_in_use", "leaseCount": 2, "applicationCount": 1 } }
 ```
 
 Assigning a tenant to a space and removing them from one are lease operations, see below.
@@ -283,7 +284,7 @@ Fields and rules (the same as in the app):
 ```bash
 curl -X POST http://localhost:3000/api/leases \
   -H 'content-type: application/json' \
-  -d '{"tenantId":"tenant-aurora-yoga","spaceId":"space-kuopio-harbour-10","startDate":"2026-10-01","endDate":null,"monthlyRentCents":125050}'
+  -d '{"tenantId":"tenant-yoga-studio-esimerkki","spaceId":"space-kuopio-harbour-10","startDate":"2026-10-01","endDate":null,"monthlyRentCents":125050}'
 ```
 
 - **Status is derived, not stored:** `upcoming` before the start date, `ended` after the end date, otherwise `active`. Both dates count as days of the lease, and "today" is the server's UTC date.
@@ -317,9 +318,11 @@ curl -X POST http://localhost:3000/api/applications \
 ```
 
 - **A new application is always `submitted`**, without a tenant, whatever the client sends.
+- **Checked on every new application** (the public form sends them): the desired start is today or later (`past`), an email has at most one open application per space (`duplicate`), and the space can be applied for, i.e. it is available and not reserved by an upcoming lease; otherwise `409 space_unavailable`.
 - **Status changes are updates:** `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`. `approved`, `rejected` and `withdrawn` are final; other changes are refused with `409 invalid_status_change`. The server sets `decidedAt` when a decision is made.
 - Applications contain personal details, so their contents are never logged.
-- Nothing refers to an application, so it can always be deleted. A space with applications cannot be deleted.
+- Nothing refers to an application, so it can always be deleted. A space with applications, and the tenant of an approved application, cannot be deleted.
+- **Approving** is two requests from the app: create (or reuse) the tenant, then `PUT` the application with `status: approved` and its `tenantId`. No lease is created.
 
 ### Maintenance suggestions
 
@@ -397,7 +400,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants, 62 leases and 7 applications, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants, 62 leases and 8 applications, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 

@@ -11,7 +11,7 @@ const property = (id: string): Property => ({
   id,
   name: id,
   type: 'office',
-  address: 'Siltakatu 12',
+  address: 'Esimerkkikatu 12',
   postalCode: '80100',
   city: 'Joensuu',
   description: '',

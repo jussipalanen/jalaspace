@@ -2,9 +2,11 @@ import type { Application, ApplicationStatus } from '../types/application'
 import type { IsoDate, IsoDateTime } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { Property } from '../types/property'
-import type { Space } from '../types/space'
-import type { TenantType } from '../types/tenant'
-import { isIsoDate } from '../utils/date'
+import type { Space, SpaceType } from '../types/space'
+import type { Tenant, TenantType } from '../types/tenant'
+import { parseDisplayDate } from '../utils/date'
+import { formatDate } from '../utils/format'
+import { generateId } from '../utils/id'
 import { getLeaseStatus } from './leases'
 import {
   EMAIL_PATTERN,
@@ -15,6 +17,7 @@ import {
   TENANT_NAME_MAX_LENGTH,
   TENANT_PHONE_MAX_LENGTH,
   TENANT_PHONE_MIN_LENGTH,
+  type TenantFormValues,
 } from './tenants'
 
 // The rules match the API (backend/src/domain/applications.ts). The applicant's
@@ -90,6 +93,7 @@ export interface ApplicationFormValues {
   contactPerson: string
   email: string
   phone: string
+  /** As typed, e.g. `1.11.2026`. */
   desiredStartDate: string
   message: string
 }
@@ -99,10 +103,22 @@ export interface ApplicationFormErrors {
   applicantType?: 'invalid'
   name?: 'required' | 'tooLong'
   contactPerson?: 'tooLong'
-  email?: 'required' | 'invalid' | 'tooLong'
+  email?: 'required' | 'invalid' | 'tooLong' | 'duplicate'
   phone?: 'invalid'
-  desiredStartDate?: 'required' | 'invalid'
+  desiredStartDate?: 'required' | 'invalid' | 'past'
   message?: 'tooLong'
+}
+
+export function emptyApplicationForm(): ApplicationFormValues {
+  return {
+    applicantType: 'person',
+    name: '',
+    contactPerson: '',
+    email: '',
+    phone: '',
+    desiredStartDate: '',
+    message: '',
+  }
 }
 
 export function toApplicationForm(application: Application): ApplicationFormValues {
@@ -112,12 +128,29 @@ export function toApplicationForm(application: Application): ApplicationFormValu
     contactPerson: application.contactPerson ?? '',
     email: application.email,
     phone: application.phone ?? '',
-    desiredStartDate: application.desiredStartDate,
+    desiredStartDate: formatDate(application.desiredStartDate),
     message: application.message,
   }
 }
 
-export function validateApplicationForm(values: ApplicationFormValues): ApplicationFormErrors {
+/** The rules for sending a new application, which compare it with today and the stored applications. */
+export interface NewApplicationContext {
+  spaceId: string
+  today: IsoDate
+  applications: Pick<Application, 'spaceId' | 'email' | 'status'>[]
+}
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+/**
+ * Validates the form. With `context`, also the rules for a new application:
+ * the desired start is today or later, and an email has at most one open
+ * application per space.
+ */
+export function validateApplicationForm(
+  values: ApplicationFormValues,
+  context?: NewApplicationContext,
+): ApplicationFormErrors {
   const errors: ApplicationFormErrors = {}
   const name = values.name.trim()
   const email = values.email.trim()
@@ -146,12 +179,96 @@ export function validateApplicationForm(values: ApplicationFormValues): Applicat
     errors.phone = 'invalid'
   }
 
+  const startDate = parseDisplayDate(desiredStartDate)
   if (!desiredStartDate) errors.desiredStartDate = 'required'
-  else if (!isIsoDate(desiredStartDate)) errors.desiredStartDate = 'invalid'
+  else if (!startDate) errors.desiredStartDate = 'invalid'
+  else if (context && startDate < context.today) errors.desiredStartDate = 'past'
 
   if (values.message.trim().length > APPLICATION_MESSAGE_MAX_LENGTH) errors.message = 'tooLong'
 
+  if (
+    context &&
+    !errors.email &&
+    context.applications.some(
+      (application) =>
+        application.spaceId === context.spaceId &&
+        isOpenApplication(application) &&
+        normalizeEmail(application.email) === normalizeEmail(email),
+    )
+  ) {
+    errors.email = 'duplicate'
+  }
+
   return errors
+}
+
+/** A new, submitted application from valid form values. */
+export function buildNewApplication(
+  values: ApplicationFormValues,
+  spaceId: string,
+  now: IsoDateTime,
+  id: string = generateId(),
+): Application {
+  const contactPerson = values.contactPerson.trim()
+  return {
+    id,
+    spaceId,
+    applicantType: values.applicantType,
+    name: values.name.trim(),
+    // A contact person only makes sense for a company.
+    contactPerson: values.applicantType === 'company' && contactPerson ? contactPerson : null,
+    email: values.email.trim(),
+    phone: values.phone.trim() || null,
+    // Valid values always have a real date.
+    desiredStartDate: parseDisplayDate(values.desiredStartDate) ?? '',
+    message: values.message.trim(),
+    status: 'submitted',
+    decidedAt: null,
+    tenantId: null,
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+/** A space that can be applied for, with its property, as listed on the public pages. */
+export interface OpenSpace {
+  space: Space
+  property: Property
+}
+
+/** Spaces that can be applied for, by city, property and space name. */
+export function listOpenSpaces(
+  spaces: Space[],
+  properties: Property[],
+  leases: Lease[],
+  today: IsoDate,
+  locale: string,
+): OpenSpace[] {
+  const propertiesById = new Map(properties.map((property) => [property.id, property]))
+  const collator = new Intl.Collator(locale, { numeric: true })
+  return spaces
+    .flatMap((space) => {
+      const property = propertiesById.get(space.propertyId)
+      return property && isSpaceOpenForApplications(space, leases, today) ? [{ space, property }] : []
+    })
+    .toSorted(
+      (a, b) =>
+        collator.compare(a.property.city, b.property.city) ||
+        collator.compare(a.property.name, b.property.name) ||
+        collator.compare(a.space.name, b.space.name),
+    )
+}
+
+export interface OpenSpaceFilters {
+  city: string
+  type: SpaceType | ''
+}
+
+export function filterOpenSpaces(spaces: OpenSpace[], filters: OpenSpaceFilters): OpenSpace[] {
+  return spaces.filter(
+    ({ space, property }) =>
+      (!filters.city || property.city === filters.city) && (!filters.type || space.type === filters.type),
+  )
 }
 
 export interface ApplicationRow {
@@ -209,4 +326,45 @@ export function filterApplicationRows(
       )
     )
   })
+}
+
+/** The tenant who already uses the applicant's email (ignoring case), if any; approving reuses them. */
+export function findTenantForApplication(
+  application: Pick<Application, 'email'>,
+  tenants: Tenant[],
+): Tenant | null {
+  return tenants.find((tenant) => normalizeEmail(tenant.email) === normalizeEmail(application.email)) ?? null
+}
+
+/** A new tenant's details from an approved application; the message is not copied. */
+export function toTenantFormFromApplication(application: Application): TenantFormValues {
+  return {
+    type: application.applicantType,
+    name: application.name,
+    contactPerson: application.contactPerson ?? '',
+    email: application.email,
+    phone: application.phone ?? '',
+    notes: '',
+  }
+}
+
+/** The other open applications for the same space, e.g. to reject them after one was approved. */
+export function otherOpenApplications(application: Application, applications: Application[]): Application[] {
+  return applications
+    .filter((other) => other.id !== application.id && other.spaceId === application.spaceId && isOpenApplication(other))
+    .toSorted((a, b) => a.createdAt.localeCompare(b.createdAt))
+}
+
+/** The largest number the sidebar badge shows; more is shown as "+100". */
+export const NEW_APPLICATIONS_BADGE_MAX = 100
+
+/** Applications nobody has handled yet: status `submitted` (the Dashboard's "New applications"). */
+export function countNewApplications(applications: Pick<Application, 'status'>[]): number {
+  return applications.filter((application) => application.status === 'submitted').length
+}
+
+/** The badge text for a count: nothing for 0, the number up to 100, "+100" above that. */
+export function newApplicationsBadge(count: number): string | null {
+  if (count <= 0) return null
+  return count > NEW_APPLICATIONS_BADGE_MAX ? `+${NEW_APPLICATIONS_BADGE_MAX}` : String(count)
 }

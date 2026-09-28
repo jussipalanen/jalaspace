@@ -808,6 +808,13 @@ Unauthenticated users should be redirected to:
 /login
 ```
 
+Public routes, open without signing in (see Applications → Public application form):
+
+```text
+/apply
+/apply/:spaceId
+```
+
 ---
 
 # Frontend Development Order
@@ -858,7 +865,8 @@ Open maintenance        7
 Include:
 
 * recent maintenance
-* available spaces
+* available spaces, with the number of open applications for each
+* latest applications: the five newest, with their space and status
 * recent activity
 * Ask JalaSpace, when the API offers it (see AI-Assisted Search)
 
@@ -872,11 +880,26 @@ Occupancy          occupied spaces / all spaces, rounded to a whole percent
 Open maintenance   tasks that are not completed (open + in progress)
 Available spaces   spaces with status available; flagged as reserved
                    when an upcoming lease exists
+Open applications  applications with status submitted or in review
+New applications   applications with status submitted
 ```
 
-Recent activity is derived from entity dates (maintenance completed, lease started, lease ended) until a stored activity log exists.
+Recent activity is derived from entity dates (maintenance completed, lease started, lease ended, application received, application approved) until a stored activity log exists.
 
 Calculations belong in a pure, tested service (`services/dashboard.ts`), not in components.
+
+The key figures have small ring charts (`components/RingChart`, inline SVG, no chart library):
+
+```text
+Spaces             occupied, available, reserved, in maintenance (adds up to all spaces)
+Occupancy          a meter: occupied spaces of all spaces
+Open maintenance   high, medium, low priority (adds up to the open tasks)
+Open applications  new and in review (adds up to the open applications)
+```
+
+* each ring is decorative (`aria-hidden`); the card's text and legend state the same numbers, so no value is told by colour alone
+* chart colours are the `--color-chart-*` tokens, checked with the dataviz palette validator: space states are categorical, priorities one hue from light (low) to dark (high)
+* the segments grow once when the Dashboard opens; no animation with `prefers-reduced-motion: reduce`
 
 ---
 
@@ -990,6 +1013,7 @@ Implement:
 * status filter (one status, or open = submitted and in review), property filter and search (name, contact person, email), kept in the URL (`?status=`, `?property=`, `?q=`)
 * detail page with status actions
 * delete
+* a round badge next to **Applications** in the sidebar with the number of new (`submitted`) applications: hidden at 0, the number up to 100, "+100" above that; counted again after every navigation (so handling an application lowers it at once) and when another tab changes the stored applications; the link's accessible name says it in words ("Applications, 3 new")
 
 Rules:
 
@@ -999,12 +1023,34 @@ Rules:
 * status changes: `submitted` → `in_review`, `approved`, `rejected` or `withdrawn`; `in_review` → `approved`, `rejected` or `withdrawn`; `approved`, `rejected` and `withdrawn` are final
 * rejecting and marking as withdrawn require confirmation; `decidedAt` is set when a decision is made
 * an approved application refers to the tenant it became (`tenantId`), which must exist
+* approving (for `submitted` and `in_review` applications, while the space can still be applied for; checked again when confirming):
+  * reuses the tenant with the applicant's email, ignoring case, without changing it; otherwise creates a tenant from the applicant's details (type, name, contact person, email, phone; the message is not copied); the confirmation says which
+  * then marks the application approved with that tenant, and opens the lease form with the tenant, the space and the desired start filled in (`/leases/new?tenant=…&space=…&startDate=…&returnTo=/applications/:id`)
+  * never creates a lease: the manager saves it in the lease form; an approved application without a lease for its space offers **Create lease**
+  * is two writes (tenant, then application); if the second fails, approving again reuses the tenant found by email, so no duplicate is created
+* after approving, the other open applications for the space are listed with **Reject all** (confirmed); they are never rejected automatically
+* a tenant that an application refers to cannot be deleted; the tenant page lists its approved applications
 * a space can be applied for while it is available and not reserved (no upcoming lease); an open application whose space no longer can be applied for is flagged on its detail page
 * a space with applications cannot be deleted (see Deleting related data); nothing refers to an application, so it can always be deleted
 * a new application created through the API is always `submitted`, without a tenant; the API refuses other status changes with `409 invalid_status_change`
 * the rules live in `services/applications.ts` (pure) and `services/applicationService.ts`, and match `backend/src/domain/applications.ts`; change them together
 * applications contain personal details: never log their contents
 * seed data: open applications only on spaces that can be applied for; frontend and backend seeds are identical
+
+## Public application form
+
+The only pages used by people outside the property manager's team. They are public (no sign-in) and use their own layout (`layouts/PublicLayout.tsx`: logo, language switcher, a sign-in link; no sidebar).
+
+```text
+/apply            the spaces that can be applied for, as cards; city and space type filters in the URL
+/apply/:spaceId   the space (address, facts, features, map) and the application form
+```
+
+* entry points: a "Looking for a space?" block below the sign-in form, and "Application form" links for the manager (Applications page header, and each space that can be applied for on the Spaces list and the property page); the manager's links open a new tab
+* fields: applicant type, name, contact person (companies), email, phone (optional), desired start date (today or later), message (optional), and a required consent checkbox ("I understand this is a demo and have not entered real personal information")
+* when sending, the rules are checked again with current data, in the app and in `POST /api/applications`: the space can still be applied for (`409 space_unavailable`), the start is not in the past (`past`), and an email has at most one open application per space (`duplicate`)
+* a space that cannot be applied for shows a message and a link back to `/apply`, never the form; after sending, a success state with focus on its heading, never other applicants' data
+* personal data: the form tells users it is a demo and not to enter real personal information; in localStorage mode the application stays in this browser, in api mode it is visible to everyone who uses the demo until the nightly reset
 
 ---
 
@@ -2110,6 +2156,17 @@ Store money as integer euro cents (for example `monthlyRentCents`) to avoid floa
 Format it as euros only in the presentation layer.
 
 Seed data must follow the same business rules as data entered in the app.
+
+Demo data is fictional: seed data, test fixtures, API examples and UI hints never contain real person or company names, street addresses, phone numbers or emails.
+
+```text
+people          first name + the placeholder surname Esimerkki ("example"), e.g. Aino Esimerkki
+companies       <Descriptor> Esimerkki Oy, e.g. Software Esimerkki Oy
+emails          reserved domains only: …@example.com, …@<name>.example
+phone numbers   +358501234567, +358 50 123 4567 and similar
+addresses       fictional streets (Esimerkkikatu 12) in real cities, with a real postal code of the city
+map locations   a general spot near the city centre, never a specific building
+```
 Tests verify, for example, that a space is occupied exactly when it has an active lease.
 
 Business logic should not be buried inside presentation components.

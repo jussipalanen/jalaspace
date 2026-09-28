@@ -113,7 +113,7 @@ const propertyInput = object(
   {
     name: requiredText(PROPERTY_NAME_MAX_LENGTH, { example: 'Joensuu Center' }),
     type: oneOf(PROPERTY_TYPES),
-    address: requiredText(undefined, { example: 'Siltakatu 12' }),
+    address: requiredText(undefined, { example: 'Esimerkkikatu 12' }),
     postalCode: { type: 'string', pattern: POSTAL_CODE_PATTERN.source, example: '80100' },
     city: requiredText(undefined, { example: 'Joensuu' }),
     description: text(PROPERTY_DESCRIPTION_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
@@ -121,8 +121,8 @@ const propertyInput = object(
       type: ['object', 'null'],
       description: `Optional; \`null\` when missing. WGS 84 degrees, as on OpenStreetMap, rounded to ${COORDINATE_DECIMALS} decimals.`,
       properties: {
-        latitude: { type: 'number', minimum: LATITUDE_MIN, maximum: LATITUDE_MAX, example: 62.601579 },
-        longitude: { type: 'number', minimum: LONGITUDE_MIN, maximum: LONGITUDE_MAX, example: 29.762079 },
+        latitude: { type: 'number', minimum: LATITUDE_MIN, maximum: LATITUDE_MAX, example: 62.601300 },
+        longitude: { type: 'number', minimum: LONGITUDE_MIN, maximum: LONGITUDE_MAX, example: 29.763600 },
         zoom: {
           type: 'integer',
           minimum: MAP_ZOOM_MIN,
@@ -198,7 +198,7 @@ const maintenanceInput = object(
 const tenantInput = object(
   {
     type: oneOf(TENANT_TYPES),
-    name: requiredText(TENANT_NAME_MAX_LENGTH, { example: 'Nordic Pixel Oy' }),
+    name: requiredText(TENANT_NAME_MAX_LENGTH, { example: 'Software Esimerkki Oy' }),
     contactPerson: nullable(
       text(TENANT_CONTACT_MAX_LENGTH, { description: 'Only companies have one; `null` for people and when empty.' }),
     ),
@@ -208,7 +208,7 @@ const tenantInput = object(
       maxLength: TENANT_EMAIL_MAX_LENGTH,
       pattern: EMAIL_PATTERN.source,
       description: 'Unique among tenants, ignoring case (`duplicate`).',
-      example: 'info@nordic-pixel.example',
+      example: 'info@software-esimerkki.example',
     },
     phone: nullable({
       type: 'string',
@@ -224,7 +224,7 @@ const tenantInput = object(
 
 const leaseInput = object(
   {
-    tenantId: id('The tenant; it must exist (`notFound`). Fixed once the lease exists.', 'tenant-nordic-pixel'),
+    tenantId: id('The tenant; it must exist (`notFound`). Fixed once the lease exists.', 'tenant-software-esimerkki'),
     spaceId: id(
       'The space; it must exist (`notFound`). Fixed once the lease exists. The period must not overlap another lease of the space (`overlap`), and a lease active today cannot start on a space in maintenance (`maintenance`).',
       'space-kuopio-harbour-10',
@@ -271,7 +271,7 @@ const applicationInput = object(
       pattern: PHONE_PATTERN.source,
       description: 'Digits, spaces, `+`, `-` and parentheses; `null` when empty.',
     }),
-    desiredStartDate: date('When the applicant would like to move in.'),
+    desiredStartDate: date('When the applicant would like to move in; on create, today or later (`past`).'),
     message: text(APPLICATION_MESSAGE_MAX_LENGTH, { description: 'Optional; empty when missing.' }),
     status: {
       ...oneOf(

@@ -25,7 +25,7 @@ describe('seed data', () => {
     expect(data.tenants).toHaveLength(31)
     expect(data.leases).toHaveLength(62)
     expect(data.maintenance).toHaveLength(14)
-    expect(data.applications).toHaveLength(7)
+    expect(data.applications).toHaveLength(8)
   })
 
   it('has a mix of space statuses', () => {
@@ -120,7 +120,15 @@ describe('seed data', () => {
       } else {
         expect(application.decidedAt).toMatch(ISO_DATE_TIME)
       }
-      expect(application.tenantId).toBeNull()
+      if (application.status === 'approved') {
+        // An approved application became a tenant with a lease for its space.
+        expect(
+          data.leases.some((lease) => lease.tenantId === application.tenantId && lease.spaceId === application.spaceId),
+          application.id,
+        ).toBe(true)
+      } else {
+        expect(application.tenantId).toBeNull()
+      }
     }
     const statuses = data.applications.map((application) => application.status)
     expect(statuses.filter((s) => s === 'submitted')).toHaveLength(3)

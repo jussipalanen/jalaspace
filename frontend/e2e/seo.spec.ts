@@ -3,7 +3,7 @@ import { expect, test } from '@playwright/test'
 // JalaSpace is a public demo, so search engines must not index it.
 test.describe('search engines', () => {
   test('every page asks search engines not to index or follow it', async ({ page }) => {
-    for (const path of ['/login', '/properties']) {
+    for (const path of ['/login', '/properties', '/apply']) {
       await page.goto(path)
       await expect(page.locator('meta[name="robots"]')).toHaveAttribute('content', 'noindex, nofollow')
     }

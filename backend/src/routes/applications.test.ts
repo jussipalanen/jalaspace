@@ -5,7 +5,7 @@ import type { Space } from '../domain/spaces.ts'
 import type { Tenant } from '../domain/tenants.ts'
 import { createMemoryStore } from '../store/memoryStore.ts'
 import type { Store } from '../store/store.ts'
-import { application } from '../test/fixtures.ts'
+import { application, lease } from '../test/fixtures.ts'
 import { serve } from '../test/serve.ts'
 
 const space = (id: string): Space => ({
@@ -34,13 +34,15 @@ const tenant: Tenant = {
   updatedAt: '2026-01-01T00:00:00.000Z',
 }
 
+const dayOffset = (days: number) => new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+
 const input = {
   spaceId: 'space-1',
   applicantType: 'person',
   name: 'Lotta Esimerkki',
   email: 'lotta.esimerkki@example.com',
   phone: '+358501234565',
-  desiredStartDate: '2026-11-01',
+  desiredStartDate: dayOffset(30),
   message: 'Looking for a home in Kallio.',
 }
 
@@ -101,6 +103,37 @@ describe('applications API', () => {
     expect(await missingSpace.json()).toEqual({
       error: { code: 'validation_failed', fields: { spaceId: 'notFound' } },
     })
+    expect(await store.applications.list()).toEqual([])
+  })
+
+  it('refuses a start date in the past and a second open application from the same email', async () => {
+    const past = await send('POST', '/applications', { ...input, desiredStartDate: dayOffset(-1) })
+    expect(past.status).toBe(400)
+    expect(await past.json()).toEqual({
+      error: { code: 'validation_failed', fields: { desiredStartDate: 'past' } },
+    })
+
+    await create()
+    const again = await send('POST', '/applications', { ...input, email: 'LOTTA.esimerkki@example.com' })
+    expect(again.status).toBe(400)
+    expect(await again.json()).toEqual({ error: { code: 'validation_failed', fields: { email: 'duplicate' } } })
+
+    // Another space, or after a decision, is fine.
+    expect((await send('POST', '/applications', { ...input, spaceId: 'space-2' })).status).toBe(201)
+    const [first] = await store.applications.list()
+    await store.applications.update({ ...first!, status: 'withdrawn' })
+    expect((await send('POST', '/applications', input)).status).toBe(201)
+  })
+
+  it('refuses applications for spaces that are let, in maintenance or reserved', async () => {
+    const occupied = await store.spaces.get('space-2')
+    await store.spaces.update({ ...occupied!, status: 'occupied' })
+    const response = await send('POST', '/applications', { ...input, spaceId: 'space-2' })
+    expect(response.status).toBe(409)
+    expect(await response.json()).toEqual({ error: { code: 'space_unavailable' } })
+
+    await store.leases.insert(lease({ id: 'lease-1', spaceId: 'space-1', startDate: dayOffset(10) }))
+    expect((await send('POST', '/applications', input)).status).toBe(409)
     expect(await store.applications.list()).toEqual([])
   })
 

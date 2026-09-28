@@ -236,3 +236,48 @@ export function ChevronRightIcon(props: IconProps) {
     </Icon>
   )
 }
+
+export function MapPinIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z" />
+      <circle cx="12" cy="10" r="2.5" />
+    </Icon>
+  )
+}
+
+export function AreaIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="1.5" />
+      <path d="M4 9h3M4 14h3M9 20v-3M14 20v-3" />
+    </Icon>
+  )
+}
+
+export function DoorIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M6 20.5V4.5A1.5 1.5 0 0 1 7.5 3h9A1.5 1.5 0 0 1 18 4.5v16M3.5 20.5h17" />
+      <circle cx="14.5" cy="12" r="0.75" fill="currentColor" />
+    </Icon>
+  )
+}
+
+export function LayersIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8z" />
+      <path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5" />
+    </Icon>
+  )
+}
+
+export function CheckCircleIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="m8 12.5 2.75 2.75L16 10" />
+    </Icon>
+  )
+}

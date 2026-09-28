@@ -10,13 +10,14 @@ export function useDashboard() {
   const { locale } = useTranslation()
 
   const load = useCallback(async (): Promise<DashboardInput> => {
-    const { properties, spaces, tenants, leases, maintenance } = getDataLayer()
-    const [propertyList, spaceList, tenantList, leaseList, taskList] = await Promise.all([
+    const { properties, spaces, tenants, leases, maintenance, applications } = getDataLayer()
+    const [propertyList, spaceList, tenantList, leaseList, taskList, applicationList] = await Promise.all([
       properties.getAll(),
       spaces.getAll(),
       tenants.getAll(),
       leases.getAll(),
       maintenance.getAll(),
+      applications.getAll(),
     ])
     return {
       properties: propertyList,
@@ -24,6 +25,7 @@ export function useDashboard() {
       tenants: tenantList,
       leases: leaseList,
       maintenance: taskList,
+      applications: applicationList,
     }
   }, [getDataLayer])
 

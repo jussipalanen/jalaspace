@@ -144,13 +144,13 @@ describe('spaces', () => {
       await screen.findByText(/^Occupied under an active lease since \d+\.\d+\.\d{4}\./),
     ).toBeInTheDocument()
     expect(screen.queryByLabelText(/^Status/)).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Nordic Pixel Oy' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Software Esimerkki Oy' })).toHaveAttribute(
       'href',
-      '/tenants/tenant-nordic-pixel',
+      '/tenants/tenant-software-esimerkki',
     )
-    expect(screen.getByRole('link', { name: 'Edit tenant Nordic Pixel Oy' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Edit tenant Software Esimerkki Oy' })).toHaveAttribute(
       'href',
-      '/tenants/tenant-nordic-pixel/edit',
+      '/tenants/tenant-software-esimerkki/edit',
     )
   })
 
@@ -231,9 +231,9 @@ describe('spaces', () => {
     )
     // The spaces table shows the current tenant of each occupied space.
     const a202 = screen.getByRole('link', { name: 'Edit A 202' }).closest('tr')!
-    expect(within(a202).getByRole('link', { name: 'Nordic Pixel Oy' })).toHaveAttribute(
+    expect(within(a202).getByRole('link', { name: 'Software Esimerkki Oy' })).toHaveAttribute(
       'href',
-      '/tenants/tenant-nordic-pixel',
+      '/tenants/tenant-software-esimerkki',
     )
   })
 

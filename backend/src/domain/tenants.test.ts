@@ -3,10 +3,10 @@ import { checkTenantDeletion, checkTenantEmail, parseTenantInput, type TenantInp
 
 const company: TenantInput = {
   type: 'company',
-  name: 'Nordic Pixel Oy',
+  name: 'Software Esimerkki Oy',
   contactPerson: 'Aleksi Esimerkki',
-  email: 'info@nordic-pixel.example',
-  phone: '+358 40 123 4567',
+  email: 'info@software-esimerkki.example',
+  phone: '+358 50 123 4567',
   notes: 'Software development company.',
 }
 
@@ -14,7 +14,7 @@ const withField = (field: keyof TenantInput, value: unknown) => parseTenantInput
 
 describe('tenant input', () => {
   it('accepts valid input and trims the text', () => {
-    const result = parseTenantInput({ ...company, name: '  Nordic Pixel Oy ', email: ' info@nordic-pixel.example ' })
+    const result = parseTenantInput({ ...company, name: '  Software Esimerkki Oy ', email: ' info@software-esimerkki.example ' })
     expect(result).toEqual({ ok: true, values: company })
   })
 
@@ -73,11 +73,11 @@ describe('tenant input', () => {
     },
   )
 
-  it.each(['12345', '+358 40 123 4567', '(013) 123-456', '0'.repeat(20)])('accepts the phone "%s"', (phone) => {
+  it.each(['12345', '+358 50 123 4567', '(050) 123-4567', '0'.repeat(20)])('accepts the phone "%s"', (phone) => {
     expect(withField('phone', phone).ok).toBe(true)
   })
 
-  it.each(['1234', '0'.repeat(21), '040 123 456 x', '040.123.456', 40123456])('rejects the phone %j', (phone) => {
+  it.each(['1234', '0'.repeat(21), '050 123 4567 x', '050.123.4567', 40123456])('rejects the phone %j', (phone) => {
     expect(withField('phone', phone)).toEqual({ ok: false, errors: { phone: 'invalid' } })
   })
 
@@ -94,25 +94,39 @@ describe('tenant input', () => {
 
 describe('tenant email', () => {
   const tenants = [
-    { id: 'tenant-1', email: 'info@nordic-pixel.example' },
+    { id: 'tenant-1', email: 'info@software-esimerkki.example' },
     { id: 'tenant-2', email: 'aino.esimerkki@example.com' },
   ]
 
   it('must be unique, ignoring case', () => {
-    expect(checkTenantEmail('INFO@Nordic-Pixel.example', tenants)).toEqual({ email: 'duplicate' })
-    expect(checkTenantEmail('info@lumo-florist.example', tenants)).toEqual({})
+    expect(checkTenantEmail('INFO@Software-Esimerkki.example', tenants)).toEqual({ email: 'duplicate' })
+    expect(checkTenantEmail('info@florist-esimerkki.example', tenants)).toEqual({})
   })
 
   it('may stay the same when the tenant is updated', () => {
-    expect(checkTenantEmail('info@nordic-pixel.example', tenants, 'tenant-1')).toEqual({})
-    expect(checkTenantEmail('info@nordic-pixel.example', tenants, 'tenant-2')).toEqual({ email: 'duplicate' })
+    expect(checkTenantEmail('info@software-esimerkki.example', tenants, 'tenant-1')).toEqual({})
+    expect(checkTenantEmail('info@software-esimerkki.example', tenants, 'tenant-2')).toEqual({ email: 'duplicate' })
   })
 })
 
 describe('tenant deletion', () => {
-  it('is allowed only when no lease refers to the tenant', () => {
+  it('is allowed only when no lease or application refers to the tenant', () => {
     const leases = [{ tenantId: 'tenant-1' }, { tenantId: 'tenant-1' }, { tenantId: 'tenant-2' }]
-    expect(checkTenantDeletion('tenant-1', leases)).toEqual({ allowed: false, leaseCount: 2 })
-    expect(checkTenantDeletion('tenant-3', leases)).toEqual({ allowed: true, leaseCount: 0 })
+    const applications = [{ tenantId: 'tenant-4' }, { tenantId: null }]
+    expect(checkTenantDeletion('tenant-1', leases, applications)).toEqual({
+      allowed: false,
+      leaseCount: 2,
+      applicationCount: 0,
+    })
+    expect(checkTenantDeletion('tenant-4', leases, applications)).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      applicationCount: 1,
+    })
+    expect(checkTenantDeletion('tenant-3', leases, applications)).toEqual({
+      allowed: true,
+      leaseCount: 0,
+      applicationCount: 0,
+    })
   })
 })

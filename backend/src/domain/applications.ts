@@ -195,3 +195,29 @@ export function checkApplicationReferences(
   if (input.tenantId !== null && !tenantExists) errors.tenantId = 'notFound'
   return errors
 }
+
+const normalizeEmail = (email: string) => email.trim().toLowerCase()
+
+export interface NewApplicationData {
+  applications: readonly Pick<Application, 'spaceId' | 'email' | 'status'>[]
+  today: IsoDate
+}
+
+/**
+ * Rules for a new application: the desired start is today or later, and an
+ * applicant has at most one open application per space (the email is
+ * compared ignoring case). Whether the space can be applied for is checked
+ * separately, because it is not a field error.
+ */
+export function checkNewApplication(input: ApplicationInput, { applications, today }: NewApplicationData): ApplicationFieldErrors {
+  const errors: ApplicationFieldErrors = {}
+  if (input.desiredStartDate < today) errors.desiredStartDate = 'past'
+  const duplicate = applications.some(
+    (application) =>
+      application.spaceId === input.spaceId &&
+      isOpenApplication(application) &&
+      normalizeEmail(application.email) === normalizeEmail(input.email),
+  )
+  if (duplicate) errors.email = 'duplicate'
+  return errors
+}

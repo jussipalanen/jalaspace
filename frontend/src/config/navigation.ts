@@ -29,7 +29,7 @@ export const mainNavigation: NavSection[] = [
   {
     titleKey: 'nav.sections.leasing',
     items: [
-      { labelKey: 'nav.items.applications', to: '/applications', icon: InboxIcon },
+      { labelKey: 'nav.items.applications', to: '/applications', icon: InboxIcon, badge: 'newApplications' },
       { labelKey: 'nav.items.tenants', to: '/tenants', icon: UsersIcon },
       { labelKey: 'nav.items.leases', to: '/leases', icon: FileTextIcon },
     ],

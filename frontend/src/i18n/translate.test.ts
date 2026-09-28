@@ -14,9 +14,9 @@ describe('createTranslator', () => {
 
   it('fills in placeholders and formats numbers for the locale', () => {
     expect(tEn('spaces.editSpace', { name: 'A 101' })).toBe('Edit A 101')
-    expect(tEn('dashboard.stats.available', { count: 1234 })).toBe('1,234 available')
+    expect(tEn('spaces.resultCount', { count: 1234 })).toBe('1,234 spaces')
     // Finnish groups thousands with a no-break space.
-    expect(tFi('dashboard.stats.available', { count: 1234 })).toBe('1\u00a0234 vapaana')
+    expect(tFi('spaces.resultCount', { count: 1234 })).toBe('1\u00a0234 tilaa')
   })
 
   it('keeps unknown placeholders visible', () => {
@@ -27,8 +27,8 @@ describe('createTranslator', () => {
     expect(tEn('dashboard.stats.inCities', { count: 1 })).toBe('In 1 city')
     expect(tEn('dashboard.stats.inCities', { count: 4 })).toBe('In 4 cities')
     expect(tEn('dashboard.stats.inCities', { count: 0 })).toBe('In 0 cities')
-    expect(tFi('dashboard.stats.highPriority', { count: 1 })).toBe('1 kiireellinen')
-    expect(tFi('dashboard.stats.highPriority', { count: 4 })).toBe('4 kiireellistä')
+    expect(tFi('spaces.resultCount', { count: 1 })).toBe('1 tila')
+    expect(tFi('spaces.resultCount', { count: 4 })).toBe('4 tilaa')
   })
 
   it('falls back to English when a translation is missing', () => {
