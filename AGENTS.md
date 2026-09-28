@@ -865,7 +865,8 @@ Open maintenance        7
 Include:
 
 * recent maintenance
-* available spaces
+* available spaces, with the number of open applications for each
+* latest applications: the five newest, with their space and status
 * recent activity
 * Ask JalaSpace, when the API offers it (see AI-Assisted Search)
 
@@ -879,9 +880,11 @@ Occupancy          occupied spaces / all spaces, rounded to a whole percent
 Open maintenance   tasks that are not completed (open + in progress)
 Available spaces   spaces with status available; flagged as reserved
                    when an upcoming lease exists
+Open applications  applications with status submitted or in review
+New applications   applications with status submitted
 ```
 
-Recent activity is derived from entity dates (maintenance completed, lease started, lease ended) until a stored activity log exists.
+Recent activity is derived from entity dates (maintenance completed, lease started, lease ended, application received, application approved) until a stored activity log exists.
 
 Calculations belong in a pure, tested service (`services/dashboard.ts`), not in components.
 
@@ -891,6 +894,7 @@ The key figures have small ring charts (`components/RingChart`, inline SVG, no c
 Spaces             occupied, available, reserved, in maintenance (adds up to all spaces)
 Occupancy          a meter: occupied spaces of all spaces
 Open maintenance   high, medium, low priority (adds up to the open tasks)
+Open applications  new and in review (adds up to the open applications)
 ```
 
 * each ring is decorative (`aria-hidden`); the card's text and legend state the same numbers, so no value is told by colour alone

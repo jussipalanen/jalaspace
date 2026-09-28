@@ -1,3 +1,4 @@
+import type { Application } from '../types/application'
 import type { IsoDate } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { MaintenancePriority, MaintenanceTask } from '../types/maintenance'
@@ -5,6 +6,7 @@ import type { Property } from '../types/property'
 import type { Space } from '../types/space'
 import type { Tenant } from '../types/tenant'
 import { toIsoDate } from '../utils/date'
+import { isOpenApplication } from './applications'
 import { getLeaseStatus } from './leases'
 import { calculateOccupancy, isOpenMaintenance } from './metrics'
 
@@ -14,6 +16,7 @@ export interface DashboardInput {
   tenants: Tenant[]
   leases: Lease[]
   maintenance: MaintenanceTask[]
+  applications: Application[]
 }
 
 export interface DashboardStats {
@@ -30,6 +33,10 @@ export interface DashboardStats {
   spaceBreakdown: SpaceBreakdown
   /** Open maintenance tasks by priority; they add up to `openMaintenanceCount`. */
   openMaintenanceByPriority: Record<MaintenancePriority, number>
+  /** Applications waiting for a decision: submitted or in review. */
+  openApplicationCount: number
+  /** Open applications: new (submitted) and in review; they add up to `openApplicationCount`. */
+  openApplicationsByStatus: { submitted: number; in_review: number }
 }
 
 /**
@@ -54,13 +61,26 @@ export interface AvailableSpaceSummary {
   property: Property | null
   /** Start date of an upcoming lease on this space, if any. */
   reservedFrom: IsoDate | null
+  /** Applications for this space waiting for a decision. */
+  openApplicationCount: number
+}
+
+export interface ApplicationSummary {
+  application: Application
+  space: Space | null
+  property: Property | null
 }
 
 /**
  * New maintenance tasks are not included: they are already listed under
  * "Recent maintenance", and the feed would otherwise show little else.
  */
-export type ActivityType = 'maintenance_completed' | 'lease_started' | 'lease_ended'
+export type ActivityType =
+  | 'maintenance_completed'
+  | 'lease_started'
+  | 'lease_ended'
+  | 'application_received'
+  | 'application_approved'
 
 export interface ActivityItem {
   id: string
@@ -76,6 +96,8 @@ export interface DashboardSummary {
   stats: DashboardStats
   recentMaintenance: MaintenanceSummary[]
   availableSpaces: AvailableSpaceSummary[]
+  /** The newest applications, whatever their status. */
+  latestApplications: ApplicationSummary[]
   recentActivity: ActivityItem[]
 }
 
@@ -105,6 +127,11 @@ export function buildDashboardSummary(
   const tenantsById = indexById(input.tenants)
 
   const unfinishedTasks = input.maintenance.filter(isOpenMaintenance)
+  const openApplications = input.applications.filter(isOpenApplication)
+  const openApplicationsBySpace = new Map<string, number>()
+  for (const application of openApplications) {
+    openApplicationsBySpace.set(application.spaceId, (openApplicationsBySpace.get(application.spaceId) ?? 0) + 1)
+  }
   const countPriority = (priority: MaintenancePriority) =>
     unfinishedTasks.filter((task) => task.priority === priority).length
 
@@ -132,6 +159,11 @@ export function buildDashboardSummary(
       maintenance: countStatus('maintenance'),
     },
     openMaintenanceByPriority: { high: countPriority('high'), medium: countPriority('medium'), low: countPriority('low') },
+    openApplicationCount: openApplications.length,
+    openApplicationsByStatus: {
+      submitted: openApplications.filter((application) => application.status === 'submitted').length,
+      in_review: openApplications.filter((application) => application.status === 'in_review').length,
+    },
   }
 
   const recentMaintenance = input.maintenance
@@ -149,6 +181,7 @@ export function buildDashboardSummary(
       space,
       property: propertiesById.get(space.propertyId) ?? null,
       reservedFrom: upcomingStartBySpace.get(space.id) ?? null,
+      openApplicationCount: openApplicationsBySpace.get(space.id) ?? 0,
     }))
     .toSorted(
       (a, b) =>
@@ -204,10 +237,39 @@ export function buildDashboardSummary(
     }
   }
 
+  for (const application of input.applications) {
+    const details = [application.name, describeSpace(application.spaceId)].filter(Boolean).join(', ')
+    const href = `/applications/${application.id}`
+    activity.push({
+      id: `${application.id}-received`,
+      type: 'application_received',
+      date: toIsoDate(new Date(application.createdAt)),
+      details,
+      href,
+    })
+    if (application.status === 'approved' && application.decidedAt) {
+      activity.push({
+        id: `${application.id}-approved`,
+        type: 'application_approved',
+        date: toIsoDate(new Date(application.decidedAt)),
+        details,
+        href,
+      })
+    }
+  }
+
+  const latestApplications = input.applications
+    .toSorted(byNewest((application) => application.createdAt))
+    .slice(0, DASHBOARD_LIST_LIMIT)
+    .map((application) => {
+      const space = spacesById.get(application.spaceId) ?? null
+      return { application, space, property: space ? (propertiesById.get(space.propertyId) ?? null) : null }
+    })
+
   const recentActivity = activity
     .filter((item) => item.date <= today)
     .toSorted((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id))
     .slice(0, ACTIVITY_LIMIT)
 
-  return { stats, recentMaintenance, availableSpaces, recentActivity }
+  return { stats, recentMaintenance, availableSpaces, latestApplications, recentActivity }
 }

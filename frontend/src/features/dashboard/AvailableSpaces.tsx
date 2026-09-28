@@ -26,7 +26,7 @@ export function AvailableSpaces({ items }: { items: AvailableSpaceSummary[] }) {
         <PanelEmpty>{t('dashboard.availableSpaces.empty')}</PanelEmpty>
       ) : (
         <ul className="dashboard-list">
-          {visible.map(({ space, property, reservedFrom }) => (
+          {visible.map(({ space, property, reservedFrom, openApplicationCount }) => (
             <li key={space.id} className="dashboard-list__item">
               <div className="dashboard-list__main">
                 <p className="dashboard-list__title">
@@ -43,6 +43,8 @@ export function AvailableSpaces({ items }: { items: AvailableSpaceSummary[] }) {
                     t(`space.type.${space.type}`),
                     t('dashboard.availableSpaces.floor', { floor: space.floor }),
                     formatArea(space.areaM2, locale),
+                    openApplicationCount > 0 &&
+                      t('dashboard.availableSpaces.applications', { count: openApplicationCount }),
                   ]}
                 />
               </div>

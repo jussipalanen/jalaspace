@@ -33,6 +33,8 @@
   --color-chart-priority-low: #f97066;
   --color-chart-priority-medium: #d92d20;
   --color-chart-priority-high: #912018;
+  --color-chart-application-new: #2451d6;
+  --color-chart-application-review: #dc6803;
   /* The unfilled part of a meter: a lighter step of the fill's own hue. */
   --color-chart-track: #dbe4fd;
 

@@ -181,6 +181,11 @@ export const fi: Messages = {
         other: '{occupied} / {count} tilasta vuokrattu',
       },
       openMaintenance: 'Avoimet huollot',
+      openApplications: 'Avoimet hakemukset',
+      applicationStates: {
+        submitted: 'Uudet',
+        in_review: 'Käsittelyssä',
+      },
       spaceStates: {
         occupied: 'Vuokrattu',
         available: 'Vapaa',
@@ -198,6 +203,13 @@ export const fi: Messages = {
       empty: 'Kaikki tilat ovat vuokrattuina tai huollossa.',
       reservedFrom: 'Varattu {date} alkaen',
       floor: '{floor}. krs',
+      applications: { one: '{count} hakemus', other: '{count} hakemusta' },
+    },
+    latestApplications: {
+      title: 'Uusimmat hakemukset',
+      empty: 'Ei vielä hakemuksia.',
+      received: 'Vastaanotettu {date}',
+      viewAll: 'Näytä kaikki hakemukset',
     },
     activity: {
       title: 'Viimeaikaiset tapahtumat',
@@ -206,6 +218,8 @@ export const fi: Messages = {
         maintenance_completed: 'Huoltotehtävä valmistui',
         lease_started: 'Vuokrasopimus alkoi',
         lease_ended: 'Vuokrasopimus päättyi',
+        application_received: 'Hakemus vastaanotettu',
+        application_approved: 'Hakemus hyväksytty',
       },
     },
     viewAll: 'Näytä kaikki',
