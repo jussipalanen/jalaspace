@@ -8,6 +8,17 @@ const figure = (page: Page, label: string) =>
   page.getByRole('region', { name: 'Key figures' }).getByRole('link', { name: new RegExp(`^${label}`) })
 
 test.describe('dashboard', () => {
+  test('shows the JalaSpace logo from the build', async ({ page }) => {
+    await page.goto('/')
+    await expectPageHeading(page, 'Dashboard')
+
+    // The decorative logo has no accessible name, so it is found by its class.
+    const logo = page.locator('img.dashboard__logo')
+    await expect(logo).toBeVisible()
+    expect(await logo.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBeGreaterThan(0)
+    expect((await logo.boundingBox())!.height).toBe(40)
+  })
+
   test('shows figures and lists from the seeded demo data', async ({ page }) => {
     await page.goto('/')
 

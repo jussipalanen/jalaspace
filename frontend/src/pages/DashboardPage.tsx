@@ -1,3 +1,4 @@
+import logoUrl from '../assets/jalaspace-logo.svg'
 import { ErrorState, LoadingState } from '../components/DataState/DataState'
 import { PageHeader } from '../components/PageHeader/PageHeader'
 import { AskPanel } from '../features/dashboard/AskPanel'
@@ -15,7 +16,15 @@ export function DashboardPage() {
 
   return (
     <>
-      <PageHeader title={t('pages.dashboard.title')} description={t('pages.dashboard.description')} />
+      <PageHeader
+        title={t('pages.dashboard.title')}
+        description={t('pages.dashboard.description')}
+        actions={
+          // Decorative: the heading and the sidebar already name the app. The
+          // width and height keep the space reserved while the image loads.
+          <img className="dashboard__logo" src={logoUrl} alt="" width={499} height={128} />
+        }
+      />
 
       {status === 'loading' && <LoadingState label={t('dashboard.loading')} />}
 

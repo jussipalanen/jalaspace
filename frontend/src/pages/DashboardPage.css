@@ -1,3 +1,15 @@
+.dashboard__logo {
+  display: block;
+  width: auto;
+  height: 40px;
+}
+
+@media (max-width: 559.98px) {
+  .dashboard__logo {
+    height: 32px;
+  }
+}
+
 .dashboard__stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
