@@ -9,6 +9,8 @@ export interface NavItem {
   icon: IconComponent
   /** Match only the exact path (used for the dashboard root route). */
   end?: boolean
+  /** Shows a count next to the label, e.g. the new applications. */
+  badge?: 'newApplications'
 }
 
 export interface NavSection {
