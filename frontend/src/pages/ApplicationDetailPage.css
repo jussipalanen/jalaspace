@@ -1,0 +1,20 @@
+.application-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.application-details .maintenance-details {
+  margin-top: var(--space-4);
+}
+
+.application-details__muted {
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 899.98px) {
+  .application-details {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

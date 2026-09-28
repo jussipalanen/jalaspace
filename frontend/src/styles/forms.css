@@ -63,6 +63,12 @@
   border-color: color-mix(in srgb, var(--color-success) 25%, transparent);
 }
 
+.alert--warning {
+  color: var(--color-warning);
+  background: var(--color-warning-subtle);
+  border-color: color-mix(in srgb, var(--color-warning) 25%, transparent);
+}
+
 .alert--info {
   color: var(--color-text);
   background: var(--color-primary-subtle);

@@ -1,6 +1,8 @@
 import { createBrowserRouter, type RouteObject } from 'react-router'
 import { RequireAuth } from './features/auth/RequireAuth'
 import { AppLayout } from './layouts/AppLayout'
+import { ApplicationDetailPage } from './pages/ApplicationDetailPage'
+import { ApplicationsPage } from './pages/ApplicationsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { EditLeasePage, NewLeasePage } from './pages/LeaseFormPage'
 import { LeasesPage } from './pages/LeasesPage'
@@ -77,6 +79,12 @@ export const routes: RouteObject[] = [
             path: 'maintenance/:id',
             element: <MaintenanceDetailPage />,
             handle: handle('pages.maintenanceDetails.title'),
+          },
+          { path: 'applications', element: <ApplicationsPage />, handle: handle('pages.applications.title') },
+          {
+            path: 'applications/:id',
+            element: <ApplicationDetailPage />,
+            handle: handle('pages.applicationDetails.title'),
           },
           { path: 'tenants', element: <TenantsPage />, handle: handle('pages.tenants.title') },
           { path: 'tenants/new', element: <NewTenantPage />, handle: handle('pages.tenantNew.title') },

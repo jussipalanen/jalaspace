@@ -9,6 +9,7 @@ import { parseMaintenanceInput } from '../domain/maintenance.ts'
 import { parsePropertyInput } from '../domain/properties.ts'
 import { parseSpaceInput } from '../domain/spaces.ts'
 import { parseTenantInput } from '../domain/tenants.ts'
+import { parseApplicationInput } from '../domain/applications.ts'
 import { ERROR_CODES } from '../errors.ts'
 import { DEFAULT_COLLECTION_LIMITS } from '../limits.ts'
 import { DOCS_CSP } from '../routes/docs.ts'
@@ -112,6 +113,7 @@ describe('OpenAPI description', () => {
       MaintenanceTaskInput: parseMaintenanceInput,
       TenantInput: parseTenantInput,
       LeaseInput: parseLeaseInput,
+      ApplicationInput: parseApplicationInput,
       SuggestionRequest: parseSuggestionRequest,
       AskRequest: parseAskRequest,
     }

@@ -1,3 +1,4 @@
+import type { Application } from '../../types/application'
 import type { DemoData } from '../../types/demoData'
 import type { Lease } from '../../types/lease'
 import type { MaintenanceTask } from '../../types/maintenance'
@@ -5,6 +6,7 @@ import type { Property } from '../../types/property'
 import type { Space, SpaceStatus } from '../../types/space'
 import type { Tenant } from '../../types/tenant'
 import { addDays, toIsoDate } from '../../utils/date'
+import { applicationSeeds } from './applications'
 import { maintenanceSeeds } from './maintenance'
 import { inactiveLeaseSeeds, propertySeeds, rentPerSquareMetre } from './properties'
 import { tenantSeeds } from './tenants'
@@ -13,7 +15,7 @@ import { tenantSeeds } from './tenants'
  * Bump when the seed data or its shape changes. Browsers with an older
  * version are re-seeded on their next visit.
  */
-export const SEED_VERSION = 4
+export const SEED_VERSION = 5
 
 // Seed entities use stable, readable ids; entities created in the app use UUIDs.
 const propertyId = (key: string) => `property-${key}`
@@ -172,5 +174,26 @@ export function createSeedData(now: Date = new Date()): DemoData {
     }
   })
 
-  return { properties, spaces, tenants, leases, maintenance }
+  const applications: Application[] = applicationSeeds.map((seed, index) => {
+    const updatedAt = daysAgo(seed.updatedDaysAgo ?? seed.createdDaysAgo)
+    const decided = seed.status !== 'submitted' && seed.status !== 'in_review'
+    return {
+      id: `application-${index + 1}`,
+      spaceId: findSpace(seed.property, seed.spaceIndex).id,
+      applicantType: seed.applicantType,
+      name: seed.name,
+      contactPerson: seed.contactPerson,
+      email: seed.email,
+      phone: seed.phone,
+      desiredStartDate: dateIn(seed.desiredStartInDays),
+      message: seed.message,
+      status: seed.status,
+      decidedAt: decided ? updatedAt : null,
+      tenantId: null,
+      createdAt: daysAgo(seed.createdDaysAgo),
+      updatedAt,
+    }
+  })
+
+  return { properties, spaces, tenants, leases, maintenance, applications }
 }

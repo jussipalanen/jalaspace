@@ -1,5 +1,6 @@
 import type { DataLayer } from '../repositories'
 import { EntityNotFoundError } from '../repositories/Repository'
+import type { Application } from '../types/application'
 import type { IsoDate } from '../types/common'
 import type { Lease } from '../types/lease'
 import type { MaintenanceTask } from '../types/maintenance'
@@ -19,7 +20,7 @@ import {
   type SpaceFormValues,
 } from './spaces'
 
-type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'leases' | 'tenants' | 'maintenance'>
+type Repositories = Pick<DataLayer, 'properties' | 'spaces' | 'leases' | 'tenants' | 'maintenance' | 'applications'>
 
 export class SpaceValidationError extends Error {
   readonly errors: SpaceFormErrors
@@ -46,7 +47,7 @@ export class SpaceDeletionBlockedError extends Error {
   readonly check: SpaceDeletionCheck
 
   constructor(check: SpaceDeletionCheck) {
-    super('Space still has leases or maintenance tasks')
+    super('Space still has leases, maintenance tasks or applications')
     this.name = 'SpaceDeletionBlockedError'
     this.check = check
   }
@@ -58,17 +59,19 @@ export interface SpaceData {
   leases: Lease[]
   tenants: Tenant[]
   maintenance: MaintenanceTask[]
+  applications: Application[]
 }
 
 export async function loadSpaceData(data: Repositories): Promise<SpaceData> {
-  const [properties, spaces, leases, tenants, maintenance] = await Promise.all([
+  const [properties, spaces, leases, tenants, maintenance, applications] = await Promise.all([
     data.properties.getAll(),
     data.spaces.getAll(),
     data.leases.getAll(),
     data.tenants.getAll(),
     data.maintenance.getAll(),
+    data.applications.getAll(),
   ])
-  return { properties, spaces, leases, tenants, maintenance }
+  return { properties, spaces, leases, tenants, maintenance, applications }
 }
 
 export interface SpaceEditContext {
@@ -93,7 +96,7 @@ export function getSpaceEditContext(
     tenant: activeLease
       ? (spaceData.tenants.find((tenant) => tenant.id === activeLease.tenantId) ?? null)
       : null,
-    deletion: checkSpaceDeletion(id, spaceData.leases, spaceData.maintenance),
+    deletion: checkSpaceDeletion(id, spaceData.leases, spaceData.maintenance, spaceData.applications),
   }
 }
 
@@ -130,8 +133,12 @@ export async function updateSpace(
 
 /** Deletes a space after re-checking, with current data, that nothing refers to it. */
 export async function deleteSpace(data: Repositories, id: string): Promise<void> {
-  const [leases, maintenance] = await Promise.all([data.leases.getAll(), data.maintenance.getAll()])
-  const check = checkSpaceDeletion(id, leases, maintenance)
+  const [leases, maintenance, applications] = await Promise.all([
+    data.leases.getAll(),
+    data.maintenance.getAll(),
+    data.applications.getAll(),
+  ])
+  const check = checkSpaceDeletion(id, leases, maintenance, applications)
   if (!check.allowed) throw new SpaceDeletionBlockedError(check)
   await data.spaces.delete(id)
 }

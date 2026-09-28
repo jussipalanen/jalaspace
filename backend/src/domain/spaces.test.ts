@@ -159,19 +159,28 @@ describe('space status', () => {
 })
 
 describe('space deletion', () => {
-  it('is allowed only when no lease or maintenance task refers to the space', () => {
+  it('is allowed only when no lease, maintenance task or application refers to the space', () => {
     const leases = [{ spaceId: 'space-1' }, { spaceId: 'space-1' }, { spaceId: 'space-2' }]
     const maintenance = [{ spaceId: 'space-1' }, { spaceId: null }]
+    const applications = [{ spaceId: 'space-1' }, { spaceId: 'space-4' }]
 
-    expect(checkSpaceDeletion('space-1', leases, maintenance)).toEqual({
+    expect(checkSpaceDeletion('space-1', leases, maintenance, applications)).toEqual({
       allowed: false,
       leaseCount: 2,
       maintenanceCount: 1,
+      applicationCount: 1,
     })
-    expect(checkSpaceDeletion('space-3', leases, maintenance)).toEqual({
+    expect(checkSpaceDeletion('space-4', leases, maintenance, applications)).toEqual({
+      allowed: false,
+      leaseCount: 0,
+      maintenanceCount: 0,
+      applicationCount: 1,
+    })
+    expect(checkSpaceDeletion('space-3', leases, maintenance, applications)).toEqual({
       allowed: true,
       leaseCount: 0,
       maintenanceCount: 0,
+      applicationCount: 0,
     })
   })
 })
