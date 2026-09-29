@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link } from 'react-router'
 import { SLOW_LOADING_MS } from '../../components/DataState/DataState'
-import { CloseIcon, SparklesIcon } from '../../components/icons'
+import { CloseIcon, InfoIcon, SearchIcon, SparklesIcon } from '../../components/icons'
 import { useApiFeature } from '../../hooks/useApiFeature'
 import { formatArea, formatCurrency, formatPercent } from '../../i18n/format'
 import { useTranslation } from '../../i18n/useTranslation'
@@ -24,6 +24,9 @@ import './AskPanel.css'
 
 /** Results shown before "Show all". */
 const PREVIEW_COUNT = 5
+
+/** Example questions offered before the first question; `dashboard.ask.examples.*`. */
+const EXAMPLES = ['maintenance', 'occupancy', 'apiDocs'] as const
 
 type State =
   | { kind: 'idle' }
@@ -71,14 +74,13 @@ export function AskPanel({ data }: { data: DashboardInput }) {
 
   if (!apiUrl || !available) return null
 
-  const ask = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+  const ask = async (text: string) => {
     controller.current?.abort()
     const request = new AbortController()
     controller.current = request
     setState({ kind: 'waiting' })
     try {
-      const answer = await requestAskAnswer(apiUrl, question, toIsoDate(new Date()), request.signal)
+      const answer = await requestAskAnswer(apiUrl, text, toIsoDate(new Date()), request.signal)
       setState({ kind: 'answered', answer })
       setAnsweredAt((count) => count + 1)
     } catch (error) {
@@ -87,39 +89,79 @@ export function AskPanel({ data }: { data: DashboardInput }) {
     }
   }
 
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    void ask(question)
+  }
+
+  const askExample = (text: string) => {
+    setQuestion(text)
+    void ask(text)
+  }
+
   const waiting = state.kind === 'waiting'
   const answer = state.kind === 'answered' ? state.answer : null
 
   return (
     <section className="card ask-panel" aria-labelledby={titleId}>
-      <h2 id={titleId} className="ask-panel__title">
-        <SparklesIcon width={18} height={18} />
-        {t('dashboard.ask.title')}
-      </h2>
-      <p className="ask-panel__description">{t('dashboard.ask.description')}</p>
+      <div className="ask-panel__header">
+        <span className="ask-panel__badge">
+          <SparklesIcon width={18} height={18} />
+        </span>
+        <div>
+          <h2 id={titleId} className="ask-panel__title">
+            {t('dashboard.ask.title')}
+          </h2>
+          <p className="ask-panel__description">{t('dashboard.ask.description')}</p>
+        </div>
+      </div>
 
-      <form className="ask-panel__form" role="search" aria-labelledby={titleId} onSubmit={ask}>
-        <label htmlFor={inputId} className="field__label">
+      <form className="ask-panel__form" role="search" aria-labelledby={titleId} onSubmit={submit}>
+        <label htmlFor={inputId} className="visually-hidden">
           {t('dashboard.ask.label')}
         </label>
         <div className="ask-panel__row">
-          <input
-            id={inputId}
-            className="field__input"
-            value={question}
-            placeholder={t('dashboard.ask.placeholder')}
-            aria-describedby={privacyId}
-            autoComplete="off"
-            onChange={(event) => setQuestion(event.target.value)}
-          />
-          <button type="submit" className="button button--primary" disabled={waiting}>
+          <div className="ask-panel__input">
+            <SearchIcon className="ask-panel__input-icon" width={18} height={18} />
+            <input
+              id={inputId}
+              className="field__input"
+              value={question}
+              placeholder={t('dashboard.ask.placeholder')}
+              aria-describedby={privacyId}
+              autoComplete="off"
+              onChange={(event) => setQuestion(event.target.value)}
+            />
+          </div>
+          <button type="submit" className="button button--primary ask-panel__submit" disabled={waiting}>
+            {waiting && <span className="ask-panel__spinner" aria-hidden="true" />}
             {t('dashboard.ask.submit')}
           </button>
         </div>
-        <p id={privacyId} className="field__hint">
+        <p id={privacyId} className="ask-panel__privacy">
+          <InfoIcon width={14} height={14} />
           {t('dashboard.ask.privacy')}
         </p>
       </form>
+
+      {state.kind === 'idle' && (
+        <div className="ask-panel__examples">
+          <span className="ask-panel__examples-label">{t('dashboard.ask.examplesLabel')}</span>
+          <ul className="ask-panel__example-list">
+            {EXAMPLES.map((example) => (
+              <li key={example}>
+                <button
+                  type="button"
+                  className="ask-panel__example"
+                  onClick={() => askExample(t(`dashboard.ask.examples.${example}`))}
+                >
+                  {t(`dashboard.ask.examples.${example}`)}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Always rendered, so screen readers announce the changes in its status line. */}
       <div className="ask-panel__output" hidden={state.kind === 'idle'}>

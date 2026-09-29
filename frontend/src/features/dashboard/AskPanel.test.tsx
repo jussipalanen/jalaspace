@@ -111,6 +111,20 @@ describe('Ask JalaSpace', () => {
     expect(within(card()).queryByRole('link', { name: 'Open in Spaces' })).not.toBeInTheDocument()
   })
 
+  it('asks an example question when it is chosen, and hides the examples after that', async () => {
+    const user = userEvent.setup()
+    const fetch = fakeApi()
+    renderRoute('/')
+
+    await user.click(await screen.findByRole('button', { name: 'Properties with the lowest occupancy' }))
+
+    expect(screen.getByLabelText('Your question')).toHaveValue('Properties with the lowest occupancy')
+    const [, init] = fetch.mock.calls.find(([url]) => String(url).endsWith('/api/ask'))!
+    expect(JSON.parse(String(init?.body))).toMatchObject({ question: 'Properties with the lowest occupancy' })
+    expect(await within(card()).findByText('6 spaces found')).toBeInTheDocument()
+    expect(within(card()).queryByText('Try asking')).not.toBeInTheDocument()
+  })
+
   it('searches again when a condition is removed, and links to the list page when it can', async () => {
     const user = userEvent.setup()
     fakeApi()

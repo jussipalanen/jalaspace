@@ -45,7 +45,7 @@ test.describe('Ask JalaSpace', () => {
 
     const card = page.getByRole('region', { name: 'Ask JalaSpace' })
     await card.getByLabel('Your question').fill('available three-room apartment with a sauna')
-    await card.getByRole('button', { name: 'Ask' }).click()
+    await card.getByRole('button', { name: 'Ask', exact: true }).click()
 
     await expect(card.getByRole('status')).toHaveText('1 space found')
     expect(questions).toEqual([
@@ -65,7 +65,7 @@ test.describe('Ask JalaSpace', () => {
 
     const card = page.getByRole('region', { name: 'Ask JalaSpace' })
     await card.getByLabel('Your question').fill('where can I reset the demo data?')
-    await card.getByRole('button', { name: 'Ask' }).click()
+    await card.getByRole('button', { name: 'Ask', exact: true }).click()
     await card.getByRole('link', { name: 'Settings › Demo data' }).click()
 
     await expect(page).toHaveURL('/settings#demo-data')
