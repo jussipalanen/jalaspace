@@ -1291,7 +1291,9 @@ src/help/content/fi.ts     the Finnish handbook
 ```
 
 * both content files are typed against the structure, so a missing chapter or section is a TypeScript error; tests check that no text is empty or left untranslated and that app links lead to real routes
-* content is structured blocks (paragraphs, steps, lists, notes, app links), not Markdown; `**bold**` marks the names of buttons, fields and pages, written exactly as the UI shows them in that language
+* content is structured blocks (paragraphs, steps, lists, notes, app links), not Markdown; in the text, `**bold**` marks the names of buttons, fields and pages, and `[label](/help/leases#create)` links to an app path such as another chapter
+* bold names are written exactly as the UI shows them in that language, never inflected; in Finnish the case ending goes on a helper word (**Asetukset**-sivulla, suodattimilla **Kiinteistö** ja **Tilanne**); a test checks every bold name against the UI texts
+* write for end users: short sentences, one action per step, no technical terms such as API, server or URL
 * each language is loaded only when the handbook is opened
 * describe only features that exist; AI features are described as available when the API offers them
 * when a pull request changes how a feature is used (labels, steps, rules), update the handbook in both languages in the same pull request
