@@ -175,6 +175,8 @@ The app has a user handbook in English and Finnish: open **Handbook** in the sid
 
 The content lives in [`frontend/src/help/`](frontend/src/help): one typed file per language, checked against the chapter structure. See the Handbook section in [AGENTS.md](AGENTS.md).
 
+Screenshots: [desktop chapter](docs/screenshots/help-desktop.png) · [mobile, in Finnish](docs/screenshots/help-mobile-fi.png).
+
 </details>
 
 <details>
