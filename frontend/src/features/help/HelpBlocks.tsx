@@ -1,14 +1,25 @@
 import { Link } from 'react-router'
 import { ChevronRightIcon, InfoIcon } from '../../components/icons'
-import { splitBold } from '../../help/inline'
+import { parseInline } from '../../help/inline'
 import type { HelpBlock, HelpText } from '../../help/types'
 import { useTranslation } from '../../i18n/useTranslation'
 
-/** Handbook text with its `**bold**` names of buttons, fields and pages. */
+/** Handbook text with its `**bold**` names of buttons, fields and pages, and its links. */
 export function HelpInline({ text }: { text: HelpText }) {
-  return splitBold(text).map((part, index) =>
-    part.bold ? <strong key={index}>{part.text}</strong> : part.text,
-  )
+  return parseInline(text).map((part, index) => {
+    switch (part.type) {
+      case 'bold':
+        return <strong key={index}>{part.text}</strong>
+      case 'link':
+        return (
+          <Link key={index} to={part.to}>
+            {part.text}
+          </Link>
+        )
+      case 'text':
+        return part.text
+    }
+  })
 }
 
 function Block({ block }: { block: HelpBlock }) {

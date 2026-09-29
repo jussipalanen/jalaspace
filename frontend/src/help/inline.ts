@@ -1,19 +1,24 @@
 import type { HelpText } from './types'
 
-export interface TextPart {
-  text: string
-  bold: boolean
-}
+export type TextPart =
+  | { type: 'text'; text: string }
+  | { type: 'bold'; text: string }
+  /** A link to an app path, e.g. another handbook chapter. */
+  | { type: 'link'; text: string; to: string }
 
-/** Splits handbook text into plain and `**bold**` parts. Unpaired `**` stays as text. */
-export function splitBold(text: HelpText): TextPart[] {
+// `**bold**`, or `[label](/app/path)`; links must point inside the app.
+const INLINE = /\*\*(.+?)\*\*|\[([^\]]+)\]\((\/[^)\s]*)\)/g
+
+/** Splits handbook text into plain text, `**bold**` names and `[links](/path)`. Anything unpaired stays as text. */
+export function parseInline(text: HelpText): TextPart[] {
   const parts: TextPart[] = []
   let last = 0
-  for (const match of text.matchAll(/\*\*(.+?)\*\*/g)) {
-    if (match.index > last) parts.push({ text: text.slice(last, match.index), bold: false })
-    parts.push({ text: match[1], bold: true })
+  for (const match of text.matchAll(INLINE)) {
+    if (match.index > last) parts.push({ type: 'text', text: text.slice(last, match.index) })
+    if (match[1] !== undefined) parts.push({ type: 'bold', text: match[1] })
+    else parts.push({ type: 'link', text: match[2], to: match[3] })
     last = match.index + match[0].length
   }
-  if (last < text.length) parts.push({ text: text.slice(last), bold: false })
+  if (last < text.length) parts.push({ type: 'text', text: text.slice(last) })
   return parts
 }

@@ -2,7 +2,8 @@ import type { ChapterId, SectionId } from './structure'
 
 /**
  * Handbook text. `**Bold**` marks the name of a button, field or page as it
- * appears in the app; no other formatting is supported.
+ * appears in the app, and `[label](/help/settings#reset)` links to an app path,
+ * e.g. another chapter. No other formatting is supported.
  */
 export type HelpText = string
 
