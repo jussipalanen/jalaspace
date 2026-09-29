@@ -1,7 +1,7 @@
 {
   "name": "jalaspace-backend",
   "private": true,
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "JalaSpace REST API",
   "type": "module",
   "engines": {
@@ -23,6 +23,6 @@
     "@types/node": "^24.13.6",
     "oxlint": "^1.85.0",
     "typescript": "~7.0.2",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.2"
   }
 }
