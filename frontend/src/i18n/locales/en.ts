@@ -234,6 +234,12 @@ export const en = {
       placeholder: 'e.g. an available three-room apartment with a sauna',
       submit: 'Ask',
       privacy: 'Your question is sent to Google Gemini. Do not include personal information.',
+      examplesLabel: 'Try asking',
+      examples: {
+        maintenance: 'Overdue high-priority maintenance tasks',
+        occupancy: 'Properties with the lowest occupancy',
+        apiDocs: 'Where can I find the API documentation?',
+      },
       waiting: 'Waiting for response…',
       navigate: 'You can find it here:',
       none: 'I can only help with pages and data in JalaSpace. Try asking about properties, spaces, tenants, leases or maintenance.',

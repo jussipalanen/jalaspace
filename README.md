@@ -130,7 +130,7 @@ How it works:
 - Each result links to its page. **Open in Spaces** (or the other list pages) opens the list with the same filters when the list page supports them.
 - The card tells users not to include personal information, because the question leaves the browser. It is shown only when `VITE_API_URL` is set and the API has a Gemini key.
 
-Screenshots: [desktop](docs/screenshots/ask-desktop.png) · [mobile, in Finnish](docs/screenshots/ask-mobile.png).
+Screenshots: [example questions](docs/screenshots/ask-desktop-idle.png) · [desktop](docs/screenshots/ask-desktop.png) · [mobile, in Finnish](docs/screenshots/ask-mobile.png).
 
 </details>
 
