@@ -2309,6 +2309,7 @@ Rules:
 * derived values (occupancy, overdue, current tenant and rent, lease status) use the same rules as the pages
 * the answer text is written by the app from translations, never by the model; `ignored` may only contain words from the question
 * the card shows how the question was understood as removable conditions, and links to the list page with the same filters when the page supports them
+* before the first question the card offers a few example questions; choosing one fills in the question and asks it
 * the UI tells users that the question is sent to Google Gemini and must not contain personal information; do not log the question
 * errors are codes (`validation_failed`, `rate_limited`, `ai_unavailable`, `invalid_answer`), translated in the frontend
 * suggestions and questions share one per-IP AI rate limit
