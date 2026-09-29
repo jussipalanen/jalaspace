@@ -33,6 +33,7 @@ export const fi: Messages = {
       tenants: 'Vuokralaiset',
       leases: 'Vuokrasopimukset',
       settings: 'Asetukset',
+      help: 'Käyttöopas',
     },
     apiDocs: 'API-kuvaus',
     newApplications: { one: ', {count} uusi', other: ', {count} uutta' },
@@ -42,6 +43,7 @@ export const fi: Messages = {
   header: {
     signOut: 'Kirjaudu ulos',
     editProfile: 'Muokkaa profiilia',
+    help: 'Tämän sivun ohje',
   },
   pages: {
     dashboard: {
@@ -123,6 +125,10 @@ export const fi: Messages = {
     },
     applyForm: {
       title: 'Hae tilaa',
+    },
+    help: {
+      title: 'Käyttöopas',
+      description: 'JalaSpacen käyttö luku luvulta.',
     },
     notFound: {
       title: 'Sivua ei löytynyt',
@@ -354,6 +360,26 @@ export const fi: Messages = {
       nextMonth: 'Seuraava kuukausi',
       today: 'Tänään',
       selected: 'Valittu',
+    },
+  },
+  help: {
+    loading: 'Ladataan käyttöopasta…',
+    loadError: 'Käyttöoppaan lataaminen epäonnistui.',
+    contents: 'Sisällys',
+    groups: {
+      more: 'Lisää',
+    },
+    chapterNumber: 'Luku {number}/{count}',
+    inThisChapter: 'Tässä luvussa',
+    allChapters: 'Kaikki luvut',
+    chapterNavigation: 'Luvut',
+    previous: 'Edellinen luku',
+    next: 'Seuraava luku',
+    note: 'Huomaa',
+    notFound: {
+      title: 'Lukua ei löytynyt',
+      description: 'Käyttöoppaassa ei ole tällaista lukua.',
+      back: 'Avaa sisällys',
     },
   },
   properties: {

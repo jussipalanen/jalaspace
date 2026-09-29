@@ -1,4 +1,5 @@
 import type { ComponentType, SVGProps } from 'react'
+import type { HelpTarget } from '../help/structure'
 import type { MessageKey } from '../i18n/translate'
 
 export type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
@@ -21,4 +22,6 @@ export interface NavSection {
 /** Data attached to routes through React Router's `handle` property. */
 export interface RouteHandle {
   titleKey: MessageKey
+  /** The handbook chapter that the header's help button opens on this route. */
+  help?: HelpTarget
 }

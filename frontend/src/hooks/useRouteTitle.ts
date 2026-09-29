@@ -1,4 +1,5 @@
 import { useMatches } from 'react-router'
+import type { HelpTarget } from '../help/structure'
 import type { MessageKey } from '../i18n/translate'
 import type { RouteHandle } from '../types/navigation'
 
@@ -15,4 +16,11 @@ export function useRouteTitleKey(): MessageKey | null {
   const matches = useMatches()
   const titled = matches.map((match) => match.handle).filter(isRouteHandle)
   return titled.at(-1)?.titleKey ?? null
+}
+
+/** Returns the handbook chapter of the deepest matched route, or `null` when it has none. */
+export function useRouteHelp(): HelpTarget | null {
+  const matches = useMatches()
+  const handles = matches.map((match) => match.handle).filter(isRouteHandle)
+  return handles.at(-1)?.help ?? null
 }
