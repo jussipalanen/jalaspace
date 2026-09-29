@@ -6,7 +6,8 @@ import { Sidebar } from '../components/Sidebar/Sidebar'
 import { useAuth } from '../features/auth/useAuth'
 import { useProfile } from '../features/profile/useProfile'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
-import { useRouteTitleKey } from '../hooks/useRouteTitle'
+import { useRouteHelp, useRouteTitleKey } from '../hooks/useRouteTitle'
+import { helpPath } from '../help/structure'
 import { useTranslation } from '../i18n/useTranslation'
 import './AppLayout.css'
 
@@ -20,6 +21,7 @@ export function AppLayout() {
   const titleKey = useRouteTitleKey()
   const title = titleKey ? t(titleKey) : t('app.name')
   useDocumentTitle(titleKey ? title : null)
+  const helpTo = helpPath(useRouteHelp())
 
   const closeSidebar = useCallback(() => setIsSidebarOpen(false), [])
 
@@ -49,6 +51,7 @@ export function AppLayout() {
       <div className="app-layout__main">
         <Header
           title={title}
+          helpTo={helpTo}
           userName={displayName}
           sidebarId={SIDEBAR_ID}
           isSidebarOpen={isSidebarOpen}

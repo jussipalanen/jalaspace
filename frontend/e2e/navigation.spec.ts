@@ -11,6 +11,7 @@ test.describe('application navigation', () => {
     { link: 'Tenants', path: '/tenants', heading: 'Tenants' },
     { link: 'Leases', path: '/leases', heading: 'Leases' },
     { link: 'Settings', path: '/settings', heading: 'Settings' },
+    { link: 'Handbook', path: '/help', heading: 'Handbook' },
     { link: 'Dashboard', path: '/', heading: 'Dashboard' },
   ]
 

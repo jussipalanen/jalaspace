@@ -96,6 +96,7 @@ frontend/
 │   ├── config/            Data provider, API URL and navigation configuration
 │   ├── data/seed/         Demo seed data and SEED_VERSION
 │   ├── features/          Feature modules: forms, tables, dialogs and data hooks per domain area
+│   ├── help/              The user handbook: chapter structure and content per language
 │   ├── hooks/             Shared hooks (useAsyncData, useDataLayer, useApiFeature, ...)
 │   ├── i18n/              Translations, language detection and locale formatting
 │   ├── layouts/           AppLayout (signed in) and PublicLayout (application form)
@@ -240,6 +241,8 @@ Cover critical user flows here and leave edge cases to the unit tests.
 **Add a field to an entity.** Update the type in `types/`, the rules in `services/<domain>.ts`, the form and its translations, the seed data, and the backend's validation in the same pull request. If older stored data or an older API lacks the field, give it a default where it is read (see `withSpaceDefaults` in [`repositories/index.ts`](src/repositories/index.ts)) or bump `SEED_VERSION`.
 
 **Add a delete.** Check with current data at the moment of deleting whether other records still refer to the entity, and block the delete with an explanation if they do. See Deleting related data in [AGENTS.md](../AGENTS.md#deleting-related-data).
+
+**Update the handbook.** When a change affects how the app is used, update the chapter in [`help/content/en.ts`](src/help/content/en.ts) and [`fi.ts`](src/help/content/fi.ts) in the same pull request, with button and field names in `**bold**` exactly as the UI shows them. New chapters and sections go into [`help/structure.ts`](src/help/structure.ts) first; the type checker then asks for them in both languages. Give a new route a `help` target in its `handle` so the header's **?** button opens the right chapter.
 
 **Generate an id.** Use `generateId()` from [`utils/id.ts`](src/utils/id.ts), never `crypto.randomUUID()` directly: it is missing when the dev server is opened over plain HTTP on a network address, e.g. from a phone.
 
