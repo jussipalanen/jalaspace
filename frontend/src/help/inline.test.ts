@@ -1,26 +1,37 @@
 import { describe, expect, it } from 'vitest'
-import { splitBold } from './inline'
+import { parseInline } from './inline'
 
-describe('splitBold', () => {
+describe('parseInline', () => {
   it('returns plain text as one part', () => {
-    expect(splitBold('Nothing to mark.')).toEqual([{ text: 'Nothing to mark.', bold: false }])
+    expect(parseInline('Nothing to mark.')).toEqual([{ type: 'text', text: 'Nothing to mark.' }])
   })
 
   it('splits out bold names', () => {
-    expect(splitBold('Select **Add task**, then **Save task**.')).toEqual([
-      { text: 'Select ', bold: false },
-      { text: 'Add task', bold: true },
-      { text: ', then ', bold: false },
-      { text: 'Save task', bold: true },
-      { text: '.', bold: false },
+    expect(parseInline('Select **Add task**, then **Save task**.')).toEqual([
+      { type: 'text', text: 'Select ' },
+      { type: 'bold', text: 'Add task' },
+      { type: 'text', text: ', then ' },
+      { type: 'bold', text: 'Save task' },
+      { type: 'text', text: '.' },
     ])
   })
 
   it('handles bold at the start and end', () => {
-    expect(splitBold('**Leases**')).toEqual([{ text: 'Leases', bold: true }])
+    expect(parseInline('**Leases**')).toEqual([{ type: 'bold', text: 'Leases' }])
   })
 
-  it('keeps an unpaired marker as text', () => {
-    expect(splitBold('A ** B')).toEqual([{ text: 'A ** B', bold: false }])
+  it('splits out links to app paths', () => {
+    expect(parseInline('See [Settings](/help/settings#reset).')).toEqual([
+      { type: 'text', text: 'See ' },
+      { type: 'link', text: 'Settings', to: '/help/settings#reset' },
+      { type: 'text', text: '.' },
+    ])
+  })
+
+  it('keeps unpaired markers and links outside the app as text', () => {
+    expect(parseInline('A ** B')).toEqual([{ type: 'text', text: 'A ** B' }])
+    expect(parseInline('[site](https://example.com)')).toEqual([
+      { type: 'text', text: '[site](https://example.com)' },
+    ])
   })
 })

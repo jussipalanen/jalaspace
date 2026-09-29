@@ -53,6 +53,15 @@ describe('handbook', () => {
     expect(screen.getAllByText('Mark as completed')[0].tagName).toBe('STRONG')
   })
 
+  it('links to other chapters from the text', async () => {
+    await openChapter('/help/getting-started', 'Getting started')
+
+    expect(screen.getByRole('link', { name: 'reset the demo data' })).toHaveAttribute(
+      'href',
+      '/help/settings#reset',
+    )
+  })
+
   it('moves to the previous and next chapters', async () => {
     const user = userEvent.setup()
     const { router } = await openChapter('/help/maintenance', 'Maintenance')

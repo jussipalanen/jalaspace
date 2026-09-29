@@ -1,14 +1,27 @@
 import { matchRoutes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { SUPPORTED_LANGUAGES } from '../i18n/languages'
+import { en as enUi } from '../i18n/locales/en'
+import { fi as fiUi } from '../i18n/locales/fi'
 import { routes } from '../router'
 import { en } from './content/en'
 import { fi } from './content/fi'
-import { splitBold } from './inline'
-import { CHAPTER_GROUPS, CHAPTER_IDS, HANDBOOK_STRUCTURE, helpPath, isChapterId } from './structure'
+import { parseInline } from './inline'
+import { CHAPTER_GROUPS, CHAPTER_IDS, HANDBOOK_STRUCTURE, helpPath, isChapterId, sectionIds } from './structure'
 import type { Handbook, HelpBlock } from './types'
 
 const handbooks: Record<(typeof SUPPORTED_LANGUAGES)[number], Handbook> = { en, fi }
+const uiMessages: Record<(typeof SUPPORTED_LANGUAGES)[number], unknown> = { en: enUi, fi: fiUi }
+
+/** Every text of a UI dictionary without its `{placeholders}`, e.g. "Open in" from "Open in {page}". */
+function uiLabels(messages: unknown): Set<string> {
+  const leaves = (node: unknown): string[] =>
+    typeof node === 'string' ? [node] : Object.values(node as object).flatMap(leaves)
+  return new Set(leaves(messages).map((text) => text.replace(/\{\w+\}/g, '').trim()))
+}
+
+/** Bold names that are not UI text: the header's help button shows only an icon. */
+const NON_UI_NAMES = new Set(['?'])
 
 /** Every text of a handbook, with where it is, for helpful failure messages. */
 function texts(handbook: Handbook): { where: string; text: string }[] {
@@ -34,12 +47,25 @@ function texts(handbook: Handbook): { where: string; text: string }[] {
   return result
 }
 
+/** Every app path the handbook links to: link blocks and `[links](/path)` in the text. */
 function appLinks(handbook: Handbook): string[] {
-  return CHAPTER_IDS.flatMap((chapterId) =>
+  const inline = texts(handbook).flatMap(({ text }) =>
+    parseInline(text).flatMap((part) => (part.type === 'link' ? [part.to] : [])),
+  )
+  const blocks = CHAPTER_IDS.flatMap((chapterId) =>
     Object.values(handbook[chapterId].sections).flatMap((section) =>
       (section.blocks as HelpBlock[]).flatMap((block) => (block.type === 'link' ? [block.to] : [])),
     ),
   )
+  return [...blocks, ...inline]
+}
+
+/** A handbook link must name a real chapter, and its anchor a real section of it. */
+function isValidHelpLink(to: string): boolean {
+  const [path, section] = to.split('#')
+  const chapter = path.slice('/help/'.length)
+  if (!isChapterId(chapter)) return false
+  return section === undefined || (sectionIds(chapter) as readonly string[]).includes(section)
 }
 
 describe.each(SUPPORTED_LANGUAGES)('handbook in %s', (language) => {
@@ -69,13 +95,25 @@ describe.each(SUPPORTED_LANGUAGES)('handbook in %s', (language) => {
     }
   })
 
-  it('pairs every ** that marks a bold name', () => {
+  it('pairs every ** that marks a bold name and writes links completely', () => {
     for (const { where, text } of texts(handbook)) {
-      const plain = splitBold(text)
-        .filter((part) => !part.bold)
+      const plain = parseInline(text)
+        .filter((part) => part.type === 'text')
         .map((part) => part.text)
         .join('')
       expect(plain, where).not.toContain('**')
+      expect(plain, where).not.toMatch(/\]\(/)
+    }
+  })
+
+  // Users look for the exact word on the screen, so a bold name is never inflected or reworded.
+  it('writes bold names exactly as the UI shows them', () => {
+    const labels = uiLabels(uiMessages[language])
+    for (const { where, text } of texts(handbook)) {
+      for (const part of parseInline(text)) {
+        if (part.type !== 'bold' || NON_UI_NAMES.has(part.text)) continue
+        expect(labels.has(part.text), `${where}: **${part.text}**`).toBe(true)
+      }
     }
   })
 
@@ -83,9 +121,10 @@ describe.each(SUPPORTED_LANGUAGES)('handbook in %s', (language) => {
     const links = appLinks(handbook)
     expect(links.length).toBeGreaterThan(0)
     for (const to of links) {
-      const matched = matchRoutes(routes, to)?.at(-1)?.route.path
+      const matched = matchRoutes(routes, to.split('#')[0])?.at(-1)?.route.path
       expect(matched, to).toBeDefined()
       expect(matched, to).not.toBe('*')
+      if (to.startsWith('/help/')) expect(isValidHelpLink(to), to).toBe(true)
     }
   })
 })
