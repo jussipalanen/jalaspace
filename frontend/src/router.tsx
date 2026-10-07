@@ -7,6 +7,8 @@ import { ApplicationsPage } from './pages/ApplicationsPage'
 import { ApplyFormPage } from './pages/ApplyFormPage'
 import { ApplyPage } from './pages/ApplyPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { HelpChapterPage } from './pages/HelpChapterPage'
+import { HelpPage } from './pages/HelpPage'
 import { EditLeasePage, NewLeasePage } from './pages/LeaseFormPage'
 import { LeasesPage } from './pages/LeasesPage'
 import { LoginPage } from './pages/LoginPage'
@@ -24,10 +26,11 @@ import { SpacesPage } from './pages/SpacesPage'
 import { TenantDetailPage } from './pages/TenantDetailPage'
 import { EditTenantPage, NewTenantPage } from './pages/TenantFormPage'
 import { TenantsPage } from './pages/TenantsPage'
+import type { HelpTarget } from './help/structure'
 import type { MessageKey } from './i18n/translate'
 import type { RouteHandle } from './types/navigation'
 
-const handle = (titleKey: MessageKey): RouteHandle => ({ titleKey })
+const handle = (titleKey: MessageKey, help?: HelpTarget): RouteHandle => ({ titleKey, help })
 
 export const routes: RouteObject[] = [
   { path: '/login', element: <LoginPage />, errorElement: <RouteErrorPage /> },
@@ -53,68 +56,70 @@ export const routes: RouteObject[] = [
       {
         errorElement: <RouteErrorPage />,
         children: [
-          { index: true, element: <DashboardPage />, handle: handle('pages.dashboard.title') },
-          { path: 'properties', element: <PropertiesPage />, handle: handle('pages.properties.title') },
+          { index: true, element: <DashboardPage />, handle: handle('pages.dashboard.title', { chapter: 'dashboard' }) },
+          { path: 'properties', element: <PropertiesPage />, handle: handle('pages.properties.title', { chapter: 'properties' }) },
           {
             path: 'properties/new',
             element: <NewPropertyPage />,
-            handle: handle('pages.propertyNew.title'),
+            handle: handle('pages.propertyNew.title', { chapter: 'properties', section: 'add-edit' }),
           },
           {
             path: 'properties/:id/edit',
             element: <EditPropertyPage />,
-            handle: handle('pages.propertyEdit.title'),
+            handle: handle('pages.propertyEdit.title', { chapter: 'properties', section: 'add-edit' }),
           },
           {
             path: 'properties/:id',
             element: <PropertyDetailPage />,
-            handle: handle('pages.propertyDetails.title'),
+            handle: handle('pages.propertyDetails.title', { chapter: 'properties', section: 'details' }),
           },
-          { path: 'units', element: <SpacesPage />, handle: handle('pages.spaces.title') },
-          { path: 'units/new', element: <NewSpacePage />, handle: handle('pages.spaceNew.title') },
+          { path: 'units', element: <SpacesPage />, handle: handle('pages.spaces.title', { chapter: 'spaces' }) },
+          { path: 'units/new', element: <NewSpacePage />, handle: handle('pages.spaceNew.title', { chapter: 'spaces', section: 'add-edit' }) },
           {
             path: 'units/:id/edit',
             element: <EditSpacePage />,
-            handle: handle('pages.spaceEdit.title'),
+            handle: handle('pages.spaceEdit.title', { chapter: 'spaces', section: 'add-edit' }),
           },
-          { path: 'maintenance', element: <MaintenancePage />, handle: handle('pages.maintenance.title') },
+          { path: 'maintenance', element: <MaintenancePage />, handle: handle('pages.maintenance.title', { chapter: 'maintenance' }) },
           {
             path: 'maintenance/new',
             element: <NewMaintenancePage />,
-            handle: handle('pages.maintenanceNew.title'),
+            handle: handle('pages.maintenanceNew.title', { chapter: 'maintenance', section: 'add' }),
           },
           {
             path: 'maintenance/:id/edit',
             element: <EditMaintenancePage />,
-            handle: handle('pages.maintenanceEdit.title'),
+            handle: handle('pages.maintenanceEdit.title', { chapter: 'maintenance', section: 'add' }),
           },
           {
             path: 'maintenance/:id',
             element: <MaintenanceDetailPage />,
-            handle: handle('pages.maintenanceDetails.title'),
+            handle: handle('pages.maintenanceDetails.title', { chapter: 'maintenance', section: 'status' }),
           },
-          { path: 'applications', element: <ApplicationsPage />, handle: handle('pages.applications.title') },
+          { path: 'applications', element: <ApplicationsPage />, handle: handle('pages.applications.title', { chapter: 'applications' }) },
           {
             path: 'applications/:id',
             element: <ApplicationDetailPage />,
-            handle: handle('pages.applicationDetails.title'),
+            handle: handle('pages.applicationDetails.title', { chapter: 'applications', section: 'review' }),
           },
-          { path: 'tenants', element: <TenantsPage />, handle: handle('pages.tenants.title') },
-          { path: 'tenants/new', element: <NewTenantPage />, handle: handle('pages.tenantNew.title') },
+          { path: 'tenants', element: <TenantsPage />, handle: handle('pages.tenants.title', { chapter: 'tenants' }) },
+          { path: 'tenants/new', element: <NewTenantPage />, handle: handle('pages.tenantNew.title', { chapter: 'tenants', section: 'add' }) },
           {
             path: 'tenants/:id/edit',
             element: <EditTenantPage />,
-            handle: handle('pages.tenantEdit.title'),
+            handle: handle('pages.tenantEdit.title', { chapter: 'tenants', section: 'add' }),
           },
-          { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('pages.tenantDetails.title') },
-          { path: 'leases', element: <LeasesPage />, handle: handle('pages.leases.title') },
-          { path: 'leases/new', element: <NewLeasePage />, handle: handle('pages.leaseNew.title') },
+          { path: 'tenants/:id', element: <TenantDetailPage />, handle: handle('pages.tenantDetails.title', { chapter: 'tenants', section: 'spaces' }) },
+          { path: 'leases', element: <LeasesPage />, handle: handle('pages.leases.title', { chapter: 'leases' }) },
+          { path: 'leases/new', element: <NewLeasePage />, handle: handle('pages.leaseNew.title', { chapter: 'leases', section: 'create' }) },
           {
             path: 'leases/:id/edit',
             element: <EditLeasePage />,
-            handle: handle('pages.leaseEdit.title'),
+            handle: handle('pages.leaseEdit.title', { chapter: 'leases', section: 'edit' }),
           },
-          { path: 'settings', element: <SettingsPage />, handle: handle('pages.settings.title') },
+          { path: 'help', element: <HelpPage />, handle: handle('pages.help.title') },
+          { path: 'help/:chapter', element: <HelpChapterPage />, handle: handle('pages.help.title') },
+          { path: 'settings', element: <SettingsPage />, handle: handle('pages.settings.title', { chapter: 'settings' }) },
           { path: '*', element: <NotFoundPage />, handle: handle('pages.notFound.title') },
         ],
       },
