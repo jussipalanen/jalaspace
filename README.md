@@ -165,6 +165,21 @@ Translations live in [`frontend/src/i18n/locales/`](frontend/src/i18n/locales). 
 </details>
 
 <details>
+<summary><h2>Handbook</h2></summary>
+
+The app has a user handbook in English and Finnish: open **Handbook** in the sidebar, or select the **?** button in the header to open the chapter for the page you're on.
+
+- `/help` lists the ten chapters, grouped like the sidebar: getting started, the Dashboard and Ask JalaSpace, each area of the app, settings, and walkthroughs of tasks that cross several pages (from an application to a lease, a maintenance task from report to completion, a new property with its spaces).
+- Each chapter (`/help/maintenance`) links to its sections, into the app and to the previous and next chapter. Section links such as `/help/maintenance#add` open at that section.
+- The handbook follows the language switcher and names buttons and fields exactly as the UI shows them.
+
+The content lives in [`frontend/src/help/`](frontend/src/help): one typed file per language, checked against the chapter structure. See the Handbook section in [AGENTS.md](AGENTS.md).
+
+Screenshots: [desktop chapter](docs/screenshots/help-desktop.png) · [mobile, in Finnish](docs/screenshots/help-mobile-fi.png).
+
+</details>
+
+<details>
 <summary><h2>Spaces</h2></summary>
 
 Open **Spaces** (`/units`) to search by space or current tenant and filter by property, status,
@@ -352,6 +367,7 @@ frontend/src/
 ├── pages/         Route-level page components
 ├── hooks/         Custom React hooks
 ├── i18n/          Translations (English, Finnish), language switching and locale formatting
+├── help/          The user handbook: chapter structure and content in each language
 ├── features/      Feature modules (auth, ...)
 ├── repositories/  Repository interfaces and their localStorage and API implementations
 ├── services/      Business logic (auth, lease status, dashboard statistics, demo data)

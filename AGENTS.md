@@ -800,6 +800,9 @@ Initial routes:
 /maintenance/:id
 
 /settings
+
+/help
+/help/:chapter
 ```
 
 Unauthenticated users should be redirected to:
@@ -1262,6 +1265,38 @@ Use `type="password"` inputs with suitable `autocomplete` values (`current-passw
 ## Demo data
 
 Contains the Reset demo data action described in Demo Reset.
+
+---
+
+# Handbook
+
+The user handbook explains how to use JalaSpace, in English and Finnish, for signed-in users.
+
+```text
+/help             the table of contents, grouped like the sidebar
+/help/:chapter    one chapter: its sections, links into the app, previous and next chapter
+```
+
+Entry points:
+
+* **Handbook** in the sidebar footer, next to Settings
+* the **?** button in the header opens the chapter for the current page; each route's `handle.help` names the chapter and optionally a section (`{ chapter: 'maintenance', section: 'add' }` → `/help/maintenance#add`); routes without one open `/help`
+
+Content:
+
+```text
+src/help/structure.ts      chapters and section ids in reading order; ids are URLs and anchors, the same in every language
+src/help/content/en.ts     the English handbook
+src/help/content/fi.ts     the Finnish handbook
+```
+
+* both content files are typed against the structure, so a missing chapter or section is a TypeScript error; tests check that no text is empty or left untranslated and that app links lead to real routes
+* content is structured blocks (paragraphs, steps, lists, notes, app links), not Markdown; in the text, `**bold**` marks the names of buttons, fields and pages, and `[label](/help/leases#create)` links to an app path such as another chapter
+* bold names are written exactly as the UI shows them in that language, never inflected; in Finnish the case ending goes on a helper word (**Asetukset**-sivulla, suodattimilla **Kiinteistö** ja **Tilanne**); a test checks every bold name against the UI texts
+* write for end users: short sentences, one action per step, no technical terms such as API, server or URL
+* each language is loaded only when the handbook is opened
+* describe only features that exist; AI features are described as available when the API offers them
+* when a pull request changes how a feature is used (labels, steps, rules), update the handbook in both languages in the same pull request
 
 ---
 
@@ -2430,6 +2465,7 @@ Before creating a PR verify:
 [ ] No unrelated files were modified
 [ ] Documentation is updated where needed
 [ ] New UI text is translated in all supported languages
+[ ] The handbook is updated in all supported languages when the change affects how the app is used
 [ ] PR title follows Conventional Commits and reads well as a release note
 [ ] Commit messages follow Conventional Commits and use no release types (feat, fix, perf, refactor, revert)
 [ ] UI changes have been manually sanity checked

@@ -281,3 +281,21 @@ export function CheckCircleIcon(props: IconProps) {
     </Icon>
   )
 }
+
+export function BookIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11a1 1 0 0 1 1 1v15a2 2 0 0 0-2-2H4z" />
+      <path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13a1 1 0 0 0-1 1v15a2 2 0 0 1 2-2h6z" />
+    </Icon>
+  )
+}
+
+export function HelpCircleIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .8-1 1.5v.2M12 17h.01" />
+    </Icon>
+  )
+}
