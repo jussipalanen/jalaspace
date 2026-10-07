@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { SLOW_LOADING_MS } from '../../components/DataState/DataState'
 import { CloseIcon, InfoIcon, SearchIcon, SparklesIcon } from '../../components/icons'
 import { useApiFeature } from '../../hooks/useApiFeature'
+import { useToday } from '../../hooks/useToday'
 import { formatArea, formatCurrency, formatPercent } from '../../i18n/format'
 import { useTranslation } from '../../i18n/useTranslation'
 import {
@@ -16,7 +17,6 @@ import {
 } from '../../services/ask'
 import { listPageLink, runAskSearch, type AskResults } from '../../services/askSearch'
 import type { DashboardInput } from '../../services/dashboard'
-import { toIsoDate } from '../../utils/date'
 import { formatDate } from '../../utils/format'
 import { describeCondition, describeSort, PLACE_LABELS } from './askConditions'
 import { MetaLine } from './DashboardPanel'
@@ -42,6 +42,7 @@ type State =
 export function AskPanel({ data }: { data: DashboardInput }) {
   const { t, locale } = useTranslation()
   const { apiUrl, available } = useApiFeature('ask')
+  const today = useToday()
   const [question, setQuestion] = useState('')
   const [state, setState] = useState<State>({ kind: 'idle' })
   const [slow, setSlow] = useState(false)
@@ -55,8 +56,8 @@ export function AskPanel({ data }: { data: DashboardInput }) {
   const search = state.kind === 'answered' && state.answer.kind === 'search' ? state.answer : null
   // The app's own data, searched with the AI's filter; recalculated when a condition is removed.
   const results = useMemo(
-    () => (search ? runAskSearch(data, search, toIsoDate(new Date()), locale) : null),
-    [data, search, locale],
+    () => (search ? runAskSearch(data, search, today, locale) : null),
+    [data, search, today, locale],
   )
 
   // Cancel a pending request when the Dashboard closes.
@@ -80,7 +81,7 @@ export function AskPanel({ data }: { data: DashboardInput }) {
     controller.current = request
     setState({ kind: 'waiting' })
     try {
-      const answer = await requestAskAnswer(apiUrl, text, toIsoDate(new Date()), request.signal)
+      const answer = await requestAskAnswer(apiUrl, text, today, request.signal)
       setState({ kind: 'answered', answer })
       setAnsweredAt((count) => count + 1)
     } catch (error) {

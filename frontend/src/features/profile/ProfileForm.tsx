@@ -33,6 +33,7 @@ export function ProfileForm({ profile, email, onSubmit }: ProfileFormProps) {
   const [showSummary, setShowSummary] = useState(false)
   const [saveError, setSaveError] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [birthYears] = useState(() => birthYearOptions(new Date()))
 
   const fieldId = (field: Field | 'email') => `${idPrefix}-${field}`
   const birthHintId = `${idPrefix}-birth-hint`
@@ -181,7 +182,7 @@ export function ProfileForm({ profile, email, onSubmit }: ProfileFormProps) {
             <label className="field__label profile-form__part" htmlFor={fieldId('birthYear')}>
               {t('settings.profile.year')}
             </label>
-            {birthSelect('birthYear', birthYearOptions(new Date()))}
+            {birthSelect('birthYear', birthYears)}
           </div>
         </div>
         <p id={birthHintId} className="field__hint">

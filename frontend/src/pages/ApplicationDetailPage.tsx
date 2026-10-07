@@ -10,6 +10,7 @@ import { ApplicationStatusBadge } from '../features/applications/ApplicationStat
 import { DeleteApplicationDialog } from '../features/applications/DeleteApplicationDialog'
 import { useApplicationData } from '../features/applications/useApplicationData'
 import { useDataLayer } from '../hooks/useDataLayer'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import { ApiRequestError } from '../repositories/api/apiRequest'
 import {
@@ -24,7 +25,6 @@ import {
 } from '../services/applicationService'
 import type { ApplicationStatus } from '../types/application'
 import { saveErrorMessage } from '../utils/apiLimits'
-import { toIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import './MaintenanceDetailPage.css'
 import './ApplicationDetailPage.css'
@@ -59,13 +59,14 @@ export function ApplicationDetailPage() {
   const { id = '' } = useParams()
   const { t } = useTranslation()
   const state = useApplicationData()
+  const today = useToday()
 
   if (state.status === 'loading') return <LoadingState />
   if (state.status === 'error') {
     return <ErrorState message={t('applications.loadError')} onRetry={state.reload} />
   }
 
-  const details = getApplicationDetails(state.data, id, toIsoDate(new Date()))
+  const details = getApplicationDetails(state.data, id, today)
   if (!details) return <ApplicationNotFound />
   return <ApplicationDetailsView key={details.application.id} details={details} />
 }

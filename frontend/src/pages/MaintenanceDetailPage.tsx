@@ -10,6 +10,7 @@ import { MaintenanceStatusBadge, PriorityBadge } from '../features/maintenance/M
 import { MaintenanceNotFound } from '../features/maintenance/MaintenanceNotFound'
 import { useMaintenanceData } from '../features/maintenance/useMaintenanceData'
 import { useDataLayer } from '../hooks/useDataLayer'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import { EntityNotFoundError } from '../repositories/Repository'
 import {
@@ -18,7 +19,6 @@ import {
   type MaintenanceDetails,
 } from '../services/maintenanceService'
 import type { MaintenanceStatus } from '../types/maintenance'
-import { toIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import './MaintenanceDetailPage.css'
 import { saveErrorMessage } from '../utils/apiLimits'
@@ -63,6 +63,7 @@ function MaintenanceDetailsView({ details }: { details: MaintenanceDetails }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const getDataLayer = useDataLayer()
+  const today = useToday()
   const { property, space } = details
   // Status changes update the task in place, without reloading the page.
   const [task, setTask] = useState(details.task)
@@ -182,7 +183,7 @@ function MaintenanceDetailsView({ details }: { details: MaintenanceDetails }) {
           <dd>{t(`maintenance.category.${task.category}`)}</dd>
           <dt>{t('maintenance.form.fields.dueDate')}</dt>
           <dd>
-            <DueDate task={task} today={toIsoDate(new Date())} fallback={t('maintenance.detail.noDueDate')} />
+            <DueDate task={task} today={today} fallback={t('maintenance.detail.noDueDate')} />
           </dd>
           <dt>{t('maintenance.detail.created')}</dt>
           <dd>{formatDate(task.createdAt)}</dd>

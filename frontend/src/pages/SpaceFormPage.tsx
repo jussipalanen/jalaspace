@@ -9,11 +9,11 @@ import { DeleteSpaceDialog } from '../features/spaces/DeleteSpaceDialog'
 import { SpaceForm } from '../features/spaces/SpaceForm'
 import { useSpaceData } from '../features/spaces/useSpaceData'
 import { useDataLayer } from '../hooks/useDataLayer'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import type { Property } from '../types/property'
 import { createSpace, getSpaceEditContext, updateSpace } from '../services/spaceService'
 import { emptySpaceForm, toSpaceForm, type SpaceFormValues } from '../services/spaces'
-import { toIsoDate } from '../utils/date'
 import './SpaceFormPage.css'
 
 function useSortedProperties(properties: Property[] | undefined) {
@@ -71,6 +71,7 @@ export function EditSpacePage() {
   const navigate = useNavigate()
   const getDataLayer = useDataLayer()
   const state = useSpaceData()
+  const today = useToday()
   const properties = useSortedProperties(state.status === 'success' ? state.data.properties : undefined)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -79,7 +80,7 @@ export function EditSpacePage() {
     return <ErrorState message={t('spaces.loadError')} onRetry={state.reload} />
   }
 
-  const context = getSpaceEditContext(state.data, id, toIsoDate(new Date()))
+  const context = getSpaceEditContext(state.data, id, today)
   if (!context) {
     return (
       <EmptyState
