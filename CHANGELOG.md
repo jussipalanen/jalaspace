@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.22.0](https://github.com/jussipalanen/jalaspace/compare/v0.21.0...v0.22.0) (2026-10-07)
+
+
+### Added
+
+* **help:** an in-app user handbook in English and Finnish ([#162](https://github.com/jussipalanen/jalaspace/issues/162)) ([fdb6157](https://github.com/jussipalanen/jalaspace/commit/fdb615720811b35b88e519ca128ec6df7b2cfd93))
+
 ## [0.21.0](https://github.com/jussipalanen/jalaspace/compare/v0.20.0...v0.21.0) (2026-09-29)
 
 
