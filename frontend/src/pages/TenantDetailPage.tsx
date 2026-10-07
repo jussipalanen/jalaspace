@@ -10,11 +10,11 @@ import { DeleteTenantDialog } from '../features/tenants/DeleteTenantDialog'
 import { RemoveFromSpaceDialog } from '../features/tenants/RemoveFromSpaceDialog'
 import { TenantNotFound } from '../features/tenants/TenantNotFound'
 import { useTenantData } from '../features/tenants/useTenantData'
+import { useToday } from '../hooks/useToday'
 import { formatCurrency } from '../i18n/format'
 import { useTranslation } from '../i18n/useTranslation'
 import { getTenantDetails, type TenantDetails } from '../services/tenantService'
 import type { TenantLease } from '../services/tenants'
-import { toIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import './TenantDetailPage.css'
 
@@ -22,13 +22,14 @@ export function TenantDetailPage() {
   const { id = '' } = useParams()
   const { t } = useTranslation()
   const state = useTenantData()
+  const today = useToday()
 
   if (state.status === 'loading') return <LoadingState />
   if (state.status === 'error') {
     return <ErrorState message={t('tenants.loadError')} onRetry={state.reload} />
   }
 
-  const details = getTenantDetails(state.data, id, toIsoDate(new Date()))
+  const details = getTenantDetails(state.data, id, today)
   if (!details) return <TenantNotFound />
   return (
     <TenantDetailsView

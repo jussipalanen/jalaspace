@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { SearchField } from '../components/SearchField/SearchField'
 import { SpaceTable } from '../features/spaces/SpaceTable'
 import { useSpaceData } from '../features/spaces/useSpaceData'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import {
   buildSpaceRows,
@@ -21,13 +22,13 @@ import {
   type SpaceFilters,
 } from '../services/spaces'
 import type { SpaceFeature } from '../types/space'
-import { toIsoDate } from '../utils/date'
 import './SpacesPage.css'
 
 export function SpacesPage() {
   const { t, locale } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const state = useSpaceData()
+  const today = useToday()
   const data = state.status === 'success' ? state.data : null
 
   const statusParam = searchParams.get('status') ?? ''
@@ -54,11 +55,11 @@ export function SpacesPage() {
             data.properties,
             data.leases,
             data.tenants,
-            toIsoDate(new Date()),
+            today,
             locale,
           )
         : [],
-    [data, locale],
+    [data, today, locale],
   )
   const visible = filterSpaceRows(rows, filters, locale)
   const properties = useMemo(() => {

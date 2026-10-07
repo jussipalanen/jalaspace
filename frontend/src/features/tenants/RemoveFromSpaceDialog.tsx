@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { ConfirmDialog } from '../../components/ConfirmDialog/ConfirmDialog'
 import { useDataLayer } from '../../hooks/useDataLayer'
+import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n/useTranslation'
 import { removeTenantFromSpace } from '../../services/tenantService'
 import { planRemoval, type TenantLease } from '../../services/tenants'
 import type { Tenant } from '../../types/tenant'
-import { toIsoDate } from '../../utils/date'
 import { formatDate } from '../../utils/format'
 import { saveErrorMessage } from '../../utils/apiLimits'
 
@@ -21,11 +21,12 @@ interface RemoveFromSpaceDialogProps {
 export function RemoveFromSpaceDialog({ tenant, entry, onClose, onRemoved }: RemoveFromSpaceDialogProps) {
   const { t } = useTranslation()
   const getDataLayer = useDataLayer()
+  const today = useToday()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const space = entry?.space?.name ?? t('tenants.detail.unknownSpace')
-  const plan = entry ? planRemoval(entry.lease, toIsoDate(new Date())) : null
+  const plan = entry ? planRemoval(entry.lease, today) : null
   const cancelling = plan?.action === 'cancel'
 
   const close = () => {

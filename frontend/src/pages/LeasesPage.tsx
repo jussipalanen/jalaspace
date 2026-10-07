@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { SearchField } from '../components/SearchField/SearchField'
 import { LeaseTable } from '../features/leases/LeaseTable'
 import { useLeaseData } from '../features/leases/useLeaseData'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import {
   buildLeaseRows,
@@ -15,13 +16,13 @@ import {
   LEASE_STATUSES,
   type LeaseFilters,
 } from '../services/leases'
-import { toIsoDate } from '../utils/date'
 import './LeasesPage.css'
 
 export function LeasesPage() {
   const { t, locale } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const state = useLeaseData()
+  const today = useToday()
   const data = state.status === 'success' ? state.data : null
 
   const statusParam = searchParams.get('status') ?? ''
@@ -40,11 +41,11 @@ export function LeasesPage() {
             data.tenants,
             data.spaces,
             data.properties,
-            toIsoDate(new Date()),
+            today,
             locale,
           )
         : [],
-    [data, locale],
+    [data, today, locale],
   )
   const visible = filterLeaseRows(rows, filters, locale)
   const properties = useMemo(() => {

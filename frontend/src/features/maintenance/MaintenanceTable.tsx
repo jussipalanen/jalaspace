@@ -1,13 +1,13 @@
 import { Link } from 'react-router'
+import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { MaintenanceRow } from '../../services/maintenance'
-import { toIsoDate } from '../../utils/date'
 import { DueDate } from './DueDate'
 import { MaintenanceStatusBadge, PriorityBadge } from './MaintenanceBadges'
 
 export function MaintenanceTable({ rows }: { rows: MaintenanceRow[] }) {
   const { t } = useTranslation()
-  const today = toIsoDate(new Date())
+  const today = useToday()
   const columns = {
     title: t('maintenance.columns.title'),
     property: t('maintenance.columns.property'),

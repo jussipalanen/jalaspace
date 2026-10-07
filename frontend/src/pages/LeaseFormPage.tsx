@@ -7,10 +7,11 @@ import { LeaseForm } from '../features/leases/LeaseForm'
 import { LeaseNotFound } from '../features/leases/LeaseNotFound'
 import { useLeaseData } from '../features/leases/useLeaseData'
 import { useDataLayer } from '../hooks/useDataLayer'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import { createLease, updateLease, type LeaseData } from '../services/leaseService'
 import { emptyLeaseForm, toLeaseForm, type LeaseFormValues } from '../services/leases'
-import { isIsoDate, toIsoDate } from '../utils/date'
+import { isIsoDate } from '../utils/date'
 
 /** Only same-app paths, so a link cannot send the user to another site. */
 function safeReturnTo(value: string | null): string | null {
@@ -35,6 +36,7 @@ export function NewLeasePage() {
   const getDataLayer = useDataLayer()
   const state = useLeaseData()
   const sorted = useSortedData(state.status === 'success' ? state.data : null)
+  const today = useToday()
 
   if (state.status === 'loading') return <LoadingState />
   if (state.status === 'error') {
@@ -42,7 +44,6 @@ export function NewLeasePage() {
   }
 
   const { data } = state
-  const today = toIsoDate(new Date())
   const returnTo = safeReturnTo(searchParams.get('returnTo'))
   // Preselect the tenant, space or start date when coming from their pages
   // (?tenant=…, ?space=…, ?startDate=…, e.g. from an approved application).
@@ -92,6 +93,7 @@ export function EditLeasePage() {
   const getDataLayer = useDataLayer()
   const state = useLeaseData()
   const sorted = useSortedData(state.status === 'success' ? state.data : null)
+  const today = useToday()
 
   if (state.status === 'loading') return <LoadingState />
   if (state.status === 'error') {
@@ -128,7 +130,7 @@ export function EditLeasePage() {
         properties={sorted.properties}
         spaces={data.spaces}
         leases={data.leases}
-        today={toIsoDate(new Date())}
+        today={today}
         editing={{ id: lease.id, tenant, space, property }}
         cancelTo={returnTo}
         onSubmit={save}

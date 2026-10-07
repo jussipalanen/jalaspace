@@ -3,6 +3,7 @@ import { DateInput } from '../../components/DateInput/DateInput'
 import { FormField } from '../../components/FormField/FormField'
 import { InfoIcon } from '../../components/icons'
 import { isSharedData } from '../../config/dataProvider'
+import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n/useTranslation'
 import {
   APPLICATION_MESSAGE_MAX_LENGTH,
@@ -14,7 +15,7 @@ import {
 import { ApplicationValidationError } from '../../services/applicationService'
 import { TENANT_CONTACT_MAX_LENGTH, TENANT_EMAIL_MAX_LENGTH, TENANT_NAME_MAX_LENGTH, TENANT_TYPES } from '../../services/tenants'
 import { apiLimitCode, type ApiLimitCode } from '../../utils/apiLimits'
-import { addDays, parseDisplayDate } from '../../utils/date'
+import { parseDisplayDate, shiftIsoDate } from '../../utils/date'
 import { formatDate } from '../../utils/format'
 import { hasErrors } from '../../utils/validation'
 import './ApplicationForm.css'
@@ -49,8 +50,9 @@ export function ApplicationForm({ onSubmit }: ApplicationFormProps) {
   const [showSummary, setShowSummary] = useState(false)
   const [sendError, setSendError] = useState<'failed' | ApiLimitCode | null>(null)
   const [sending, setSending] = useState(false)
+  const today = useToday()
   // An example a month from now, so it is always a valid answer.
-  const example = formatDate(addDays(new Date(), 30).toISOString())
+  const example = formatDate(shiftIsoDate(today, { days: 30 }))
 
   const fieldId = (field: Field) => `${idPrefix}-${field}`
 

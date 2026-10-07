@@ -8,6 +8,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { SearchField } from '../components/SearchField/SearchField'
 import { MaintenanceTable } from '../features/maintenance/MaintenanceTable'
 import { useMaintenanceData } from '../features/maintenance/useMaintenanceData'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import {
   buildMaintenanceRows,
@@ -22,7 +23,7 @@ import {
 import type { MaintenanceData } from '../services/maintenanceService'
 import type { Property } from '../types/property'
 import type { Space } from '../types/space'
-import { isIsoDate, toIsoDate } from '../utils/date'
+import { isIsoDate } from '../utils/date'
 import { formatDate } from '../utils/format'
 import './MaintenancePage.css'
 
@@ -32,6 +33,7 @@ export function MaintenancePage() {
   const { t, locale } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const state = useMaintenanceData()
+  const today = useToday()
   const data = state.status === 'success' ? state.data : null
 
   const priorityParam = searchParams.get('priority') ?? ''
@@ -60,7 +62,7 @@ export function MaintenancePage() {
     () => (data ? buildMaintenanceRows(data.maintenance, data.properties, data.spaces, locale) : []),
     [data, locale],
   )
-  const visible = filterMaintenanceRows(rows, filters, locale, toIsoDate(new Date()))
+  const visible = filterMaintenanceRows(rows, filters, locale, today)
 
   const collator = useMemo(() => new Intl.Collator(locale, { numeric: true }), [locale])
   const properties = useMemo(

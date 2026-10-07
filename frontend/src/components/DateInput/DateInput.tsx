@@ -1,7 +1,8 @@
 import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 'react'
+import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { IsoDate } from '../../types/common'
-import { calendarWeeks, isoWeekday, shiftIsoDate, toIsoDate } from '../../utils/date'
+import { calendarWeeks, isoWeekday, shiftIsoDate } from '../../utils/date'
 import type { FormControlProps } from '../FormField/FormField'
 import { CalendarIcon, ChevronLeftIcon, ChevronRightIcon } from '../icons'
 import './DateInput.css'
@@ -42,7 +43,7 @@ export function DateInput({
 }: DateInputProps) {
   const { t, locale } = useTranslation()
   const dialogId = useId()
-  const today = toIsoDate(new Date())
+  const today = useToday()
   const [open, setOpen] = useState(false)
   const [focused, setFocused] = useState<IsoDate>(value ?? today)
   const [shownValue, setShownValue] = useState(value)

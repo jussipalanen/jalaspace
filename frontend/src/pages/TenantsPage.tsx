@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader/PageHeader'
 import { SearchField } from '../components/SearchField/SearchField'
 import { TenantTable } from '../features/tenants/TenantTable'
 import { useTenantData } from '../features/tenants/useTenantData'
+import { useToday } from '../hooks/useToday'
 import { useTranslation } from '../i18n/useTranslation'
 import {
   buildTenantRows,
@@ -15,13 +16,13 @@ import {
   TENANT_TYPES,
   type TenantFilters,
 } from '../services/tenants'
-import { toIsoDate } from '../utils/date'
 import './TenantsPage.css'
 
 export function TenantsPage() {
   const { t, locale } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const state = useTenantData()
+  const today = useToday()
   const data = state.status === 'success' ? state.data : null
 
   const typeParam = searchParams.get('type') ?? ''
@@ -39,11 +40,11 @@ export function TenantsPage() {
             data.leases,
             data.spaces,
             data.properties,
-            toIsoDate(new Date()),
+            today,
             locale,
           )
         : [],
-    [data, locale],
+    [data, today, locale],
   )
   const visible = filterTenantRows(rows, filters, locale)
 
