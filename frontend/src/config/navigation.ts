@@ -1,4 +1,5 @@
 import {
+  BookIcon,
   BuildingIcon,
   DashboardIcon,
   FileTextIcon,
@@ -38,4 +39,5 @@ export const mainNavigation: NavSection[] = [
 
 export const secondaryNavigation: NavItem[] = [
   { labelKey: 'nav.items.settings', to: '/settings', icon: SettingsIcon },
+  { labelKey: 'nav.items.help', to: '/help', icon: BookIcon },
 ]
