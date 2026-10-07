@@ -34,6 +34,7 @@ export const en = {
       tenants: 'Tenants',
       leases: 'Leases',
       settings: 'Settings',
+      help: 'Handbook',
     },
     apiDocs: 'API docs',
     newApplications: { one: ', {count} new', other: ', {count} new' },
@@ -43,6 +44,7 @@ export const en = {
   header: {
     signOut: 'Sign out',
     editProfile: 'Edit profile',
+    help: 'Help for this page',
   },
   pages: {
     dashboard: {
@@ -124,6 +126,10 @@ export const en = {
     },
     applyForm: {
       title: 'Apply for a space',
+    },
+    help: {
+      title: 'Handbook',
+      description: 'How to use JalaSpace, chapter by chapter.',
     },
     notFound: {
       title: 'Page not found',
@@ -355,6 +361,26 @@ export const en = {
       nextMonth: 'Next month',
       today: 'Today',
       selected: 'Selected',
+    },
+  },
+  help: {
+    loading: 'Loading the handbook…',
+    loadError: 'Unable to load the handbook.',
+    contents: 'Contents',
+    groups: {
+      more: 'More',
+    },
+    chapterNumber: 'Chapter {number} of {count}',
+    inThisChapter: 'In this chapter',
+    allChapters: 'All chapters',
+    chapterNavigation: 'Chapters',
+    previous: 'Previous chapter',
+    next: 'Next chapter',
+    note: 'Note',
+    notFound: {
+      title: 'Chapter not found',
+      description: 'The handbook has no such chapter.',
+      back: 'Open the contents',
     },
   },
   properties: {

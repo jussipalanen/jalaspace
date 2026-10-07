@@ -1,11 +1,13 @@
 import { Link } from 'react-router'
 import { useTranslation } from '../../i18n/useTranslation'
-import { LogOutIcon, MenuIcon } from '../icons'
+import { HelpCircleIcon, LogOutIcon, MenuIcon } from '../icons'
 import { LanguageSwitcher } from '../LanguageSwitcher/LanguageSwitcher'
 import './Header.css'
 
 interface HeaderProps {
   title: string
+  /** The handbook page for the current page. */
+  helpTo: string
   userName: string
   sidebarId: string
   isSidebarOpen: boolean
@@ -24,6 +26,7 @@ function getInitials(name: string): string {
 
 export function Header({
   title,
+  helpTo,
   userName,
   sidebarId,
   isSidebarOpen,
@@ -48,6 +51,9 @@ export function Header({
       <p className="header__title">{title}</p>
 
       <div className="header__end">
+        <Link to={helpTo} className="icon-button" aria-label={t('header.help')} title={t('header.help')}>
+          <HelpCircleIcon />
+        </Link>
         <LanguageSwitcher />
         <span className="badge header__badge">{t('app.demoBadge')}</span>
         <Link to="/settings" className="header__user" title={t('header.editProfile')}>
