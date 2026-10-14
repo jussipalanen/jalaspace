@@ -86,6 +86,8 @@ The `./dev` script in the repository root shortens the common commands. Without 
 `-V` recreates the container's `node_modules` volume, so newly installed dependencies are picked up.
 `./dev lint`, `typecheck`, `test` and `check` use the running container, or a temporary one when the containers are stopped. `./dev help` lists all commands. End-to-end tests run on the host (`cd frontend && npm run test:e2e`).
 
+`./dev deploy` deploys the backend to Google Cloud Run with `gcloud` instead of Docker (see [Backend (API)](#backend-api)).
+
 </details>
 
 <details>
@@ -227,7 +229,7 @@ Changing the property clears the space filter.
   automatically. The button is
   shown only when `VITE_API_URL` is set and the API has a Gemini key. The form tells users not to include
   personal information, because the title and description leave the browser. The first suggestion can take up
-  to a minute while the free Render service wakes up.
+  to a minute when the API has to start first.
 - Task statuses do not change space statuses. Deleting a task requires confirmation.
 - Saves recheck the property and space against current repository data, and the form keeps your input
   if saving fails. Dashboard and property maintenance counts follow the changes.
@@ -422,7 +424,9 @@ Each check is a separate job:
 | `security-audit` | `npm audit --audit-level=high`            |
 | `docker-build`   | `docker build` of `frontend/Dockerfile`   |
 | `backend-lint`, `backend-typecheck`, `backend-test`, `backend-security-audit` | The same checks for `backend/` |
-| `backend-docker-build` | Builds `backend/Dockerfile`, starts it and calls `/api/health` |
+| `backend-docker-build` | Builds both stages of `backend/Dockerfile`, starts the production image and calls `/api/health` |
+
+After the checks pass on `main`, [`deploy.yml`](.github/workflows/deploy.yml) deploys a changed backend to Cloud Run (see Deployment).
 
 The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc) and [`backend/.nvmrc`](backend/.nvmrc), so CI and local development use the same version.
 
@@ -448,38 +452,88 @@ The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.ve
 | Output Directory  | `dist`          |
 | Node.js Version   | 24.x            |
 | Production Branch | `main`          |
-| Environment       | Production: `VITE_DATA_PROVIDER=api`; Preview: `VITE_DATA_PROVIDER=localStorage`; both: `VITE_API_URL=https://jalaspace.onrender.com` |
+| Environment       | Production: `VITE_DATA_PROVIDER=api`; Preview: `VITE_DATA_PROVIDER=localStorage`; both: `VITE_API_URL=https://jalaspace-backend-1097769575593.europe-north1.run.app` |
 
 - Every pull request gets a preview deployment for review. Previews keep their data in the reviewer's browser, so reviewing a pull request never changes the public data; AI suggestions still use the API.
-- Production reads and saves its data through the API on Render (see below).
+- Production reads and saves its data through the API on Google Cloud Run (see below).
 - Merging to `main` deploys to production, so only reviewed code reaches production.
 - [`frontend/vercel.json`](frontend/vercel.json) serves `index.html` for all application routes, so direct links and page refreshes work with client-side routing. Static files are served before the rewrite applies.
 - The demo is kept out of search engines: every page has `<meta name="robots" content="noindex, nofollow">`, and `vercel.json` sends an `X-Robots-Tag: noindex, nofollow` header with every response. [`robots.txt`](frontend/public/robots.txt) deliberately allows crawling, because crawlers must fetch a page to see its noindex.
 
 ### Backend (API)
 
-The API is deployed to [Render](https://render.com) as a web service at https://jalaspace.onrender.com
-(health check: https://jalaspace.onrender.com/api/health, API documentation: https://jalaspace.onrender.com/docs).
+The API runs on [Google Cloud Run](https://cloud.google.com/run) as the service `jalaspace-backend` in `europe-north1` (Finland), always on:
+https://jalaspace-backend-1097769575593.europe-north1.run.app
+(health check: [`/api/health`](https://jalaspace-backend-1097769575593.europe-north1.run.app/api/health), API documentation: [`/docs`](https://jalaspace-backend-1097769575593.europe-north1.run.app/docs)).
 
-| Setting           | Value                                      |
-| ----------------- | ------------------------------------------ |
-| Language          | Node                                       |
-| Root Directory    | `backend/`                                 |
-| Build Command     | `npm ci`                                   |
-| Start Command     | `npm start` (runs the TypeScript sources directly, no build step) |
-| Environment       | `NODE_ENV=production`, `NODE_VERSION=24`, `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` as a secret; Render sets `PORT` |
-| Health Check Path | `/api/health`                              |
-| Region            | Frankfurt (EU Central)                     |
-| Branch            | `main`, auto-deploy on commit              |
-| Plan              | Free                                       |
+| Setting           | Value | Why |
+| ----------------- | ----- | --- |
+| Image             | The `production` stage of [`backend/Dockerfile`](backend/Dockerfile): runtime dependencies only, `node src/server.ts` | Cloud Build builds it from `backend/` |
+| Minimum instances | 1 | One instance always runs, so visitors never wait for a cold start |
+| Maximum instances | 1 | The shared demo data is in the instance's memory; a second instance would show different data. Also caps the cost |
+| CPU               | 1, only during requests (the default) | An idle instance is billed at the much lower idle rate. Don't use `--no-cpu-throttling`: it bills the CPU all the time |
+| Memory            | 512 MiB | |
+| Startup CPU boost | On | |
+| Access            | Public (`--allow-unauthenticated`) | The browser calls the API directly |
+| Environment       | `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` from Secret Manager (`jalaspace-gemini-api-key`); Cloud Run sets `PORT` | |
 
-- Only changes in `backend/` trigger a deploy, and only after they are merged to `main`.
-- `backend/Dockerfile` is for local development with Docker Compose; Render uses the Node runtime instead.
-- The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute.
-- The API keeps its data in memory, so changes are lost whenever the service sleeps, restarts or is redeployed; it then starts again with the demo data (`SEED_DEMO_DATA=true`). It also restores the demo data every night at 03:00 UTC (`DEMO_RESET_AT`), so the shared data stays tidy even when the service never sleeps. A database comes later.
+- **Costs:** roughly 8–10 US dollars a month, almost all of it the idle instance (see [Cloud Run pricing](https://cloud.google.com/run/pricing)). Cloud Build's free monthly minutes cover the builds, and the Artifact Registry cleanup policy keeps the three newest images. A budget alert (Billing → Budgets & alerts) emails when costs go over the amount; it doesn't stop the service. With `--min-instances 0` the service fits in the free tier, but the first visit after a quiet period waits a few seconds.
+- **Deploys:** [`deploy.yml`](.github/workflows/deploy.yml) deploys the backend on every push to `main` that changes `backend/`, after the CI checks pass, and then calls `/api/health`. It can also be started from the Actions tab (**Deploy backend → Run workflow**). It signs in with Workload Identity Federation, so no Google key is stored in GitHub, and only this repository's `main` branch can use it. Without the `GCP_*` repository variables it is skipped.
+- **Manual deploys:** `./dev deploy` deploys the backend in your working copy to gcloud's active project and prints the project first. Extra arguments go to `gcloud run deploy`, e.g. `./dev deploy --quiet`. Deploy only reviewed code from `main`: the service is production.
+- **Settings** stay as they were set by hand; deploys change only the code. Change them without deploying code with `gcloud run services update jalaspace-backend --region europe-north1 --update-env-vars …` (this starts a new instance).
+- The API keeps its data in memory, so changes are lost whenever the instance restarts: on every deploy or settings change, and now and then when Google moves the instance. It then starts again with the demo data (`SEED_DEMO_DATA=true`). It also restores the demo data every night at 03:00 UTC (`DEMO_RESET_AT`). A database comes later.
 - The public frontend (Vercel Production) reads and saves all data through this API, so every visitor shares one dataset. Sign-in is simulated in the browser, so anyone can change the data or reset it for everyone; it is demo data only.
-- The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits).
+- The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits). Cloud Run adds the visitor's address last in `X-Forwarded-For`, so `TRUST_PROXY=1` reads it correctly.
 - `CORS_ORIGINS` allows the production site, this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
+
+<details>
+<summary>One-time Google Cloud setup</summary>
+
+`gcloud` uses the project **ID** (`client-jussialanen`), which can differ from the project name shown in the Console; another project has the same name. The project already has the Cloud Run, Cloud Build and Artifact Registry APIs, `roles/run.builder` for the Compute Engine default service account, the Workload Identity pool `github` and the deployer account `github-deployer`, which JalaOps set up. JalaSpace adds its own provider to the pool.
+
+```bash
+PROJECT_ID=client-jussialanen
+REGION=europe-north1
+REPO=jussipalanen/jalaspace
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+RUN_SA=$PROJECT_NUMBER-compute@developer.gserviceaccount.com   # builds the image and runs the service
+DEPLOYER=github-deployer@$PROJECT_ID.iam.gserviceaccount.com
+
+# The Gemini key as a secret the service can read (paste the key, press Enter).
+read -rs KEY && printf %s "$KEY" | gcloud secrets create jalaspace-gemini-api-key --project $PROJECT_ID --data-file=-
+gcloud secrets add-iam-policy-binding jalaspace-gemini-api-key --project $PROJECT_ID \
+  --member=serviceAccount:$RUN_SA --role=roles/secretmanager.secretAccessor
+
+# First deploy: creates the service with the settings above.
+gcloud run deploy jalaspace-backend --source backend --project $PROJECT_ID --region $REGION \
+  --allow-unauthenticated --min-instances 1 --max-instances 1 --cpu 1 --memory 512Mi --cpu-boost \
+  --set-env-vars "^;^SEED_DEMO_DATA=true;TRUST_PROXY=1;CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173" \
+  --set-secrets GEMINI_API_KEY=jalaspace-gemini-api-key:latest
+
+# Let GitHub Actions in this repository's main branch deploy as github-deployer.
+gcloud iam workload-identity-pools providers create-oidc jalaspace \
+  --project $PROJECT_ID --location=global --workload-identity-pool=github \
+  --issuer-uri=https://token.actions.githubusercontent.com \
+  --attribute-mapping=google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.ref=assertion.ref \
+  --attribute-condition="assertion.repository == '$REPO' && assertion.ref == 'refs/heads/main'"
+gcloud iam service-accounts add-iam-policy-binding $DEPLOYER --project $PROJECT_ID \
+  --role=roles/iam.workloadIdentityUser \
+  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/attribute.repository/$REPO"
+
+# Tell the workflow where to deploy (repository variables: none of these is secret).
+gh variable set GCP_PROJECT_ID --body $PROJECT_ID
+gh variable set GCP_SERVICE_ACCOUNT --body $DEPLOYER
+gh variable set GCP_WORKLOAD_IDENTITY_PROVIDER \
+  --body projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github/providers/jalaspace
+```
+
+Then set `VITE_API_URL` on Vercel (Production and Preview) to the service URL and redeploy the frontend.
+
+</details>
+
+### Backend on Render (free alternative)
+
+Before Cloud Run, the API ran on [Render](https://render.com)'s free plan as a Node web service (Root Directory `backend/`, Build Command `npm ci`, Start Command `npm start`, Health Check Path `/api/health`, the same environment as above plus `NODE_ENV=production` and `NODE_VERSION=24`). The free plan sleeps after about 15 minutes without traffic, so the first request after that can take up to a minute; the frontend waits that long.
 
 </details>
 

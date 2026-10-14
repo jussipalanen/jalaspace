@@ -21,8 +21,8 @@ try {
 
 const store = createMemoryStore()
 if (config.seedDemoData) await resetDemoData(store)
-// Keeps the shared demo tidy even when the server never restarts, e.g. when an
-// uptime monitor stops the free plan from sleeping.
+// Keeps the shared demo tidy even when the server never restarts, e.g. the
+// always-on Cloud Run instance.
 if (config.seedDemoData && config.demoResetAt) {
   scheduleDaily({ at: config.demoResetAt, run: () => resetDemoData(store) })
 }

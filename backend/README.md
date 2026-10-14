@@ -8,7 +8,7 @@ It is at an early stage: it has a health endpoint, endpoints for all domain enti
 
 Requirements: Node.js 24 LTS (see `.nvmrc`) and npm.
 
-The Node.js major version is set in three places that must change together: `.nvmrc`, `@types/node` in `package.json`, and `NODE_VERSION` on Render. Dependabot therefore skips major `@types/node` updates.
+The Node.js major version is set in three places that must change together: `.nvmrc`, `@types/node` in `package.json`, and the `node` image in `Dockerfile`. Dependabot therefore skips major `@types/node` updates.
 
 ```bash
 cd backend
@@ -25,7 +25,7 @@ curl http://localhost:3000/api/health
 
 With Docker, `docker compose up` in the repository root starts the API next to the frontend.
 
-The deployed API runs on Render: https://jalaspace.onrender.com/api/health. See Deployment in the [root README](../README.md#backend-api).
+The deployed API runs on Google Cloud Run: https://jalaspace-backend-1097769575593.europe-north1.run.app/api/health. It is built from the `production` stage of the `Dockerfile` (Docker Compose uses `development`). See Deployment in the [root README](../README.md#backend-api).
 
 | Script              | What it does                                   |
 | ------------------- | ---------------------------------------------- |
@@ -56,18 +56,18 @@ Environment variables (see [`.env.example`](.env.example)):
 | `GEMINI_API_KEY` | none | Gemini API key for the AI features (maintenance suggestions and questions). A secret. Without it they are off |
 | `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model for the AI features |
 | `CORS_ORIGINS` | none | Origins allowed to call the API from a browser, comma-separated. `*` matches part of one host label, e.g. `https://jalaspace-*-team.vercel.app` |
-| `TRUST_PROXY` | `0` | Number of proxies in front of the API (Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
+| `TRUST_PROXY` | `0` | Number of proxies in front of the API (Cloud Run and Render: `1`), so the client IP used for rate limits is read from `X-Forwarded-For` |
 | `WRITE_RATE_LIMIT` | `60` | Writes (`POST`, `PUT`, `DELETE`) allowed per client and minute, see [Limits](#limits) |
 | `RESET_RATE_LIMIT` | `10` | Demo resets allowed per client and hour |
 | `DEMO_RESET_AT` | `03:00` | With `SEED_DEMO_DATA=true`: UTC time of the nightly demo reset (`HH:MM`), or `off` |
 
-`npm run dev` reads `backend/.env` when it exists: copy `.env.example` to `.env` and add your key there. `npm start` reads only the real environment, as on Render.
+`npm run dev` reads `backend/.env` when it exists: copy `.env.example` to `.env` and add your key there. `npm start` reads only the real environment, as in production.
 
 An invalid value stops the server at start with a clear message. Never commit real secrets; production values belong in the hosting platform.
 
 ## API documentation
 
-Interactive docs: **http://localhost:3000/docs** (deployed: https://jalaspace.onrender.com/docs). The server root `/` redirects there.
+Interactive docs: **http://localhost:3000/docs** (deployed: https://jalaspace-backend-1097769575593.europe-north1.run.app/docs). The server root `/` redirects there.
 
 - `GET /docs` shows [Swagger UI](https://swagger.io/tools/swagger-ui/): every endpoint with its fields, rules, examples and error codes, and **Try it out** to send requests to this server. On the deployed API these requests change the shared demo data, like the app does.
 - `GET /docs/openapi.json` is the [OpenAPI 3.1](https://spec.openapis.org/oas/v3.1.0) description, e.g. for Postman or client generators.
@@ -348,7 +348,7 @@ curl -X POST http://localhost:3000/api/maintenance/suggestions \
 - Failures are logged without the title and description.
 - The provider is behind the `MaintenanceSuggester` interface (`src/ai/suggestions.ts`), so another provider can be added without changing the route. Tests use fakes and never call Gemini.
 
-Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Render, set it as a secret environment variable.
+Get a key at [Google AI Studio](https://aistudio.google.com/apikey). On Cloud Run it comes from Secret Manager (see Deployment in the [root README](../README.md#backend-api)); never put it in a plain environment variable.
 
 ### Questions (Ask JalaSpace)
 
@@ -400,7 +400,7 @@ Data is kept **in memory** and is lost when the server restarts. Routes use the 
 
 ### Demo data
 
-With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Render enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants, 62 leases and 8 applications, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
+With `SEED_DEMO_DATA=true`, the API starts with the demo data, so it is back after every restart. Docker Compose and Cloud Run enable it. The data matches the frontend seed, with the same ids (`property-joensuu-center`, `space-joensuu-center-1`, …) and dates relative to today; it has the 4 demo properties, their 68 spaces, 14 maintenance tasks, 31 tenants, 62 leases and 8 applications, and follows the same rules as data entered through the API: every occupied space has an active lease. Demo properties have spaces and demo tenants have leases, so they cannot be deleted. Date-only values such as due dates use the server's UTC calendar day.
 
 Restore it at any time, undoing all changes:
 
@@ -410,7 +410,7 @@ curl -X POST http://localhost:3000/api/demo/reset
 
 The reset endpoint exists only when `SEED_DEMO_DATA=true`, so it can never wipe non-demo data. Without the variable (as in the tests), the API starts empty.
 
-The API also restores the demo data **every night at `DEMO_RESET_AT`** (default 03:00 UTC). A server that never sleeps or restarts, e.g. when an uptime monitor keeps the free Render plan awake, would otherwise keep whatever visitors changed. Each reset is logged; a failed one is logged and the next one still runs.
+The API also restores the demo data **every night at `DEMO_RESET_AT`** (default 03:00 UTC). A server that never sleeps or restarts, such as the always-on Cloud Run instance, would otherwise keep whatever visitors changed. Each reset is logged; a failed one is logged and the next one still runs.
 
 ## Structure
 

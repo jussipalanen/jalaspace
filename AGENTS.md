@@ -423,6 +423,7 @@ jalaspace/
 │   ├── workflows/
 │   │   ├── ci.yml
 │   │   ├── dependency-check.yml
+│   │   ├── deploy.yml
 │   │   ├── developer-agent.yml
 │   │   ├── pr-conventions.yml
 │   │   └── release.yml
@@ -1889,7 +1890,7 @@ The demo application uses:
 ```text
 development   localStorage (npm run dev) or api (Docker Compose, local API)
 preview       localStorage, so a preview never changes the public data
-production    api, the shared demo API on Render
+production    api, the shared demo API on Google Cloud Run
 ```
 
 Do not connect preview environments to production data: not to the production API's data, and not to a future production database.
@@ -1926,11 +1927,11 @@ Environment:
 ```env
 # Production
 VITE_DATA_PROVIDER=api
-VITE_API_URL=https://jalaspace.onrender.com
+VITE_API_URL=https://jalaspace-backend-1097769575593.europe-north1.run.app
 
 # Preview
 VITE_DATA_PROVIDER=localStorage
-VITE_API_URL=https://jalaspace.onrender.com
+VITE_API_URL=https://jalaspace-backend-1097769575593.europe-north1.run.app
 ```
 
 Pull Requests may create preview deployments.

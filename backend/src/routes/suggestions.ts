@@ -34,7 +34,7 @@ export function suggestionsRouter({
     const parsed = parseSuggestionRequest(request.body)
     if (!parsed.ok) throw new ApiError(400, 'validation_failed', { fields: parsed.errors })
 
-    // `request.ip` is the client, not Render's proxy, when `trust proxy` is set.
+    // `request.ip` is the client, not the hosting platform's proxy, when `trust proxy` is set.
     const limit = rateLimiter.hit(request.ip ?? 'unknown')
     if (!limit.allowed) {
       response.set('Retry-After', String(limit.retryAfterSeconds))
