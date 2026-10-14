@@ -16,12 +16,12 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.3.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^24.19.1",
-    "oxlint": "^1.86.0",
+    "@types/node": "^24.19.2",
+    "oxlint": "^1.87.0",
     "typescript": "~7.0.2",
     "vitest": "^5.0.3"
   }
