@@ -475,23 +475,26 @@ https://jalaspace-backend-1097769575593.europe-north1.run.app
 | Memory            | 512 MiB | |
 | Startup CPU boost | On | |
 | Access            | Public (`--allow-unauthenticated`) | The browser calls the API directly |
-| Environment       | `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace-demo.jussialanen.com,https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` from Secret Manager (`jalaspace-gemini-api-key`); Cloud Run sets `PORT` | |
+| Environment       | [`backend/cloud-run.env.yaml`](backend/cloud-run.env.yaml): `SEED_DEMO_DATA`, `TRUST_PROXY`, `CORS_ORIGINS`; `GEMINI_API_KEY` from Secret Manager (`jalaspace-gemini-api-key`); Cloud Run sets `PORT` | Every deploy applies them |
 
 - **Costs:** roughly 8–10 US dollars a month, almost all of it the idle instance (see [Cloud Run pricing](https://cloud.google.com/run/pricing)). Cloud Build's free monthly minutes cover the builds, and the Artifact Registry cleanup policy keeps the three newest images. A budget alert (Billing → Budgets & alerts) emails when costs go over the amount; it doesn't stop the service. With `--min-instances 0` the service fits in the free tier, but the first visit after a quiet period waits a few seconds.
-- **Deploys:** [`deploy.yml`](.github/workflows/deploy.yml) deploys the backend on every push to `main` that changes `backend/`, after the CI checks pass, and then calls `/api/health`. It can also be started from the Actions tab (**Deploy backend → Run workflow**). It signs in with Workload Identity Federation, so no Google key is stored in GitHub, and only this repository's `main` branch can use it. Without the `GCP_*` repository variables it is skipped.
-- **Manual deploys:** `./dev deploy` deploys the backend in your working copy to gcloud's active project and prints the project first. Extra arguments go to `gcloud run deploy`, e.g. `./dev deploy --quiet`. Deploy only reviewed code from `main`: the service is production.
-- **Settings** stay as they were set by hand; deploys change only the code. Change environment variables with `./dev cloud-env` in gcloud's active project; each change starts a new instance, which restores the demo data:
+- **Deploys:** [`deploy.yml`](.github/workflows/deploy.yml) deploys the backend on every push to `main` that changes `backend/` (including `cloud-run.env.yaml`), after the CI checks pass, and then calls `/api/health`. It can also be started from the Actions tab (**Deploy backend → Run workflow**). It signs in with Workload Identity Federation, so no Google key is stored in GitHub, and only this repository's `main` branch can use it. Without the `GCP_*` repository variables it is skipped.
+- **Manual deploys:** `./dev deploy` deploys the backend in your working copy, with the same variables and secrets as the workflow, to gcloud's active project and prints the project first. Extra arguments go to `gcloud run deploy`, e.g. `./dev deploy --quiet`. Deploy only reviewed code from `main`: the service is production.
+- **Environment variables** are in [`backend/cloud-run.env.yaml`](backend/cloud-run.env.yaml): change them there in a pull request, and the deploy after merging sets exactly the variables in the file (a variable removed from it is removed from the service). The file is public, so it never contains secrets. Secrets live in Secret Manager; the deploy refers to them by name only (`SECRETS` in `deploy.yml`, `CLOUD_RUN_SECRETS` in `dev`).
+- **`./dev cloud-env`** inspects and changes the service directly, in gcloud's active project. `set` and `unset` last only until the next deploy, so they suit trying a value; each change starts a new instance, which restores the demo data:
 
   | Command | What it does |
   | ------- | ------------ |
   | `./dev cloud-env list` | Shows the variables; secrets by name only, never their values |
-  | `./dev cloud-env set KEY=VALUE …` | Adds or changes variables; values may contain commas, e.g. `CORS_ORIGINS` |
-  | `./dev cloud-env unset KEY …` | Removes variables |
+  | `./dev cloud-env set KEY=VALUE …` | Adds or changes variables until the next deploy; values may contain commas, e.g. `CORS_ORIGINS` |
+  | `./dev cloud-env unset KEY …` | Removes variables until the next deploy |
   | `./dev cloud-env secret KEY` | Asks for the value without showing it, stores it in Secret Manager (`GEMINI_API_KEY` → `jalaspace-gemini-api-key`), lets the service read it and gives it to the service as `KEY`. Run it again to replace the value |
 
   Variables belong to this service alone, so they need no prefix even though JalaOps runs in the same project. Secret names are shared by the whole project, so they start with `jalaspace-`.
 
-  Other settings: `gcloud run services update jalaspace-backend --region europe-north1 --min-instances 0`, for example.
+  A new secret must also be added to `SECRETS` in `deploy.yml` and `CLOUD_RUN_SECRETS` in `dev`; the command reminds you.
+
+  Other settings (instances, CPU, memory) stay as they were set by hand: `gcloud run services update jalaspace-backend --region europe-north1 --min-instances 0`, for example.
 - The API keeps its data in memory, so changes are lost whenever the instance restarts: on every deploy or settings change, and now and then when Google moves the instance. It then starts again with the demo data (`SEED_DEMO_DATA=true`). It also restores the demo data every night at 03:00 UTC (`DEMO_RESET_AT`). A database comes later.
 - The public frontend (Vercel Production) reads and saves all data through this API, so every visitor shares one dataset. Sign-in is simulated in the browser, so anyone can change the data or reset it for everyone; it is demo data only.
 - The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits). Cloud Run adds the visitor's address last in `X-Forwarded-For`, so `TRUST_PROXY=1` reads it correctly.
@@ -512,7 +515,7 @@ DEPLOYER=github-deployer@$PROJECT_ID.iam.gserviceaccount.com
 # First deploy: creates the service with the settings above.
 gcloud run deploy jalaspace-backend --source backend --project $PROJECT_ID --region $REGION \
   --allow-unauthenticated --min-instances 1 --max-instances 1 --cpu 1 --memory 512Mi --cpu-boost \
-  --set-env-vars "^;^SEED_DEMO_DATA=true;TRUST_PROXY=1;CORS_ORIGINS=https://jalaspace-demo.jussialanen.com,https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173"
+  --env-vars-file backend/cloud-run.env.yaml
 
 # The Gemini key as a Secret Manager secret the service can read (asks for the key, doesn't show it).
 ./dev cloud-env secret GEMINI_API_KEY
