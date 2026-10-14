@@ -20,6 +20,8 @@ services:
   backend:
     build:
       context: ./backend
+      # The development stage; Cloud Run uses the production stage.
+      target: development
     ports:
       - '3000:3000'
     volumes:
