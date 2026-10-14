@@ -442,7 +442,7 @@ Dependencies are also monitored between pull requests:
 <details>
 <summary><h2>Deployment</h2></summary>
 
-The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace.vercel.app.
+The frontend is deployed to [Vercel](https://vercel.com) at https://jalaspace-demo.jussialanen.com (https://jalaspace.vercel.app redirects there).
 
 | Setting           | Value           |
 | ----------------- | --------------- |
@@ -475,7 +475,7 @@ https://jalaspace-backend-1097769575593.europe-north1.run.app
 | Memory            | 512 MiB | |
 | Startup CPU boost | On | |
 | Access            | Public (`--allow-unauthenticated`) | The browser calls the API directly |
-| Environment       | `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` from Secret Manager (`jalaspace-gemini-api-key`); Cloud Run sets `PORT` | |
+| Environment       | `SEED_DEMO_DATA=true`, `TRUST_PROXY=1`, `CORS_ORIGINS=https://jalaspace-demo.jussialanen.com,https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173`; `GEMINI_API_KEY` from Secret Manager (`jalaspace-gemini-api-key`); Cloud Run sets `PORT` | |
 
 - **Costs:** roughly 8–10 US dollars a month, almost all of it the idle instance (see [Cloud Run pricing](https://cloud.google.com/run/pricing)). Cloud Build's free monthly minutes cover the builds, and the Artifact Registry cleanup policy keeps the three newest images. A budget alert (Billing → Budgets & alerts) emails when costs go over the amount; it doesn't stop the service. With `--min-instances 0` the service fits in the free tier, but the first visit after a quiet period waits a few seconds.
 - **Deploys:** [`deploy.yml`](.github/workflows/deploy.yml) deploys the backend on every push to `main` that changes `backend/`, after the CI checks pass, and then calls `/api/health`. It can also be started from the Actions tab (**Deploy backend → Run workflow**). It signs in with Workload Identity Federation, so no Google key is stored in GitHub, and only this repository's `main` branch can use it. Without the `GCP_*` repository variables it is skipped.
@@ -495,7 +495,7 @@ https://jalaspace-backend-1097769575593.europe-north1.run.app
 - The API keeps its data in memory, so changes are lost whenever the instance restarts: on every deploy or settings change, and now and then when Google moves the instance. It then starts again with the demo data (`SEED_DEMO_DATA=true`). It also restores the demo data every night at 03:00 UTC (`DEMO_RESET_AT`). A database comes later.
 - The public frontend (Vercel Production) reads and saves all data through this API, so every visitor shares one dataset. Sign-in is simulated in the browser, so anyone can change the data or reset it for everyone; it is demo data only.
 - The API limits writes per visitor (60 per minute, 10 demo resets per hour) and the number of stored records, so no one can flood the shared data or fill the server's memory. See [Limits](backend/README.md#limits). Cloud Run adds the visitor's address last in `X-Forwarded-For`, so `TRUST_PROXY=1` reads it correctly.
-- `CORS_ORIGINS` allows the production site, this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
+- `CORS_ORIGINS` allows the production site (the custom domain and its `vercel.app` address), this project's own preview URLs (`jalaspace-…-juzapalagmailcoms-projects.vercel.app`) and `http://localhost:5173`, so a local `npm run dev` can use the deployed API. A plain `https://jalaspace-*.vercel.app` would also match other people's Vercel projects.
 
 <details>
 <summary>One-time Google Cloud setup</summary>
@@ -512,7 +512,7 @@ DEPLOYER=github-deployer@$PROJECT_ID.iam.gserviceaccount.com
 # First deploy: creates the service with the settings above.
 gcloud run deploy jalaspace-backend --source backend --project $PROJECT_ID --region $REGION \
   --allow-unauthenticated --min-instances 1 --max-instances 1 --cpu 1 --memory 512Mi --cpu-boost \
-  --set-env-vars "^;^SEED_DEMO_DATA=true;TRUST_PROXY=1;CORS_ORIGINS=https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173"
+  --set-env-vars "^;^SEED_DEMO_DATA=true;TRUST_PROXY=1;CORS_ORIGINS=https://jalaspace-demo.jussialanen.com,https://jalaspace.vercel.app,https://jalaspace-*-juzapalagmailcoms-projects.vercel.app,http://localhost:5173"
 
 # The Gemini key as a Secret Manager secret the service can read (asks for the key, doesn't show it).
 ./dev cloud-env secret GEMINI_API_KEY
