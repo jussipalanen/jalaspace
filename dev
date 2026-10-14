@@ -26,6 +26,8 @@ Without a service, commands act on both frontend and backend (shell defaults to 
   test [service]       Run the unit tests
   check [service]      Run lint, typecheck and tests
   clean                Stop and remove the containers and their node_modules volumes
+  deploy [args]        Deploy the backend in this working copy to Cloud Run (needs gcloud);
+                       args go to gcloud run deploy, e.g. ./dev deploy --quiet
   help                 Show this help
 
 Commands that run npm scripts use the running container, or a temporary one when it is stopped.
@@ -93,10 +95,22 @@ print_urls() {
   echo "Logs: ./dev logs"
 }
 
-command -v docker >/dev/null || die "docker is not installed"
-
 cmd=${1:-help}
 shift || true
+
+# Builds backend/Dockerfile with Cloud Build and deploys a new revision to Cloud Run
+# in gcloud's active project. The service keeps its other settings and environment variables.
+if [[ $cmd == deploy ]]; then
+  command -v gcloud >/dev/null || die "gcloud is not installed"
+  service=${CLOUD_RUN_SERVICE:-jalaspace-backend}
+  region=${CLOUD_RUN_REGION:-europe-north1}
+  project=$(gcloud config get-value project 2>/dev/null)
+  [[ -n $project ]] || die "no gcloud project; run: gcloud config set project <project-id>"
+  echo "Deploying $service to Cloud Run (project $project, region $region)."
+  exec gcloud run deploy "$service" --source backend --region "$region" "$@"
+fi
+
+command -v docker >/dev/null || die "docker is not installed"
 
 case $cmd in
   up)
