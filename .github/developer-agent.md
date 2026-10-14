@@ -73,7 +73,7 @@ Your task ends at the pull request.
 Unless the issue explicitly asks for it with a clear scope, do not change:
 
 * demo authentication, credentials or password handling
-* deployment and infrastructure: Dockerfiles, `docker-compose.yml`, Vercel and Render configuration
+* deployment and infrastructure: Dockerfiles, `docker-compose.yml`, Vercel, Cloud Run and Render configuration, the deploy workflow
 * `.env` files, secrets or credentials
 * release files: `CHANGELOG.md`, `.release-please-manifest.json`, `release-please-config.json` and version fields
 * `AGENTS.md`, `CLAUDE.md` and this file

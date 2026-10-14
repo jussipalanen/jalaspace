@@ -42,7 +42,7 @@ export const DEFAULT_COLLECTION_LIMITS: CollectionLimits = {
 /** Counts a request against `limiter`, or throws `429 rate_limited` with `Retry-After`. */
 function limitWith(limiter: RateLimiter): RequestHandler {
   return (request, response, next) => {
-    // `request.ip` is the client, not Render's proxy, when `trust proxy` is set.
+    // `request.ip` is the client, not the hosting platform's proxy, when `trust proxy` is set.
     const result = limiter.hit(request.ip ?? 'unknown')
     if (!result.allowed) {
       response.set('Retry-After', String(result.retryAfterSeconds))

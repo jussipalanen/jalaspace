@@ -26,6 +26,16 @@ Without a service, commands act on both frontend and backend (shell defaults to 
   test [service]       Run the unit tests
   check [service]      Run lint, typecheck and tests
   clean                Stop and remove the containers and their node_modules volumes
+  deploy [args]        Deploy the backend in this working copy to Cloud Run (needs gcloud);
+                       args go to gcloud run deploy, e.g. ./dev deploy --quiet
+  cloud-env list       Show the Cloud Run service's environment variables (secrets by name only)
+  cloud-env set KEY=VALUE...
+                       Add or change environment variables, e.g. ./dev cloud-env set DEMO_RESET_AT=04:00
+  cloud-env unset KEY...
+                       Remove environment variables
+  cloud-env secret KEY Ask for a value without showing it, store it in Secret Manager and
+                       give it to the service as KEY, e.g. ./dev cloud-env secret GEMINI_API_KEY
+                       Each change starts a new revision, which restores the demo data.
   help                 Show this help
 
 Commands that run npm scripts use the running container, or a temporary one when it is stopped.
@@ -93,10 +103,109 @@ print_urls() {
   echo "Logs: ./dev logs"
 }
 
-command -v docker >/dev/null || die "docker is not installed"
-
 cmd=${1:-help}
 shift || true
+
+# Cloud Run commands use gcloud's active project instead of Docker. Environment
+# variables belong to the service, so their names need no prefix; secret names are
+# project-wide, so they start with jalaspace-.
+CLOUD_RUN_SERVICE=${CLOUD_RUN_SERVICE:-jalaspace-backend}
+CLOUD_RUN_REGION=${CLOUD_RUN_REGION:-europe-north1}
+
+gcloud_project() {
+  command -v gcloud >/dev/null || die "gcloud is not installed"
+  PROJECT=$(gcloud config get-value project 2>/dev/null)
+  [[ -n $PROJECT ]] || die "no gcloud project; run: gcloud config set project <project-id>"
+}
+
+# Runs gcloud run services <command> for the service, e.g. run_service update --update-env-vars A=1.
+run_service() {
+  local command=$1
+  shift
+  gcloud run services "$command" "$CLOUD_RUN_SERVICE" --project "$PROJECT" --region "$CLOUD_RUN_REGION" "$@"
+}
+
+is_env_key() {
+  [[ $1 =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]
+}
+
+cloud_env() {
+  local action=${1:-list}
+  shift || true
+  gcloud_project
+  case $action in
+    list)
+      # Plain variables with their values; secrets show the secret's name, never its value.
+      run_service describe --format=json | node -e '
+        let json = ""
+        process.stdin.on("data", (chunk) => (json += chunk)).on("end", () => {
+          const env = JSON.parse(json).spec.template.spec.containers[0].env ?? []
+          for (const { name, value, valueFrom } of env) {
+            const ref = valueFrom?.secretKeyRef
+            console.log(ref ? `${name}  (secret ${ref.name}:${ref.key})` : `${name}=${value ?? ""}`)
+          }
+        })'
+      ;;
+    set)
+      [[ $# -ge 1 ]] || die "usage: ./dev cloud-env set KEY=VALUE..."
+      local pair flags=()
+      for pair in "$@"; do
+        [[ $pair == *=* ]] && is_env_key "${pair%%=*}" || die "expected KEY=VALUE, got '$pair'"
+        # ^@@^ makes @@ the separator, so values may contain commas (e.g. CORS_ORIGINS).
+        flags+=(--update-env-vars "^@@^$pair")
+      done
+      echo "Updating $CLOUD_RUN_SERVICE (project $PROJECT): ${*%%=*}"
+      run_service update "${flags[@]}"
+      ;;
+    unset)
+      [[ $# -ge 1 ]] || die "usage: ./dev cloud-env unset KEY..."
+      local key
+      for key in "$@"; do is_env_key "$key" || die "not a variable name: '$key'"; done
+      run_service update --remove-env-vars "$(IFS=,; echo "$*")"
+      ;;
+    secret)
+      [[ $# -eq 1 ]] && is_env_key "$1" || die "usage: ./dev cloud-env secret KEY"
+      local key=$1 secret value account
+      # GEMINI_API_KEY → jalaspace-gemini-api-key
+      secret="jalaspace-$(tr '[:upper:]_' '[:lower:]-' <<<"$key")"
+      read -rsp "Value for $key (not shown): " value
+      echo
+      [[ -n $value ]] || die "empty value"
+      gcloud services enable secretmanager.googleapis.com --project "$PROJECT"
+      if gcloud secrets describe "$secret" --project "$PROJECT" >/dev/null 2>&1; then
+        printf %s "$value" | gcloud secrets versions add "$secret" --project "$PROJECT" --data-file=-
+      else
+        printf %s "$value" | gcloud secrets create "$secret" --project "$PROJECT" --replication-policy=automatic --data-file=-
+        # The service runs as its own account, or as the Compute Engine default account.
+        account=$(run_service describe --format='value(spec.template.spec.serviceAccountName)')
+        [[ -n $account ]] || account="$(gcloud projects describe "$PROJECT" --format='value(projectNumber)')-compute@developer.gserviceaccount.com"
+        gcloud secrets add-iam-policy-binding "$secret" --project "$PROJECT" \
+          --member="serviceAccount:$account" --role=roles/secretmanager.secretAccessor --format=none
+      fi
+      unset value
+      # A plain variable with the same name must go first; gcloud cannot turn it into a secret.
+      run_service update --update-secrets "$key=$secret:latest"
+      ;;
+    *)
+      die "usage: ./dev cloud-env list|set|unset|secret"
+      ;;
+  esac
+}
+
+# Builds backend/Dockerfile with Cloud Build and deploys a new revision to Cloud Run.
+# The service keeps its other settings and environment variables.
+if [[ $cmd == deploy ]]; then
+  gcloud_project
+  echo "Deploying $CLOUD_RUN_SERVICE to Cloud Run (project $PROJECT, region $CLOUD_RUN_REGION)."
+  exec gcloud run deploy "$CLOUD_RUN_SERVICE" --source backend --region "$CLOUD_RUN_REGION" "$@"
+fi
+
+if [[ $cmd == cloud-env ]]; then
+  cloud_env "$@"
+  exit
+fi
+
+command -v docker >/dev/null || die "docker is not installed"
 
 case $cmd in
   up)

@@ -51,7 +51,7 @@ export interface AppOptions {
   collectionLimits?: CollectionLimits
   /** Origins allowed to call the API from a browser (default: none). */
   corsOrigins?: readonly string[]
-  /** Number of proxies in front of the API, e.g. 1 on Render (default: 0). */
+  /** Number of proxies in front of the API, e.g. 1 on Cloud Run and Render (default: 0). */
   trustProxy?: number
   /** Extra routers mounted under /api, e.g. in tests. */
   routers?: Router[]

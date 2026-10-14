@@ -27,7 +27,7 @@ updates:
     open-pull-requests-limit: 5
     ignore:
       # @types/node must match the Node.js major the API runs on (backend/.nvmrc,
-      # Render NODE_VERSION). Upgrade them together when moving to a new LTS.
+      # the node image in backend/Dockerfile). Upgrade them together when moving to a new LTS.
       - dependency-name: '@types/node'
         update-types: ['version-update:semver-major']
     commit-message:

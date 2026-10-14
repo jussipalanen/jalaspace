@@ -12,7 +12,7 @@ export interface Config {
   geminiModel: string
   /** Origins allowed to call the API from a browser; `*` matches one host label part. */
   corsOrigins: string[]
-  /** Number of proxies in front of the API (Render: 1), so the client IP is read correctly. */
+  /** Number of proxies in front of the API (Cloud Run and Render: 1), so the client IP is read correctly. */
   trustProxy: number
   /** Writes (POST, PUT, DELETE) allowed per client and minute. */
   writeRateLimit: number

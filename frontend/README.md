@@ -59,7 +59,7 @@ Vite reads these variables when the dev server starts or the app is built. Copy 
 | `npm run dev`             | `localStorage` | Optional |
 | Docker Compose            | `api`          | The local API container |
 | Vercel preview            | `localStorage` | The deployed API, for the AI features only |
-| Vercel production         | `api`          | The deployed API on Render |
+| Vercel production         | `api`          | The deployed API on Google Cloud Run |
 | Unit and E2E tests        | Fixed by the test configs, see [Testing](#testing) | |
 
 `VITE_` variables end up in the browser bundle, so never put secrets in them. `.env.local` is git-ignored; if yours points at the deployed API, the dev server changes the public demo data.
@@ -145,7 +145,7 @@ ApiRepository → REST API         VITE_DATA_PROVIDER=api
 
 At startup, [`main.tsx`](src/main.tsx):
 
-1. starts waking the API when the data lives there (the free Render instance sleeps);
+1. starts waking the API when the data lives there (an API that sleeps or restarts can take a while to answer);
 2. seeds the demo data if this browser has none, or an older `SEED_VERSION`;
 3. with `localStorage`, updates space statuses for leases that started or ended since the last visit (the API does this itself).
 
