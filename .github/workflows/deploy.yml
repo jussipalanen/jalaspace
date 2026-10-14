@@ -24,6 +24,8 @@ concurrency:
 env:
   SERVICE: jalaspace-backend
   REGION: europe-north1
+  # Secret Manager references, not values: VARIABLE=secret:version. Keep in step with the dev script.
+  SECRETS: GEMINI_API_KEY=jalaspace-gemini-api-key:latest
 
 jobs:
   ci:
@@ -50,8 +52,9 @@ jobs:
       - uses: google-github-actions/setup-gcloud@aa5489c8933f4cc7a4f7d45035b3b1440c9c10db # v3.0.1
 
       # Builds the production stage of backend/Dockerfile with Cloud Build and
-      # deploys a new revision. The service's other settings (instances, CPU,
-      # memory, environment variables, secrets) stay as they were set by hand.
+      # deploys a new revision with exactly the variables in cloud-run.env.yaml
+      # and the secrets above. Other settings (instances, CPU, memory) stay as
+      # they were set by hand.
       - name: Deploy
         env:
           PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
@@ -60,6 +63,8 @@ jobs:
           --source backend
           --region "$REGION"
           --project "$PROJECT_ID"
+          --env-vars-file backend/cloud-run.env.yaml
+          --update-secrets "$SECRETS"
           --quiet
 
       - name: Check the health endpoint

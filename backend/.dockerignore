@@ -10,3 +10,5 @@ coverage
 .DS_Store
 Dockerfile
 .dockerignore
+# Cloud Run settings, applied by gcloud, not needed in the image.
+cloud-run.env.yaml

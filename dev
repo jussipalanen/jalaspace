@@ -26,13 +26,15 @@ Without a service, commands act on both frontend and backend (shell defaults to 
   test [service]       Run the unit tests
   check [service]      Run lint, typecheck and tests
   clean                Stop and remove the containers and their node_modules volumes
-  deploy [args]        Deploy the backend in this working copy to Cloud Run (needs gcloud);
-                       args go to gcloud run deploy, e.g. ./dev deploy --quiet
+  deploy [args]        Deploy the backend in this working copy to Cloud Run (needs gcloud) with the
+                       variables in backend/cloud-run.env.yaml; args go to gcloud run deploy,
+                       e.g. ./dev deploy --quiet
   cloud-env list       Show the Cloud Run service's environment variables (secrets by name only)
   cloud-env set KEY=VALUE...
-                       Add or change environment variables, e.g. ./dev cloud-env set DEMO_RESET_AT=04:00
+                       Add or change environment variables until the next deploy, e.g. to try a
+                       value; to keep it, change backend/cloud-run.env.yaml instead
   cloud-env unset KEY...
-                       Remove environment variables
+                       Remove environment variables until the next deploy
   cloud-env secret KEY Ask for a value without showing it, store it in Secret Manager and
                        give it to the service as KEY, e.g. ./dev cloud-env secret GEMINI_API_KEY
                        Each change starts a new revision, which restores the demo data.
@@ -111,6 +113,14 @@ shift || true
 # project-wide, so they start with jalaspace-.
 CLOUD_RUN_SERVICE=${CLOUD_RUN_SERVICE:-jalaspace-backend}
 CLOUD_RUN_REGION=${CLOUD_RUN_REGION:-europe-north1}
+# The service's variables and secret references, as deploy.yml sets them.
+CLOUD_RUN_ENV_FILE=backend/cloud-run.env.yaml
+CLOUD_RUN_SECRETS=GEMINI_API_KEY=jalaspace-gemini-api-key:latest
+
+# Changes made by hand last only until the next deploy.
+warn_env_file() {
+  echo "Note: the next deploy sets the variables in $CLOUD_RUN_ENV_FILE again; change that file to keep this." >&2
+}
 
 gcloud_project() {
   command -v gcloud >/dev/null || die "gcloud is not installed"
@@ -156,12 +166,14 @@ cloud_env() {
       done
       echo "Updating $CLOUD_RUN_SERVICE (project $PROJECT): ${*%%=*}"
       run_service update "${flags[@]}"
+      warn_env_file
       ;;
     unset)
       [[ $# -ge 1 ]] || die "usage: ./dev cloud-env unset KEY..."
       local key
       for key in "$@"; do is_env_key "$key" || die "not a variable name: '$key'"; done
       run_service update --remove-env-vars "$(IFS=,; echo "$*")"
+      warn_env_file
       ;;
     secret)
       [[ $# -eq 1 ]] && is_env_key "$1" || die "usage: ./dev cloud-env secret KEY"
@@ -185,6 +197,8 @@ cloud_env() {
       unset value
       # A plain variable with the same name must go first; gcloud cannot turn it into a secret.
       run_service update --update-secrets "$key=$secret:latest"
+      [[ ,$CLOUD_RUN_SECRETS, == *,$key=* ]] ||
+        echo "Note: add $key=$secret:latest to SECRETS in .github/workflows/deploy.yml and CLOUD_RUN_SECRETS in dev." >&2
       ;;
     *)
       die "usage: ./dev cloud-env list|set|unset|secret"
@@ -192,12 +206,14 @@ cloud_env() {
   esac
 }
 
-# Builds backend/Dockerfile with Cloud Build and deploys a new revision to Cloud Run.
-# The service keeps its other settings and environment variables.
+# Builds backend/Dockerfile with Cloud Build and deploys a new revision to Cloud Run with
+# the variables in CLOUD_RUN_ENV_FILE and the secrets in CLOUD_RUN_SECRETS, as deploy.yml does.
+# The service keeps its other settings (instances, CPU, memory).
 if [[ $cmd == deploy ]]; then
   gcloud_project
   echo "Deploying $CLOUD_RUN_SERVICE to Cloud Run (project $PROJECT, region $CLOUD_RUN_REGION)."
-  exec gcloud run deploy "$CLOUD_RUN_SERVICE" --source backend --region "$CLOUD_RUN_REGION" "$@"
+  exec gcloud run deploy "$CLOUD_RUN_SERVICE" --source backend --region "$CLOUD_RUN_REGION" \
+    --env-vars-file "$CLOUD_RUN_ENV_FILE" --update-secrets "$CLOUD_RUN_SECRETS" "$@"
 fi
 
 if [[ $cmd == cloud-env ]]; then
