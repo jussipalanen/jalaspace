@@ -5,6 +5,13 @@ Versions follow [Semantic Versioning](https://semver.org/). Entries are generate
 [release-please](https://github.com/googleapis/release-please) from
 [Conventional Commits](https://www.conventionalcommits.org/); see "Versioning and Releases" in AGENTS.md.
 
+## [0.22.1](https://github.com/jussipalanen/jalaspace/compare/v0.22.0...v0.22.1) (2026-10-27)
+
+
+### Fixed
+
+* **deps:** update Vite, Express and body-parser to fix security advisories ([#185](https://github.com/jussipalanen/jalaspace/issues/185)) ([2e3b0a8](https://github.com/jussipalanen/jalaspace/commit/2e3b0a863c7ebdef217a0c02da655a8d983fb0fc))
+
 ## [0.22.0](https://github.com/jussipalanen/jalaspace/compare/v0.21.0...v0.22.0) (2026-10-07)
 
 
