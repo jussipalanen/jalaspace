@@ -21,8 +21,48 @@ defaults:
     working-directory: frontend
 
 jobs:
+  # Decides which checks a pull request needs from the files it changes. Skipped
+  # jobs count as passed for required checks. Pushes to main and deploy.yml run
+  # every check, and so does a pull request that changes this workflow.
+  changes:
+    name: changes
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+      frontendDocker: ${{ steps.filter.outputs.frontendDocker }}
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      # A pull request checks out its merge commit; its first parent is the base branch.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 2
+      - id: filter
+        working-directory: .
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            changed=$(git diff --name-only HEAD^1 HEAD)
+          fi
+          output() {
+            if [ "$EVENT_NAME" != pull_request ] ||
+              grep -qE "$2|^\.github/workflows/ci\.yml$" <<<"$changed"; then
+              echo "$1=true" >>"$GITHUB_OUTPUT"
+            else
+              echo "$1=false" >>"$GITHUB_OUTPUT"
+            fi
+          }
+          output frontend '^frontend/'
+          # The frontend image only installs dependencies; the source is mounted at runtime.
+          output frontendDocker '^frontend/(Dockerfile|\.dockerignore|package(-lock)?\.json)$'
+          output backend '^backend/'
+          cat "$GITHUB_OUTPUT"
+
   lint:
     name: lint
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -37,6 +77,8 @@ jobs:
 
   typecheck:
     name: typecheck
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -51,6 +93,8 @@ jobs:
 
   test:
     name: test
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -65,6 +109,8 @@ jobs:
 
   build:
     name: build
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -79,6 +125,8 @@ jobs:
 
   e2e:
     name: e2e
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -104,6 +152,8 @@ jobs:
 
   e2e-api:
     name: e2e-api
+    needs: changes
+    if: ${{ needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -147,6 +197,8 @@ jobs:
 
   docker-build:
     name: docker-build
+    needs: changes
+    if: ${{ needs.changes.outputs.frontendDocker == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -157,6 +209,8 @@ jobs:
   # Backend (Node.js API). Separate jobs so each can be a required status check.
   backend-lint:
     name: backend-lint
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -174,6 +228,8 @@ jobs:
 
   backend-typecheck:
     name: backend-typecheck
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -191,6 +247,8 @@ jobs:
 
   backend-test:
     name: backend-test
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     defaults:
@@ -223,6 +281,8 @@ jobs:
 
   backend-docker-build:
     name: backend-docker-build
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     defaults:

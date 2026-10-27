@@ -426,6 +426,18 @@ Each check is a separate job:
 | `backend-lint`, `backend-typecheck`, `backend-test`, `backend-security-audit` | The same checks for `backend/` |
 | `backend-docker-build` | Builds both stages of `backend/Dockerfile`, starts the production image and calls `/api/health` |
 
+On a pull request, a `changes` job first looks at the changed files and runs only the checks they need; the others are skipped, which counts as passed:
+
+| Changed files | Checks that run |
+| ------------- | --------------- |
+| `frontend/` | `lint`, `typecheck`, `test`, `build`, `e2e`, `e2e-api` |
+| `backend/` | `backend-lint`, `backend-typecheck`, `backend-test`, `backend-docker-build`, `e2e-api` |
+| `frontend/Dockerfile`, `frontend/.dockerignore`, `frontend/package.json`, `frontend/package-lock.json` | `docker-build` |
+| `.github/workflows/ci.yml` | every check |
+| anything else, e.g. documentation | only the security audits |
+
+`security-audit` and `backend-security-audit` always run, because new advisories appear without any change in the repository. Pushes to `main`, and the checks that `deploy.yml` runs before deploying, always run every check.
+
 After the checks pass on `main`, [`deploy.yml`](.github/workflows/deploy.yml) deploys a changed backend to Cloud Run (see Deployment).
 
 The Node.js version is read from [`frontend/.nvmrc`](frontend/.nvmrc) and [`backend/.nvmrc`](backend/.nvmrc), so CI and local development use the same version.
