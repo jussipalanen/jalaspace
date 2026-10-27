@@ -1737,6 +1737,8 @@ End-to-end tests (Playwright)
 
 Checks run as separate parallel jobs where practical, so each can be a required status check.
 
+On pull requests, a `changes` job skips the checks that the changed files cannot affect (frontend checks without `frontend/` changes, backend checks without `backend/` changes); skipped jobs count as passed for required checks. The security audits always run, and pushes to `main` run every check. When a new check is added, gate it on the matching area.
+
 Prefer the current supported Node.js LTS version.
 
 Use dependency caching where appropriate.
