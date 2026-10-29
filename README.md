@@ -7,6 +7,18 @@
 
 # JalaSpace
 
+[![CI](https://github.com/jussipalanen/jalaspace/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jussipalanen/jalaspace/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/jussipalanen/jalaspace)](https://github.com/jussipalanen/jalaspace/releases/latest)
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![CSS](https://img.shields.io/badge/CSS-663399?logo=css&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![HTML](https://img.shields.io/badge/HTML-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
+[![React](https://img.shields.io/badge/React-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Node.js 24](https://img.shields.io/badge/Node.js-24-5FA04E?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+
 A property and space management demo application built with React and TypeScript.
 It has a Node.js + TypeScript REST API in `backend/`.
 
